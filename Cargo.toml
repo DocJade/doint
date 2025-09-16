@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-diesel = { version = "2.2.12", features = ["mysql"] }
+bigdecimal = "0.4.8"
+diesel = { version = "2.2.12", features = ["mysql", "mysql_backend", "numeric", "r2d2"] }
+dotenvy = "0.15.7"
+log = "0.4.28"
 poise = "0.6.1"
-
-[workspace.lints.clippy]
-all = "warn" # Warn for all default Clippy lints
-pedantic = "warn" # Warn for all pedantic lints (can be noisy)
+tokio = { version = "1.47.1", features = ["rt", "rt-multi-thread"] }

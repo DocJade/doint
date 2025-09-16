@@ -1,3 +1,22 @@
-fn main() {
-    println!("Hello, world!");
+use doint::discord::start::create_client;
+use dotenvy::dotenv;
+use std::env;
+
+#[tokio::main]
+async fn main() {
+    // Get env vars
+    dotenv().ok();
+
+    // load in our token
+    let discord_token = env::var("DISCORD_TOKEN").expect("DISCORD_TOKEN must be set");
+
+    // And the database url
+    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+
+
+    // Run the bot.
+    let result = create_client(discord_token, database_url).await.start().await;
+    if let Err(error) = result {
+        panic!("Bot died! {error:#?}");
+    }
 }
