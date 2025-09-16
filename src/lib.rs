@@ -7,6 +7,8 @@ pub mod discord;
 mod types;
 mod database;
 mod invokable;
+mod consent;
+mod knob;
 
 // Diesel related
 mod schema;

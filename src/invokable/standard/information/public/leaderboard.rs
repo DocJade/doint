@@ -10,7 +10,7 @@ pub(crate) async fn leaderboard(
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
-    // Get a cobnnection
+    // Get a connection
     let mut conn = pool.get()?;
 
     // Go get the top 10 users

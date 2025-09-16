@@ -4,6 +4,7 @@ use log::info;
 // Starting the bot
 use poise::serenity_prelude as serenity;
 
+use crate::consent::consent_button::opt_in;
 use crate::discord::handlers::{error::handle_error, event::handle_discord_event};
 use crate::invokable::standard::information::public::leaderboard::leaderboard;
 use crate::types::serenity_types::{Context, Data, DbPool, Error};
@@ -20,7 +21,8 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
     .options(
         poise::FrameworkOptions {
             commands: vec![
-                leaderboard()
+                leaderboard(),
+                opt_in()
             ],
             // Handle errors when they occur.
             on_error: |error| {

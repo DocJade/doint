@@ -1,2 +1,3 @@
 // Simple queries to reduce duplication.
-pub mod top_n;
+pub(crate) mod top_n;
+pub(crate) mod get_user;
