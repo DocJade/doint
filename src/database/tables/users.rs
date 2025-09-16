@@ -2,7 +2,7 @@
 
 use diesel::prelude::*;
 
-#[derive(Queryable, Selectable, Insertable, Clone, Copy)]
+#[derive(Queryable, Selectable, Insertable, Identifiable, AsChangeset, Clone, Copy)]
 #[diesel(table_name = crate::schema::users)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub(crate) struct DointUser {

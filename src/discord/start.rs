@@ -6,7 +6,9 @@ use poise::serenity_prelude as serenity;
 
 use crate::consent::consent_button::opt_in;
 use crate::discord::handlers::{error::handle_error, event::handle_discord_event};
-use crate::invokable::standard::information::public::leaderboard::leaderboard;
+use crate::invocable::privileged::private::economy::{admin_bank_info, admin_set_tax_rate, admin_tax_now};
+use crate::invocable::standard::information::public::balance::balance;
+use crate::invocable::standard::information::public::leaderboard::leaderboard;
 use crate::types::serenity_types::{Context, Data, DbPool, Error};
 
 /// Create the client which will be used to start the bot.
@@ -21,8 +23,17 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
     .options(
         poise::FrameworkOptions {
             commands: vec![
+                // Onboarding
+                opt_in(),
+
+                // Normal user commands
                 leaderboard(),
-                opt_in()
+                balance(),
+
+                // Admin commands
+                admin_tax_now(),
+                admin_bank_info(),
+                admin_set_tax_rate(),
             ],
             // Handle errors when they occur.
             on_error: |error| {

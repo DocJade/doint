@@ -7,3 +7,4 @@ pub(crate) mod terms_and_conditions;
 pub(crate) mod roles;
 pub(crate) mod guild;
 pub(crate) mod channels;
+pub(crate) mod economy;
