@@ -1,6 +1,6 @@
 // Clicking the consent button adds you to the database.
 
-use crate::{database::queries::get_user::get_user, knob::terms_and_conditions::TERMS_AND_CONDITIONS_TEXT, schema::users::id, types::serenity_types::{Context, Data, Error}};
+use crate::{consent::dointer_role::{give_dointer_role, revoke_dointer_role}, database::queries::get_user::get_doint_user, knob::terms_and_conditions::TERMS_AND_CONDITIONS_TEXT, schema::users::id, types::serenity_types::{Context, Data, Error}};
 use log::{error, info, warn};
 use poise::{serenity_prelude as serenity, CreateReply};
 use diesel::{Connection, MysqlConnection};
@@ -21,7 +21,7 @@ pub(crate) async fn opt_in(
     let pool = ctx.data().db_pool.clone();
     let mut conn = pool.get()?;
 
-    if get_user(users_id, &mut conn)?.is_some() {
+    if get_doint_user(users_id, &mut conn)?.is_some() {
         // User is already in DB.
         // Tell user they are an idiot.
         // ephemeral so only they see it.
@@ -52,13 +52,18 @@ pub(crate) async fn opt_in(
 
     // We'll try replying 3 times before bailing out
     for _ in 0..3 {
-        if ctx.send(terms.clone()).await.is_ok() {
-            // Done!
-            return Ok(())
+        // Give them the dointer role.
+        if !give_dointer_role(ctx, users_id).await {
+            // Adding the role failed.
+            continue;
         }
+        if ctx.send(terms.clone()).await.is_err() { continue }
+        // User now has role, and saw message.
+        return Ok(());
     }
 
-    warn!("Failed to reply to user after adding them to the DB! Rolling back...");
+    // Failed to either give the user the role, or to tell them the T&C
+    warn!("New user enrollment failed! Rolling back...");
 
     // Unable to inform user the standard way...
     // Roll back the database add.
@@ -84,6 +89,14 @@ pub(crate) async fn opt_in(
             // TODO: This should message mods.
             return Err(Box::new(err))
         },
+    }
+
+    // Removing the role is done afterwards, since if they didnt get removed from the DB, they still need the role.
+    if !revoke_dointer_role(ctx, users_id).await {
+        // Removing the role failed.
+        warn!("User [{users_id}] now has the dointer role without being in the DB!");
+        // TODO: This should message mods.
+        // No error to return. We're done.
     }
     
     Ok(())

@@ -80,7 +80,10 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
 
     // Set gateway intents, ie get permission to do stuff.
     let intents =
-        serenity::GatewayIntents::non_privileged() | serenity::GatewayIntents::MESSAGE_CONTENT;
+        serenity::GatewayIntents::non_privileged() |
+        serenity::GatewayIntents::MESSAGE_CONTENT |
+        serenity::GatewayIntents::GUILD_MEMBERS | 
+        serenity::GatewayIntents::GUILD_VOICE_STATES;
 
     let client: Result<serenity::Client, serenity::Error> = serenity::ClientBuilder::new(discord_token, intents)
         .framework(wip_client)

@@ -7,6 +7,13 @@ async fn main() {
     // Get env vars
     dotenv().ok();
 
+    // Start logger.
+    // Everything besides the bot is turned off, otherwise the logs are noisy.
+    env_logger::Builder::new()
+        .filter_level(log::LevelFilter::Off)
+        .filter_module("doint", log::LevelFilter::Debug)
+        .init();
+
     // load in our token
     let discord_token = env::var("DISCORD_TOKEN").expect("DISCORD_TOKEN must be set");
 
