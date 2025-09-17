@@ -93,7 +93,7 @@ pub(crate) async fn pay(
         im_getting_paid.bal += payment;
 
         // Take the money from the sender
-        sender.bal -= transfer_fee;
+        sender.bal -= payment;
 
         // Now put the fees in the bank lil bro
         BankInterface::pay_bank(conn, sender, transfer_fee)?;

@@ -61,7 +61,7 @@ fn go_set_ubi_rate(conn: &mut MysqlConnection, new_rate: u16) -> bool {
     }
     let result = conn.transaction(|conn| {
         let mut update_bank: BankInfo = bank.first(conn)?;
-        update_bank.tax_rate = new_rate as i16;
+        update_bank.ubi_rate = new_rate as i16;
         update_bank.save_changes::<BankInfo>(conn)
     });
 

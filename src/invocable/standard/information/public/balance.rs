@@ -37,7 +37,7 @@ pub(crate) async fn balance(
     let doint_string = FormattingHelper::display_doint(user.bal);
 
     // Now print out their balance.
-    let response: String = format!("Balance sheet:\n- Doints: {doint_string}");
+    let response: String = format!("You currently have {doint_string}.");
 
     // Send it.
     let _ = ctx.say(response).await?;
