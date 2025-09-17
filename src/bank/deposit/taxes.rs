@@ -4,6 +4,7 @@ use diesel::result::Error;
 use diesel::{Connection, MysqlConnection};
 use diesel::prelude::*;
 use log::info;
+use crate::bank::bank_struct::BankInterface;
 use crate::database::tables::bank::BankInfo;
 use crate::schema::bank::dsl::bank;
 use crate::schema::users::bal;
@@ -12,16 +13,21 @@ use crate::schema::users::dsl::users;
 
 use crate::{database::tables::users::DointUser};
 
+impl BankInterface {
+    /// Immediately collect taxes from all users.
+    /// 
+    /// Taxes are based on a percentage of all of your doints at the moment taxes are taken.
+    /// 
+    /// Returns how many doints were collected into the bank.
+    /// 
+    /// Returns a diesel error if tax collection fails.
+    pub(crate) fn collect_taxes(conn: &mut MysqlConnection) -> Result<u32, Error> {
+        go_collect_taxes(conn)
+    }
+}
 
 
-/// Immediately collect taxes from all users.
-/// 
-/// Taxes are based on a percentage of all of your doints at the moment taxes are taken.
-/// 
-/// Returns how many doints were collected into the bank.
-/// 
-/// Returns a diesel error if tax collection fails.
-pub(crate) fn collect_taxes(conn: &mut MysqlConnection) -> Result<u32, Error> {
+fn go_collect_taxes(conn: &mut MysqlConnection) -> Result<u32, Error> {
     info!("Collecting taxes...");
     // Do this all in one go.
     // If any of this fails, the entire transaction will be rolled back, and taxes will not be collected.

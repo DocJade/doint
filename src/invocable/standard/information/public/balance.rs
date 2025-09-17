@@ -10,11 +10,11 @@ use crate::{
     }
 };
 
-use crate::discord::checks::consented::member_enrolled_in_doints;
+use crate::discord::checks::consented::ctx_member_enrolled_in_doints;
 
 
 /// See your doint balance.
-#[poise::command(slash_command, guild_only, aliases("bal"), check="member_enrolled_in_doints")]
+#[poise::command(slash_command, guild_only, aliases("bal"), check="ctx_member_enrolled_in_doints")]
 pub(crate) async fn balance(
     ctx: Context<'_>,
 ) -> Result<(), Error> {

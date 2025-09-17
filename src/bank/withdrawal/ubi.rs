@@ -6,6 +6,7 @@ use diesel::result::Error;
 use diesel::{Connection, MysqlConnection};
 use diesel::prelude::*;
 use log::{debug, info, warn};
+use crate::bank::bank_struct::BankInterface;
 use crate::database::tables::bank::BankInfo;
 use crate::schema::bank::dsl::bank;
 use crate::schema::users::dsl::users;
@@ -13,20 +14,27 @@ use crate::schema::users::dsl::users;
 
 use crate::{database::tables::users::DointUser};
 
+impl BankInterface {
+    /// Disperse UBI to all enrolled users.
+    /// 
+    /// The UBI rate is a percentage of all of the liquid doints currently in the bank, then that amount is split
+    /// between all dointers. Rounds down, with a minimum of 1 doint.
+    /// 
+    /// If the bank is too broke to afford UBI, dispersal will fail, returning None.
+    /// 
+    /// If UBI is disabled, IE the rate is set to 0, then Some(0) is returned.
+    /// 
+    /// Returns how many doints each user got.
+    /// 
+    /// Returns a diesel error if db stuff fails.
+    pub(crate) fn disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<u32>, Error> {
+        go_disperse_ubi(conn)
+    }
+}
 
-/// Disperse UBI to all enrolled users.
-/// 
-/// The UBI rate is a percentage of all of the liquid doints currently in the bank, then that amount is split
-/// between all dointers. Rounds down, with a minimum of 1 doint.
-/// 
-/// If the bank is too broke to afford UBI, dispersal will fail, returning None.
-/// 
-/// If UBI is disabled, IE the rate is set to 0, then Some(0) is returned.
-/// 
-/// Returns how many doints each user got.
-/// 
-/// Returns a diesel error if db stuff fails.
-pub(crate) fn disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<u32>, Error> {
+
+
+fn go_disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<u32>, Error> {
     info!("Distributing universal basic income...");
     // Do this all in one go.
     // All of this rolls back if UBI could not be dispersed.

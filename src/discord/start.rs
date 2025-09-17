@@ -3,6 +3,7 @@ use diesel::MysqlConnection;
 use log::info;
 // Starting the bot
 use poise::serenity_prelude as serenity;
+use std::error::Error;
 
 use crate::consent::consent_button::opt_in;
 use crate::discord::handlers::{error::handle_error, event::handle_discord_event};
@@ -10,7 +11,8 @@ use crate::invocable::privileged::private::economy::{admin_bank_info, admin_set_
 use crate::invocable::privileged::private::event::admin_force_disperse_ubi;
 use crate::invocable::standard::information::public::balance::balance;
 use crate::invocable::standard::information::public::leaderboard::leaderboard;
-use crate::types::serenity_types::{Context, Data, DbPool, Error};
+use crate::invocable::standard::information::public::payment::pay;
+use crate::types::serenity_types::{Context, Data, DbPool};
 
 /// Create the client which will be used to start the bot.
 /// 
@@ -30,6 +32,7 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
                 // Normal user commands
                 leaderboard(),
                 balance(),
+                pay(),
 
                 // Admin commands
                 admin_tax_now(),
@@ -39,7 +42,7 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
                 admin_set_ubi_rate(),
             ],
             // Handle errors when they occur.
-            on_error: |error| {
+            on_error: |error: poise::FrameworkError<'_, Data, Box<dyn Error + Send + Sync>>| {
                 todo!("error handler, weirdly wants to be on the heap. {error:#?}");
                 // handle_error(Box::new(&error));
             },

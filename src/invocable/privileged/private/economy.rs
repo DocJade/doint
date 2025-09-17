@@ -3,7 +3,7 @@
 use diesel::{Connection, RunQueryDsl};
 use poise::CreateReply;
 
-use crate::bank::modify::set_rate::set_tax_rate;
+use crate::bank::bank_struct::BankInterface;
 use crate::database::tables::bank::BankInfo;
 use crate::types::serenity_types::{Context, Data, Error};
 use crate::schema::bank::dsl::bank;
@@ -25,7 +25,7 @@ pub(crate) async fn admin_tax_now(
     let mut conn = pool.get()?;
 
     // Do the taxes.
-    let collected = crate::bank::deposit::taxes::collect_taxes(&mut conn)?;
+    let collected = BankInterface::collect_taxes(&mut conn)?;
 
     // Assemble a response
     let response = CreateReply::default().ephemeral(true).content(format!("Taxation collected {collected} doints."));
@@ -106,7 +106,7 @@ pub(crate) async fn admin_set_tax_rate(
 
     // Change the tax rate directly.
     // If user provides a bad rate, it'll fail.
-    let was_set = set_tax_rate(&mut conn, new_rate);
+    let was_set = BankInterface::set_tax_rate(&mut conn, new_rate);
 
     let response_text = if was_set { "Rate set." } else { "Failed to set rate." };
 
@@ -140,7 +140,7 @@ pub(crate) async fn admin_set_ubi_rate(
 
     // Change the tax rate directly.
     // If user provides a bad rate, it'll fail.
-    let was_set = set_tax_rate(&mut conn, new_rate);
+    let was_set = BankInterface::set_ubi_rate(&mut conn, new_rate);
 
     let response_text = if was_set { "Rate set." } else { "Failed to set rate." };
 
