@@ -117,3 +117,37 @@ pub(crate) async fn admin_set_tax_rate(
     let _ = ctx.send(response).await?;
     Ok(())
 }
+
+/// Set the universal income payout rate.
+/// 
+/// This may be automatically overridden later by other tax calculations.
+#[poise::command(slash_command,
+    guild_only,
+    required_permissions = "ADMINISTRATOR",
+    default_member_permissions = "ADMINISTRATOR" // Only admins can run/see this command.
+    )
+]
+pub(crate) async fn admin_set_ubi_rate(
+    ctx: Context<'_>,
+    #[description = "The new UBI rate. Needs to be between 0 and 1000 inclusive."]
+    new_rate: u16
+) -> Result<(), Error> {
+    // Get the database pool
+    let pool = ctx.data().db_pool.clone();
+
+    // Get a connection
+    let mut conn = pool.get()?;
+
+    // Change the tax rate directly.
+    // If user provides a bad rate, it'll fail.
+    let was_set = set_tax_rate(&mut conn, new_rate);
+
+    let response_text = if was_set { "Rate set." } else { "Failed to set rate." };
+
+    // Assemble a response
+    let response = CreateReply::default().ephemeral(true).content(response_text);
+
+    // Send it.
+    let _ = ctx.send(response).await?;
+    Ok(())
+}

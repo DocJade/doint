@@ -1,6 +1,7 @@
 // See your doint balance
 
 use crate::database::queries::get_user::get_doint_user;
+use crate::formatting::format_struct::FormattingHelper;
 use crate::{
     types::serenity_types::{
         Context,
@@ -32,8 +33,11 @@ pub(crate) async fn balance(
         return Ok(());
     };
 
+    // Format the doint number
+    let doint_string = FormattingHelper::display_doint(user.bal);
+
     // Now print out their balance.
-    let response: String = format!("Balance sheet:\n- Doints: {}", user.bal);
+    let response: String = format!("Balance sheet:\n- Doints: {doint_string}");
 
     // Send it.
     let _ = ctx.say(response).await?;

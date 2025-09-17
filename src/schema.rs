@@ -7,6 +7,7 @@ diesel::table! {
         doints_on_hand -> Integer,
         total_doints -> Integer,
         tax_rate -> Smallint,
+        ubi_rate -> Smallint,
     }
 }
 

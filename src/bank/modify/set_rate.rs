@@ -34,3 +34,29 @@ pub(crate) fn set_tax_rate(conn: &mut MysqlConnection, new_rate: u16) -> bool {
     // Must have been set.
     true
 }
+
+/// Change the UBI rate of the bank.
+/// 
+/// Returns a Diesel error if change fails.
+/// 
+/// Returns a bool on if the tax rate was set or not.
+pub(crate) fn set_tax_rate(conn: &mut MysqlConnection, new_rate: u16) -> bool {
+    // Bounds check that new rate
+    if new_rate > 1000 {
+        // Too high, cant set.
+        return false;
+    }
+    let result = conn.transaction(|conn| {
+        let mut update_bank: BankInfo = bank.first(conn)?;
+        update_bank.tax_rate = new_rate as i16;
+        update_bank.save_changes::<BankInfo>(conn)
+    });
+
+    if result.is_err() {
+        // Didn't set.
+        return false
+    }
+
+    // Must have been set.
+    true
+}

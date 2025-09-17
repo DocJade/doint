@@ -32,4 +32,9 @@ pub(crate) struct BankInfo {
     /// 
     /// 1: 0.1% tax rate.
     pub tax_rate: i16,
+
+    /// The percentage of the bank's money that will be spent on UBI every day
+    /// 
+    /// Expressed in same way as tax rate.
+    pub ubi_rate: i16,
 }

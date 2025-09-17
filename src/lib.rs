@@ -10,6 +10,8 @@ mod invocable;
 mod consent;
 mod knob;
 mod bank;
+mod event;
+mod formatting;
 
 // Diesel related
 mod schema;
