@@ -1,0 +1,165 @@
+// Flip a coin, double your money!
+
+use diesel::associations::HasTable;
+use diesel::{Connection, QueryDsl, RunQueryDsl, SaveChangesDsl};
+use log::{debug, warn};
+use poise::serenity_prelude::Member;
+
+use crate::bank::bank_struct::BankInterface;
+use crate::bank::movement::move_doints::{DointTransfer, DointTransferError, DointTransferParty, DointTransferReason, DointTransferReceipt};
+use crate::database::queries::get_user::get_doint_user;
+use crate::database::tables::users::DointUser;
+use crate::discord::checks::consented::{ctx_member_enrolled_in_doints, member_enrolled_in_doints};
+use crate::discord::helper::get_nick::get_display_name;
+use crate::formatting::format_struct::FormattingHelper;
+use crate::types::serenity_types::{Context, Error};
+use crate::schema::users::dsl::users;
+use rand::prelude::*;
+
+// a coin
+#[derive(Debug, poise::ChoiceParameter, PartialEq, Eq)]
+enum Coin {
+    #[name = "Heads."]
+    Heads,
+    #[name = "Tails"]
+    Tails
+}
+
+/// Flip a coin, pick a side. If you pick the correct side, you double your money (minus fees)
+#[poise::command(slash_command, guild_only, check="ctx_member_enrolled_in_doints")]
+pub(crate) async fn flip(
+    ctx: Context<'_>,
+    #[description = "Heads or tails?"]
+    side: Coin,
+    #[description = "How much are you betting?. 100 is 1.00"]
+    bet: u16,
+) -> Result<(), Error> {
+    debug!("User [{}] is playing coin flip, they bet {bet} and picked {side:?}", ctx.author().id.get());
+
+    // Get the database pool
+    let pool = ctx.data().db_pool.clone();
+
+    // Get a connection
+    let mut conn = pool.get()?;
+
+    // Get the user that is betting
+    let mut better = if let Some(found) = get_doint_user(ctx.author().id, &mut conn)? {
+        found
+    } else {
+        // Has role, but not in DB.
+        // TODO: error for this / correction
+        warn!("User not in DB!");
+        let _ = ctx.say("Uhh, you're not in the doint DB properly, tell doc.").await?;
+        return Ok(());
+    };
+
+    // Make sure the user can afford the bet.
+    let final_bet_amount: u16 = if better.bal < bet as i32 {
+        // User cant afford bet, Guess the'll bet it ALL! HAHA
+        debug!("User tried to bet more than they have, defaulting to all of their money...");
+        better.bal.try_into().unwrap() // Has to fit, since the old bet amount had to fit.
+    } else {
+        bet
+    };
+
+    // Can't flip nothing.
+    if final_bet_amount == 0 {
+        debug!("Flip was worth 0.");
+        let _ = ctx.say("Bet something, will ya?!").await?;
+        return Ok(());
+    }
+
+    // Make sure bank can afford the bet
+    if BankInterface::get_bank_balance(&mut conn)? < bet as i32 {
+        // bank couldn't pay this bet out
+        debug!("Bank cant afford bet.");
+        let _ = ctx.say("The bank doesn't have enough money for that bet, sorry.").await?;
+        return Ok(());
+    }
+
+    // The fee that would be paid if the user wins.
+    let fees_to_pay = BankInterface::calculate_fees(&mut conn, final_bet_amount.into())?;
+
+    // If the fees are more than or equal to the possible winnings, the flip is pointless.
+    if fees_to_pay >= final_bet_amount.into() {
+        debug!("Fees outweigh possible winnings.");
+        let _ = ctx.say("Fees on this flip would cost more than the winnings.").await?;
+        return Ok(());
+    }
+
+    // Do the coin flip.
+    // Heads or tails buddy?
+    let flip = if rand::random_bool(0.5) { // 50%
+        Coin::Heads
+    } else {
+        Coin::Tails
+    };
+
+    
+
+    // Now move money around
+    let receipt = conn.transaction(|conn| {
+        // If the user lost, just take their money
+        if flip != side {
+            // Lost!
+            let transfer = DointTransfer {
+                sender: DointTransferParty::DointUser(ctx.author().id.get()),
+                recipient: DointTransferParty::Bank,
+                transfer_amount: final_bet_amount.into(),
+                apply_fees: false, // fees get applied after wins
+                transfer_reason: DointTransferReason::CasinoLoss
+            };
+
+            // Need the receipt in both cases, since we need to know fees.
+            return BankInterface::bank_transfer(conn, transfer)
+        }
+
+        // User won!
+        // Remember to deduce their fee.
+        let take_home = final_bet_amount as u32 - fees_to_pay;
+        let transfer = DointTransfer {
+            sender: DointTransferParty::Bank,
+            recipient: DointTransferParty::DointUser(ctx.author().id.get()),
+            transfer_amount: take_home,
+            apply_fees: false, // already added in.
+            transfer_reason: DointTransferReason::CasinoWin
+        };
+
+        BankInterface::bank_transfer(conn, transfer)
+    })?;
+
+    // Build message.
+    // "[Heads/Tails]! You Won 1.23!\n\n-# Paid a fee of 0.05. (1.28 - 0.05 = 12.3)"
+    // "[Heads/Tails]! You lost 1.23!\n\n-# Better luck next time!"
+
+    let side_name = if flip == Coin::Heads {
+        "Heads"
+    } else {
+        "Tails"
+    };
+    let bet_size = FormattingHelper::display_doint(final_bet_amount.into());
+
+    // rest of the owl
+    let response = if flip == side {
+        // win
+        let paid_fees = FormattingHelper::display_doint(fees_to_pay.try_into().expect("Bet amounts are u16"));
+        let takeaway = FormattingHelper::display_doint(receipt.amount_sent.try_into().expect("Bet amounts are u16"));
+        format!("{side_name}! You won {takeaway}!\n\n-# Paid a fee of {paid_fees}. ({bet_size} - {paid_fees} = {takeaway})")
+    } else {
+        // | || || |_
+        format!("{side_name}! You lost {bet_size}!\n\n-# Better luck next time!")
+    };
+
+    // If they bet more than they're worth, we truncated the value. Make sure they know that happened.
+    let final_response = if final_bet_amount < bet {
+        // Over-bet
+        format!("You went all in!\n{response}")
+    } else {
+        // No adjustment was made
+        response
+    };
+
+    // Send it.
+    let _ = ctx.say(final_response).await?;
+    Ok(())
+}

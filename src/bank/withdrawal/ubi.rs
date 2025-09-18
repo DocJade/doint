@@ -44,7 +44,7 @@ fn go_disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<u32>, Error> {
 
         // Calculate the current ubi rate.
         // This is a multiplier, NOT a percentage.
-        let ubi_rate: f64 = f64::from(the_bank.tax_rate) / 1000.0;
+        let ubi_rate: f64 = f64::from(the_bank.ubi_rate) / 1000.0;
 
         // Skip UBI if disabled.
         if ubi_rate < 0.001 {

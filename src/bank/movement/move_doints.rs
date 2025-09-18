@@ -51,6 +51,8 @@ pub(crate) enum DointTransferParty {
 #[derive(PartialEq, Eq, Debug)]
 pub(crate) enum DointTransferReason {
     TaxCollection,
+    CasinoLoss,
+    CasinoWin,
     UniversalBasicIncome,
     UserPaymentNoReason,
     UserPaymentWithReason(String),
