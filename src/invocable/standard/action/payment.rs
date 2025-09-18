@@ -32,14 +32,6 @@ pub(crate) async fn pay(
     // Get a connection
     let mut conn = pool.get()?;
 
-    // Make sure the payment isnt too big
-    if payment as u64 > i32::MAX as u64 {
-        // pay too beeg. i dont think this should happen anwyays
-        debug!("Payment was bigger than i32 max. Not allowed. Skipping.");
-        let _ = ctx.say("Payment too large, Shouldn't happen, tell Doc.").await?;
-        return Ok(());
-    }
-
     // User cannot pay self
     if ctx.author().id.get() == recipient.user.id.get() {
         // bruh
@@ -53,14 +45,6 @@ pub(crate) async fn pay(
         // Recipient is not enrolled.
         debug!("Person user was trying to pay was not a dointer. Not allowed. Skipping.");
         let _ = ctx.say("You cant pay them, they aren't a dointer.").await?;
-        return Ok(())
-    }
-
-    // No negative payments.
-    if payment < 0 {
-        debug!("User tried to pay a negative amount. Not allowed. Skipping.");
-        let _ = ctx.say("Ha ha, very funny. You cant use this to steal money.").await?;
-        // TODO: Put user in jail for attempted robbery.
         return Ok(())
     }
 
