@@ -34,8 +34,8 @@ fn go_calculate_fees(conn: &mut MysqlConnection, transaction_amount: u32) -> Res
     // Rounds down.
     let percent_fee = f64::from(fee_info.percentage_fee) / 1000.0;
     #[allow(clippy::cast_sign_loss)] // Will be positive
-    #[allow(clippy::cast_possible_truncation)] // Floored
-    let calculated_percent_fee_int: u32 = (f64::from(transaction_amount) * percent_fee).floor() as u32;
+    #[allow(clippy::cast_possible_truncation)] // We round up because we're evil
+    let calculated_percent_fee_int: u32 = (f64::from(transaction_amount) * percent_fee).ceil() as u32;
 
     total_fee += calculated_percent_fee_int;
 

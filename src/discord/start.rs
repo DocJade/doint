@@ -11,7 +11,7 @@ use crate::invocable::privileged::private::economy::{admin_bank_info, admin_set_
 use crate::invocable::privileged::private::event::admin_force_disperse_ubi;
 use crate::invocable::standard::information::public::balance::balance;
 use crate::invocable::standard::information::public::leaderboard::leaderboard;
-use crate::invocable::standard::information::public::payment::pay;
+use crate::invocable::standard::action::payment::pay;
 use crate::types::serenity_types::{Context, Data, DbPool};
 
 /// Create the client which will be used to start the bot.

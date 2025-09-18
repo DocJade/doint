@@ -12,6 +12,7 @@ mod knob;
 mod bank;
 mod event;
 mod formatting;
+mod tests;
 
 // Diesel related
 mod schema;

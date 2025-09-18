@@ -4,3 +4,4 @@ pub(crate) mod withdrawal;
 pub(crate) mod modify;
 pub(crate) mod calculate;
 pub(crate) mod bank_struct;
+pub(crate) mod movement;
