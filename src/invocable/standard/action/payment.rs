@@ -75,17 +75,21 @@ pub(crate) async fn pay(
         Err(err) => match err {
             DointTransferError::SenderInsufficientFunds(details) => {
                 // Broke ass.
-                let broke_response: String = format!("You cannot afford that.\nYou may need to factor in the transaction fee of {}.", details.fees_required.expect("/pay has fees"));
+                debug!("User cant afford the transfer. Cancelled.");
+                let fee_money = FormattingHelper::display_doint(details.fees_required.expect("/pay has fees").try_into().expect("Fees should not be larger than an i32 lmao"));
+                let broke_response: String = format!("You cannot afford that.\nYou may need to factor in the transaction fee of {fee_money}.");
                 let _ = ctx.say(broke_response).await?;
                 return Ok(());
             },
             DointTransferError::RecipientFull => {
                 // They have too much money
+                debug!("Recipient has too much money. Cancelled.");
                 let _ = ctx.say("Recipient can't have any more money. They win.").await?;
                 return Ok(());
             },
             DointTransferError::InvalidParty => {
                 // This shouldn't happen
+                debug!("One of the parties in the transaction is invalid. Cancelled.");
                 let _ = ctx.say("One of the parties in the transaction was invalid.\nThat shouldn't happen, tell Doc.").await?;
                 return Ok(());
             },
@@ -108,6 +112,7 @@ pub(crate) async fn pay(
             },
             DointTransferError::DieselError(error) => {
                 // Well.
+                warn!("Transfer was valid, but DB failed! Cancelled.");
                 let _ = ctx.say("Payment failed for a DB reason. Tell Doc.").await?;
                 return Err(Box::new(error))
             },

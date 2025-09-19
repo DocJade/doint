@@ -8,3 +8,4 @@ pub(crate) mod roles;
 pub(crate) mod guild;
 pub(crate) mod channels;
 pub(crate) mod formatting;
+pub(crate) mod emoji;

@@ -1,20 +1,14 @@
 // Flip a coin, double your money!
 
-use diesel::associations::HasTable;
-use diesel::{Connection, QueryDsl, RunQueryDsl, SaveChangesDsl};
+use diesel::Connection;
 use log::{debug, warn};
-use poise::serenity_prelude::Member;
 
 use crate::bank::bank_struct::BankInterface;
-use crate::bank::movement::move_doints::{DointTransfer, DointTransferError, DointTransferParty, DointTransferReason, DointTransferReceipt};
+use crate::bank::movement::move_doints::{DointTransfer, DointTransferParty, DointTransferReason};
 use crate::database::queries::get_user::get_doint_user;
-use crate::database::tables::users::DointUser;
-use crate::discord::checks::consented::{ctx_member_enrolled_in_doints, member_enrolled_in_doints};
-use crate::discord::helper::get_nick::get_display_name;
+use crate::discord::checks::consented::ctx_member_enrolled_in_doints;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::types::serenity_types::{Context, Error};
-use crate::schema::users::dsl::users;
-use rand::prelude::*;
 
 // a coin
 #[derive(Debug, poise::ChoiceParameter, PartialEq, Eq)]
@@ -43,7 +37,7 @@ pub(crate) async fn flip(
     let mut conn = pool.get()?;
 
     // Get the user that is betting
-    let mut better = if let Some(found) = get_doint_user(ctx.author().id, &mut conn)? {
+    let better = if let Some(found) = get_doint_user(ctx.author().id, &mut conn)? {
         found
     } else {
         // Has role, but not in DB.
