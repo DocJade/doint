@@ -20,9 +20,6 @@ impl EventCaller {
     }
 }
 
-/// Actions that happen every day at midnight.
-/// 
-/// Returns true if all events worked correctly.
 pub(crate) fn do_daily_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
     info!("Running daily events...");
     // Do everything in a transaction.

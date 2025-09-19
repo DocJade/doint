@@ -44,10 +44,10 @@ pub async fn handle_discord_event(
             tokio::spawn(async move {
                 // every day, 24 hours
                 loop {
-                    // We try running the daily events 5 times at max.
+                    // We try running the daily tasks 5 times at max.
                     let mut worked = false;
                     for _ in 0..5 {
-                        info!("Running daily events...");
+                        info!("Running daily tasks...");
                         // Get that DB connection
                         let maybe_conn = daily_db_pool.get();
 
@@ -56,7 +56,7 @@ pub async fn handle_discord_event(
                             continue;
                         };
 
-
+                        info!("- - Taxes and UBI");
                         let run = EventCaller::daily_events(&mut conn);
                         worked = if let Ok(maybe) = run {
                             maybe
@@ -83,6 +83,54 @@ pub async fn handle_discord_event(
 
                     // See you tomorrow!
                     tokio::time::sleep(Duration::from_secs(60 * 60 * 24)).await;
+                }
+            });
+
+            // Hourly
+            info!("- Hourly tasks...");
+            let daily_db_pool = data.db_pool.clone();
+            tokio::spawn(async move {
+                // Every hour
+                loop {
+                    // Try at max 5 times
+                    let mut worked = false;
+                    for _ in 0..5 {
+                        info!("Running hourly tasks...");
+                        // Get that DB connection
+                        let maybe_conn = daily_db_pool.get();
+
+                        let Ok(mut conn) = maybe_conn else {
+                            warn!("Failed to get DB connection!");
+                            continue;
+                        };
+
+                        info!("- - Inflation / deflation check");
+                        let run = EventCaller::inflation_check(&mut conn);
+                        worked = if let Ok(maybe) = run {
+                            maybe.is_none()
+                        } else {
+                            warn!("Hourly task errored!");
+                            warn!("{run:#?}");
+                            false
+                        };
+
+                        if worked {
+                            break
+                        }
+                        warn!("Hourly task failed...");
+                    }
+
+                    if worked {
+                        info!("Hourly finished successfully!");
+                    } else {
+                        error!("All 5 hourly task attempts failed!");
+                        // TODO: Tell admins
+                    }
+
+                    info!("See you in an hour!");
+
+                    // Wait an hour
+                    tokio::time::sleep(Duration::from_secs(60 * 60)).await;
                 }
             });
 

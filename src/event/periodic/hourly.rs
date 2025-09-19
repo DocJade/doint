@@ -1,0 +1,47 @@
+// Hashtag just hourly things.
+
+use diesel::{Connection, MysqlConnection};
+use log::{info, warn};
+
+use crate::{
+    event::event_struct::EventCaller, types::serenity_types::{
+        Context,
+        Data,
+        Error
+    }
+};
+
+impl EventCaller {
+    /// Actions that run once a day. Doesn't run at a specific time, just every 24 hours after the bot starts.
+    /// 
+    /// Returns true if all events worked correctly.
+    pub(crate) fn hourly_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
+        do_hourly_events(conn)
+    }
+}
+
+pub(crate) fn do_hourly_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
+    info!("Running daily events...");
+    // Do everything in a transaction.
+    conn.transaction(|conn|{
+
+        // all checks pass?
+        let mut canary = true;
+        
+        // Check for inflation/deflation
+        if let Some(kind) = EventCaller::inflation_check(conn)? {
+            // Inflation detected!
+            // TODO: inform admins
+            warn!("INFLATION/DEFLATION DETECTED!");
+            warn!("TYPE: {kind:#?}!");
+            canary = false;
+        } else {
+            // All good
+        }
+
+        // All done.
+        Ok(canary)
+    })
+
+    // Did that all work?
+}
