@@ -1,18 +1,101 @@
+use std::{sync::Once, time::Duration};
+
+use log::{error, info, warn};
 // Handles / dispatches discord related events
 use poise::serenity_prelude as serenity;
-use crate::types::serenity_types::{Context, Error, Data};
+use crate::{event::event_struct::EventCaller, types::serenity_types::{ /* Context ,*/ Data, Error}};
+
+// Only run initialization code a single time.
+static INIT: Once = Once::new();
 
 pub async fn handle_discord_event(
-    ctx: &serenity::Context,
+    _ctx: &serenity::Context,
     event: &serenity::FullEvent,
-    framework: poise::FrameworkContext<'_, Data, Error>,
+    _framework: poise::FrameworkContext<'_, Data, Error>,
     data: &Data,
 ) -> Result<(), Error> {
     match event {
         serenity::FullEvent::Ready { data_about_bot, .. } => {
-            println!("Ready event. Logged in as {}", data_about_bot.user.name);
+            info!("Ready! Logged in as {}", data_about_bot.user.name);
+            
+            // Set up things that run a single time.
+            info!("Doing first time setup");
+
+            // Only do this once.
+            let mut keep_going = false;
+            INIT.call_once(|| {
+                // This will only run the first time we pass this code block, which will let the following
+                // startup routines run. Otherwise, we will always skip it.
+                keep_going = true;
+            });
+
+            if !keep_going {
+                // Stop here.
+                info!("Prevented setup from running again.");
+                return Ok(());
+            }
+
+            info!("Running setup...");
+            info!("Spinning up periodic tasks...");
+
+            // Daily tasks
+            info!("- Daily tasks...");
+            let daily_db_pool = data.db_pool.clone();
+            tokio::spawn(async move {
+                // every day, 24 hours
+                loop {
+                    // We try running the daily events 5 times at max.
+                    let mut worked = false;
+                    for _ in 0..5 {
+                        info!("Running daily events...");
+                        // Get that DB connection
+                        let maybe_conn = daily_db_pool.get();
+
+                        let Ok(mut conn) = maybe_conn else {
+                            warn!("Failed to get DB connection!");
+                            continue;
+                        };
+
+
+                        let run = EventCaller::daily_events(&mut conn);
+                        worked = if let Ok(maybe) = run {
+                            maybe
+                        } else {
+                            warn!("Daily task errored!");
+                            warn!("{run:#?}");
+                            false
+                        };
+
+                        if worked {
+                            break
+                        }
+                        warn!("Daily task failed...");
+                    }
+
+                    if worked {
+                        info!("Dailies finished successfully!");
+                    } else {
+                        error!("All 5 daily task attempts failed!");
+                        // TODO: Tell admins
+                    }
+
+                    info!("See you tomorrow!");
+
+                    // See you tomorrow!
+                    tokio::time::sleep(Duration::from_secs(60 * 60 * 24)).await;
+                }
+            });
+
+
+        },
+        serenity::FullEvent::Ratelimit { data } => {
+            info!("Ratelimited! [{}]", data.path);
         }
         _ => {}
     }
     Ok(())
 }
+
+
+
+
