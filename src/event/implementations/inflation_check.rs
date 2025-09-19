@@ -50,14 +50,18 @@ impl EventCaller {
             }
 
             warn!("The economy is leaking!");
-
-
+            
+            
             // There's a leak!
             if expected_amount > all_doints {
                 // Not enough
+                warn!("Doints are disappearing!");
+                warn!("{} are missing!", expected_amount - all_doints);
                 Ok(Some(InflationLeak::TooFew))
             } else {
                 // Too many!
+                warn!("Doints are being created!");
+                warn!("{} over expected amount!", all_doints - expected_amount);
                 Ok(Some(InflationLeak::TooMany))
             }
         }) {
