@@ -379,10 +379,10 @@ pub(crate) async fn slots(
         .to_string();
 
         // Text for the outcome
+        let amount_actually_won = spin_result.win_amount * u32::from(machine.bet_size) * 100;
         
         let result_text: String = if spin_result.win_amount > 0 {
             // User won some.
-            let amount_actually_won = spin_result.win_amount * u32::from(machine.bet_size) * 100;
             // Jackpot text if they won that too
             let jackpot_text = if spin_result.was_jackpot {
                 "# YOU HIT THE JACKPOT!\n"
@@ -403,23 +403,26 @@ pub(crate) async fn slots(
         // We actually pay the user before displaying anything, in-case that fails.
 
         conn.transaction::<(), DointTransferError, _>(|conn| {
-            // Pay the user from the bank the amount, if any
-            if spin_result.win_amount == 0 {
-                // User lost, take their money.
-                let transfer = DointTransfer {
-                    sender: DointTransferParty::DointUser(ctx.author().id.get()),
-                    recipient: DointTransferParty::Bank,
-                    transfer_amount: u32::from(machine.bet_size) * 100,
-                    apply_fees: false, // Slots aren't taxed.
-                    transfer_reason: DointTransferReason::CasinoLoss
-                };
-                BankInterface::bank_transfer(conn, transfer)?;
+
+            // If user broke even, we dont need to do anything at all.
+            if amount_actually_won == u32::from(machine.bet_size) {
+                // Broke even, no action.
                 return Ok(())
             }
 
-            // If user broke even:
-            if spin_result.win_amount == u32::from(machine.bet_size) {
-                // Broke even, no action.
+            // Take the user's bet money
+            let transfer = DointTransfer {
+                sender: DointTransferParty::DointUser(ctx.author().id.get()),
+                recipient: DointTransferParty::Bank,
+                transfer_amount: u32::from(machine.bet_size) * 100,
+                apply_fees: false, // Slots aren't taxed.
+                transfer_reason: DointTransferReason::CasinoLoss
+            };
+            BankInterface::bank_transfer(conn, transfer)?;
+
+            // Now give them their winnings, if needed
+            if spin_result.win_amount == 0 {
+                // User lost, nothing left to do
                 return Ok(())
             }
 
@@ -427,13 +430,13 @@ pub(crate) async fn slots(
             let transfer = DointTransfer {
                 sender: DointTransferParty::Bank,
                 recipient: DointTransferParty::DointUser(ctx.author().id.get()),
-                transfer_amount: spin_result.win_amount * 100,
+                transfer_amount: amount_actually_won,
                 apply_fees: false,
                 transfer_reason: DointTransferReason::CasinoWin
             };
 
             BankInterface::bank_transfer(conn, transfer)?;
-            return Ok(())
+            Ok(())
         })?;
 
         // Money has been transferred, now we can display things
