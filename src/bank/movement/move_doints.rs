@@ -1,6 +1,7 @@
 // Move doints from one place to another, wether that be between users or between the bank and elsewhere.
 
 use diesel::{Connection, MysqlConnection};
+use log::warn;
 use thiserror::Error;
 
 use crate::database::tables::bank::BankInfo;
@@ -55,6 +56,7 @@ pub(crate) enum DointTransferReason {
     CasinoWin,
     UniversalBasicIncome,
     UserPaymentNoReason,
+    CrimeRobbery,
     UserPaymentWithReason(String),
 }
 
@@ -149,11 +151,13 @@ fn run_bank_transfer(conn: &mut MysqlConnection, transfer: DointTransfer) -> Res
 
     // Make sure the two parties are distinct.
     if transfer.sender == transfer.recipient {
+        warn!("Attempted to send money between self and self! Pointless!");
         return Err(DointTransferError::PointlessTransfer)
     };
-
+    
     // Can't transfer nothing
     if transfer.transfer_amount == 0 {
+        warn!("Attempted to move 0 doints between parties! Pointless!");
         return Err(DointTransferError::PointlessTransfer)
     };
     

@@ -29,6 +29,7 @@ pub(crate) fn do_hourly_events(conn: &mut MysqlConnection) -> Result<bool, Error
         let mut canary = true;
         
         // Check for inflation/deflation
+        info!("- - Inflation / deflation check");
         if let Some(kind) = EventCaller::inflation_check(conn)? {
             // Inflation detected!
             // TODO: inform admins

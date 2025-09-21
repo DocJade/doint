@@ -26,6 +26,6 @@ pub(crate) async fn member_enrolled_in_doints(member: Member, ctx: Context<'_>) 
     };
 
     // Do they have the dointer role?
-    let has = roles.iter().find(|role| role.id == DOINTS_ENABLED_ROLE_ID).is_some();
+    let has = roles.iter().any(|role| role.id == DOINTS_ENABLED_ROLE_ID);
     Ok(has)
 }

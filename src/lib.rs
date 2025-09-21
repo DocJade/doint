@@ -12,6 +12,7 @@ mod knob;
 mod bank;
 mod event;
 mod formatting;
+mod jail;
 mod tests;
 
 // Diesel related

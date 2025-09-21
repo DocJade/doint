@@ -2,3 +2,4 @@
 pub(crate) mod information;
 pub(crate) mod action;
 pub(crate) mod casino;
+pub(crate) mod crime;

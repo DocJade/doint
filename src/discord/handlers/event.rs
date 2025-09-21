@@ -8,6 +8,7 @@ use crate::{event::event_struct::EventCaller, types::serenity_types::{ /* Contex
 // Only run initialization code a single time.
 static INIT: Once = Once::new();
 
+#[allow(clippy::too_many_lines)] // shush
 pub async fn handle_discord_event(
     _ctx: &serenity::Context,
     event: &serenity::FullEvent,
@@ -104,10 +105,10 @@ pub async fn handle_discord_event(
                             continue;
                         };
 
-                        info!("- - Inflation / deflation check");
-                        let run = EventCaller::inflation_check(&mut conn);
+                        
+                        let run = EventCaller::hourly_events(&mut conn);
                         worked = if let Ok(maybe) = run {
-                            maybe.is_none()
+                            maybe
                         } else {
                             warn!("Hourly task errored!");
                             warn!("{run:#?}");
@@ -131,6 +132,52 @@ pub async fn handle_discord_event(
 
                     // Wait an hour
                     tokio::time::sleep(Duration::from_secs(60 * 60)).await;
+                }
+            });
+
+            // Minute tasks
+            info!("- Minute tasks...");
+            let daily_db_pool = data.db_pool.clone();
+            tokio::spawn(async move {
+                // Every minute
+                loop {
+                    // Try at max 5 times
+                    let mut worked = false;
+                    for _ in 0..5 {
+                        // Get that DB connection
+                        let maybe_conn = daily_db_pool.get();
+
+                        let Ok(mut conn) = maybe_conn else {
+                            warn!("Failed to get DB connection!");
+                            continue;
+                        };
+
+                        let run = EventCaller::minute_events(&mut conn);
+                        worked = if let Ok(maybe) = run {
+                            maybe
+                        } else {
+                            warn!("Minute task errored!");
+                            warn!("{run:#?}");
+                            false
+                        };
+
+                        if worked {
+                            break
+                        }
+                        warn!("Minute task failed...");
+                    }
+
+                    if worked {
+                        info!("Minute tasks finished successfully!");
+                    } else {
+                        error!("All 5 hourly task attempts failed!");
+                        // TODO: Tell admins
+                    }
+
+                    info!("See you in a minute!");
+
+                    // Wait an hour
+                    tokio::time::sleep(Duration::from_secs(60)).await;
                 }
             });
 

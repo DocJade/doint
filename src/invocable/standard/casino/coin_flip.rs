@@ -20,7 +20,7 @@ enum Coin {
 }
 
 /// Flip a coin, pick a side. If you pick the correct side, you double your money (minus fees)
-#[poise::command(slash_command, guild_only, check="ctx_member_enrolled_in_doints")]
+#[poise::command(slash_command, guild_only)]
 pub(crate) async fn flip(
     ctx: Context<'_>,
     #[description = "Heads or tails?"]
@@ -37,9 +37,7 @@ pub(crate) async fn flip(
     let mut conn = pool.get()?;
 
     // Get the user that is betting
-    let better = if let Some(found) = get_doint_user(ctx.author().id, &mut conn)? {
-        found
-    } else {
+    let Some(better) = get_doint_user(ctx.author().id, &mut conn)? else {
         // Has role, but not in DB.
         // TODO: error for this / correction
         warn!("User not in DB!");

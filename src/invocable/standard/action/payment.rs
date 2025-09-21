@@ -16,7 +16,7 @@ use crate::types::serenity_types::{Context, Error};
 use crate::schema::users::dsl::users;
 
 /// Pay another player
-#[poise::command(slash_command, guild_only, check="ctx_member_enrolled_in_doints")]
+#[poise::command(slash_command, guild_only)]
 pub(crate) async fn pay(
     ctx: Context<'_>,
     #[description = "Who you are paying."]

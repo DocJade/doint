@@ -1,16 +1,18 @@
 use diesel::r2d2::{self, ConnectionManager};
 use diesel::MysqlConnection;
-use log::info;
+use log::{debug, info};
 // Starting the bot
 use poise::serenity_prelude as serenity;
 use std::error::Error;
 
 use crate::consent::consent_button::opt_in;
+use crate::discord::checks::pre_command::pre_command_call;
 use crate::discord::handlers::{error::handle_error, event::handle_discord_event};
 use crate::invocable::privileged::private::economy::{admin_bank_info, admin_set_tax_rate, admin_set_ubi_rate, admin_tax_now};
 use crate::invocable::privileged::private::event::admin_force_disperse_ubi;
 use crate::invocable::standard::casino::coin_flip::flip;
 use crate::invocable::standard::casino::slots::slots;
+use crate::invocable::standard::crime::rob::rob;
 use crate::invocable::standard::information::public::balance::balance;
 use crate::invocable::standard::information::public::leaderboard::leaderboard;
 use crate::invocable::standard::action::payment::pay;
@@ -27,6 +29,12 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
     let wip_client = poise::Framework::builder()
     .options(
         poise::FrameworkOptions {
+            command_check: Some(|ctx| {
+                Box::pin(async move {
+                    debug!("Someone is trying to run command {}, checking if they can...", ctx.command().qualified_name);
+                    Ok(pre_command_call(ctx).await)
+                })
+            }),
             commands: vec![
                 // Onboarding
                 opt_in(),
@@ -39,6 +47,9 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
                 // Gambling
                 flip(),
                 slots(),
+
+                // Crime
+                rob(),
 
                 // Admin commands
                 admin_tax_now(),

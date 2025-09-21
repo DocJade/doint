@@ -21,10 +21,22 @@ diesel::table! {
 }
 
 diesel::table! {
+    jail (id) {
+        id -> Unsigned<Bigint>,
+        until -> Timestamp,
+        reason -> Tinytext,
+        cause -> Tinytext,
+        can_bail -> Bool,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Unsigned<Bigint>,
         bal -> Integer,
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(bank, fees, users,);
+diesel::joinable!(jail -> users (id));
+
+diesel::allow_tables_to_appear_in_same_query!(bank, fees, jail, users,);
