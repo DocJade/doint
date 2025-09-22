@@ -62,7 +62,7 @@ pub(crate) async fn flip(
     }
 
     // Make sure bank can afford the bet
-    if BankInterface::get_bank_balance(&mut conn)? < bet as i32 {
+    if BankInterface::get_bank_balance(&mut conn)? < i32::from(final_bet_amount) as i32 {
         // bank couldn't pay this bet out
         debug!("Bank cant afford bet.");
         let _ = ctx.say("The bank doesn't have enough money for that bet, sorry.").await?;

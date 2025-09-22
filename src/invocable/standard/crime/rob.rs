@@ -78,6 +78,7 @@ pub(crate) async fn rob(
     if victim.is_jailed(&mut conn)?.is_some() {
         robber.jail_user(&jail_form, &mut conn)?;
         let _ = ctx.say("You snuck into jail to rob them, thats breaking and entering! You've been sent to jail!").await?;
+        return Ok(())
     }
 
     // the chance of success is based on how much the person you're robbing has.

@@ -168,15 +168,16 @@ pub async fn handle_discord_event(
                     }
 
                     if worked {
-                        info!("Minute tasks finished successfully!");
+                        // Cool, but no message since this is noisy in logs
+                        // info!("Minute tasks finished successfully!");
                     } else {
                         error!("All 5 hourly task attempts failed!");
                         // TODO: Tell admins
                     }
 
-                    info!("See you in a minute!");
+                    // info!("See you in a minute!");
 
-                    // Wait an hour
+                    // Wait 1 minute
                     tokio::time::sleep(Duration::from_secs(60)).await;
                 }
             });
