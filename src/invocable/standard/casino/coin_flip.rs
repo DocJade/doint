@@ -26,7 +26,8 @@ pub(crate) async fn flip(
     #[description = "Heads or tails?"]
     side: Coin,
     #[description = "How much are you betting?. 100 is 1.00"]
-    bet: u16,
+    #[max = 1_000_000] // 10,000,00
+    bet: u32,
 ) -> Result<(), Error> {
     debug!("User [{}] is playing coin flip, they bet {bet} and picked {side:?}", ctx.author().id.get());
 
@@ -46,7 +47,7 @@ pub(crate) async fn flip(
     };
 
     // Make sure the user can afford the bet.
-    let final_bet_amount: u16 = if better.bal < bet as i32 {
+    let final_bet_amount: u32 = if better.bal < bet as i32 {
         // User cant afford bet, Guess the'll bet it ALL! HAHA
         debug!("User tried to bet more than they have, defaulting to all of their money...");
         better.bal.try_into().unwrap() // Has to fit, since the old bet amount had to fit.
@@ -62,7 +63,7 @@ pub(crate) async fn flip(
     }
 
     // Make sure bank can afford the bet
-    if BankInterface::get_bank_balance(&mut conn)? < i32::from(final_bet_amount) as i32 {
+    if BankInterface::get_bank_balance(&mut conn)? < final_bet_amount as i32 {
         // bank couldn't pay this bet out
         debug!("Bank cant afford bet.");
         let _ = ctx.say("The bank doesn't have enough money for that bet, sorry.").await?;
@@ -97,7 +98,7 @@ pub(crate) async fn flip(
             let transfer = DointTransfer {
                 sender: DointTransferParty::DointUser(ctx.author().id.get()),
                 recipient: DointTransferParty::Bank,
-                transfer_amount: final_bet_amount.into(),
+                transfer_amount: final_bet_amount,
                 apply_fees: false, // fees get applied after wins
                 transfer_reason: DointTransferReason::CasinoLoss
             };
@@ -129,13 +130,13 @@ pub(crate) async fn flip(
     } else {
         "Tails"
     };
-    let bet_size = FormattingHelper::display_doint(final_bet_amount.into());
+    let bet_size = FormattingHelper::display_doint(final_bet_amount.try_into().expect("Bet should fit."));
 
     // rest of the owl
     let response = if flip == side {
         // win
-        let paid_fees = FormattingHelper::display_doint(fees_to_pay.try_into().expect("Bet amounts are u16"));
-        let takeaway = FormattingHelper::display_doint(receipt.amount_sent.try_into().expect("Bet amounts are u16"));
+        let paid_fees = FormattingHelper::display_doint(fees_to_pay.try_into().expect("Bet amounts are u32"));
+        let takeaway = FormattingHelper::display_doint(receipt.amount_sent.try_into().expect("Bet amounts are u32"));
         format!("{side_name}! You won {takeaway}!\n\n-# Paid a fee of {paid_fees}. ({bet_size} - {paid_fees} = {takeaway})")
     } else {
         // | || || |_
