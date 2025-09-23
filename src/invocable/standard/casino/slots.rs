@@ -342,7 +342,9 @@ pub(crate) async fn slots(
 
         // Make sure the bank can afford the jackpot.
         let bank_bal = BankInterface::get_bank_balance(&mut conn)?;
-        if bank_bal < machine.max_possible_payout.try_into().expect("Jackpot should be less than i32") {
+        let mut max_payout: i32 = machine.max_possible_payout.try_into().expect("Jackpot should be less than i32");
+        max_payout *= 100;
+        if bank_bal < max_payout {
             // Bank cant pay that out.
             warn!("Bank cant afford slots!");
             let _ = ctx.say("The bank currently doesn't have enough money for that slot machine. Try again later.".to_string()).await?;
