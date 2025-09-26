@@ -9,7 +9,7 @@ impl FormattingHelper {
     pub(crate) fn display_doint(doints: &BigDecimal) -> String {
         // TODO: Allow users to set formatting preferences.
 
-        let raw: String = format!("{doints}");
+        let raw: String = format!("{doints:.2}");
 
         // Get everything before the decimal point so we can add commas
         let (pre_decimal, decimals) = raw.split_once('.').expect("Should have a decimal component.");
