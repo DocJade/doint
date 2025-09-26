@@ -26,8 +26,8 @@ pub(crate) async fn flip(
     ctx: Context<'_>,
     #[description = "Heads or tails?"]
     side: Coin,
-    #[description = "How much are you betting?."]
-    #[max = 1_000_000] // 10,000,00
+    #[description = "How much are you betting? You can bet a maximum of 1,000.00"]
+    #[max = 1000] // 1,000 doints
     bet: f64,
 ) -> Result<(), Error> {
 

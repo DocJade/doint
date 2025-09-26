@@ -1,6 +1,6 @@
 // Transactional fees
 
-use bigdecimal::BigDecimal;
+use bigdecimal::{BigDecimal, FromPrimitive};
 use diesel::{Connection, MysqlConnection, RunQueryDsl};
 
 use crate::{bank::bank_struct::BankInterface, database::tables::fees::FeeInfo};
@@ -31,9 +31,12 @@ fn go_calculate_fees(conn: &mut MysqlConnection, transaction_amount: &BigDecimal
 
     // Add the percentage fee.
     // Rounds down.
-    let percent_fee: BigDecimal = ((fee_info.percentage_fee as f64 / 1000 as f64).floor().abs() as u64).into();
+    let percent_fee: BigDecimal = BigDecimal::from_f64((f64::from(fee_info.percentage_fee) / 1000.0).floor().abs()).expect("hehe");
 
-    let calculated_percent_fee_int: BigDecimal = transaction_amount * percent_fee;
+    let mut calculated_percent_fee_int: BigDecimal = transaction_amount * percent_fee;
+
+    // Round up the flat fee to the nearest dent
+    calculated_percent_fee_int = calculated_percent_fee_int.round(2);
 
     total_fee += calculated_percent_fee_int;
 
