@@ -31,7 +31,7 @@ pub(crate) async fn pay(
         worked
     } else {
         // Failed to cast!
-        return Err("TODO: NEED A BETTER ERROR TO THROW HERE!".into())
+        return Err(Error::BigDecimalCastError)
     };
 
 
@@ -125,7 +125,7 @@ pub(crate) async fn pay(
                 // Well.
                 warn!("Transfer was valid, but DB failed! Cancelled.");
                 let _ = ctx.say("Payment failed for a DB reason. Tell Doc.").await?;
-                return Err(Box::new(error))
+                return Err(Error::DieselError(error))
             },
         },
     };

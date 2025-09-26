@@ -2,6 +2,9 @@
 #![warn(clippy::all)]
 #![warn(clippy::pedantic)]
 
+// You MUST use must_use
+#![deny(unused_must_use)]
+
 // Main can only see the discord side.
 pub mod discord;
 mod types;

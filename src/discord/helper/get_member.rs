@@ -4,6 +4,7 @@
 use crate::{knob::guild::DOCCORD_SERVER_ID, types::serenity_types::{Context, Data, Error}};
 use log::warn;
 use poise::serenity_prelude::{self as serenity, Member, UserId};
+use crate::types::serenity_types::ThisShouldNotHappen::BotIsOutsideServer;
 
 /// Get the Member that this ID refers to, if they exist.
 /// 
@@ -18,9 +19,11 @@ pub(crate) async fn get_member_from_id(ctx: Context<'_>, user_id: u64) -> Result
         // Not cached, get it normally.
         ok.clone()
     } else {
-        // This was called outside of the guild.
+        // This was called outside of the guild, we dont care.
         warn!("Tried to get a member from an ID while ctx was outside guild!");
-        return Err("TODO: better error types man. this is bad.".into())
+        warn!("Bot should not respond in DMs or in non-doccord!");
+        // Ignored.
+        return Err(Error::ThisShouldNotHappen(BotIsOutsideServer))?;
     };
 
     // Does the guild have this member?

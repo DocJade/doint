@@ -36,7 +36,7 @@ pub(crate) async fn flip(
         worked
     } else {
         // Failed to cast!
-        return Err("TODO: NEED A BETTER ERROR TO THROW HERE!".into())
+        return Err(Error::BigDecimalCastError)
     };
 
 

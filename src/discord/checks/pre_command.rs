@@ -1,30 +1,32 @@
 // These checks run _before_ every command. This can print information to users if they are ineligible to do things
 
-use chrono::Local;
 use log::{debug, info};
 
 use crate::{
     database::queries::get_user::get_doint_user,
-    discord::{
-        checks::consented::member_enrolled_in_doints
-    },
+    discord::checks::consented::member_enrolled_in_doints,
     types::serenity_types::{
-        Context,
-        Data,
-        Error
+        CommandCheckFailure, Context, DointBotError, Error
     }
 };
+
+use crate::types::serenity_types::CommandCheckFailureReason::*;
 
 
 /// Runs before every command.
 /// 
 /// Returns false if the user cannot run a command.
-pub(crate) async fn pre_command_call(ctx: Context<'_>) -> bool {
+pub(crate) async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
+
+    // The only way we can get info out of here besides a generic "check failed" boolean is to return an error.
+    // To this end, `DointBotError::CommandCheckFailed(_)` exists. If a check fails, return that. NOT false.
+    
 
     // Skip everything if user is opting in.
+    // TODO: Put this after channel checks
     if ctx.invoked_command_name() == "opt_in" {
         debug!("Opt-in command, skipping pre-command checks...");
-        return true
+        return Ok(true)
     }
 
 
@@ -36,28 +38,27 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> bool {
         // If we cant load them, chances are we arent in doccord.
         // We just wont respond.
         debug!("Pre-command check, couldn't find member.");
-        return false
+        return Err(Error::CommandCheckFailed(MemberNotFound))
     };
     
     // If the user is not enrolled in doints, let them know.
     let is_enrolled = match member_enrolled_in_doints(member.clone().into_owned(), ctx).await {
         Ok(ok) => ok,
-        Err(_) => {
+        Err(err) => {
             // Couldn't check if user was enrolled. Not much we can do.
-            // Hence, do nothing.
-            debug!("Pre-command check, failed to run member_enrolled_in_doints.");
-            return false
+            // Still want that inner error tho
+            return Err(Error::CommandCheckFailed(CheckErroredOut(CommandCheckFailure{
+                bot_error: Box::new(err),
+                where_fail: "Member enrollment check.".to_string()
+            })))
         },
     };
 
     // We need to also check if the user is trying to opt in, if they are, we cant cancel the command.
     
     if !is_enrolled {
-        // User is not enrolled in doints. Let them know.
-        // If this fails, oh well.
-        let _ = ctx.say("You have not opted-in to the doint system.\nIf you wish to use doints, please run `/opt_in`.").await;
-        // Cant go any further.
-        return false
+        // User is not enrolled in doints.
+        return Err(Error::CommandCheckFailed(UserNotEnrolled))
     }
 
     // If the user is an admin, we dont need to do any more checks.
@@ -65,7 +66,7 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> bool {
         if perms.administrator() {
             // User is an admin
             info!("Skipping pre_command checks, this user is an administrator.");
-            return true;
+            return Ok(true);
         }
     }
 
@@ -76,71 +77,68 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> bool {
     let pool = ctx.data().db_pool.clone();
 
     // Get a connection
-    let mut conn = if let Ok(worked) = pool.get() {
-        worked
-    } else {
-        // Failed to get DB connection, nothing we can do. Fail out.
-        return false
+    let mut conn = match pool.get() {
+        Ok(ok) => ok,
+        Err(err) => {
+            // Failed to get DB connection, nothing we can do. Fail out.
+            return Err(DointBotError::CommandCheckFailed(R2D2Failure(err.to_string())));
+        },
     };
 
     // Get the user
-    let user = if let Ok(found) = get_doint_user(member.user.id.get(), &mut conn) {
-        // They should be there, otherwise we need to bail.
-        if let Some(all_good) = found {
-            all_good
-        } else {
-            // Well, didnt find them
-            return false
-        }
-    } else {
-        // Failed to load them in, cant go further.
-        return false
+    let user = match get_doint_user(member.user.id.get(), &mut conn) {
+        Ok(ok) => {
+            // They should be there, otherwise we need to bail.
+            if let Some(all_good) = ok {
+                all_good
+            } else {
+                // Well, didnt find them
+                return Err(Error::CommandCheckFailed(UserNotEnrolled))
+            }
+        },
+        Err(err) => {
+            // Failed to load them in, cant go further.
+            return Err(Error::CommandCheckFailed(CheckErroredOut(CommandCheckFailure {
+                bot_error: Box::new(err.into()),
+                where_fail: "Getting the Doint user.".to_string(),
+            })))
+        },
     };
     
     // Check if the user is in jail
-    if let Ok(check) = user.is_jailed(&mut conn) {
-        if let Some(jail) = check {
-            // User _is_ in jail. Tell them how much time they have left.
-            let time_left_total_seconds = jail.until.signed_duration_since(Local::now().naive_utc()).num_seconds();
-
-            // If this number is negative, that means they should have already been released from jail, but haven't yet.
-            if time_left_total_seconds <= 0 {
-                let _ = ctx.say("You're in jail! You'll be released soon.").await;
-                // Still gotta wait for them to be free though.
-                return false
+    match user.is_jailed(&mut conn) {
+        Ok(ok) => {
+            if let Some(jail) = ok {
+                // Cant run commands while in jail.
+                return Err(Error::CommandCheckFailed(UserInJail(jail)))
             }
-
-            let seconds = time_left_total_seconds % 60;
-            let minutes = time_left_total_seconds / 60 % 60;
-            let hours = time_left_total_seconds / 60 / 60;
-            let seconds_string = format!("{seconds:02} seconds.");
-            let minutes_string = if minutes > 0 {
-                format!("{minutes:02} minutes, and ")
-            } else {
-                String::new()
-            };
-
-            let hours_string = if hours > 0 {
-                format!("{hours:02} hours, ")
-            } else {
-                String::new()
-            };
-
-            // Put that all together
-            let _ = ctx.say(format!("You're in jail! You'll be released in {hours_string}{minutes_string}{seconds_string}")).await;
-
-            // Cant run the command while in jail.
-            return false
-        }
-    } else {
-        // Failed to check if they're in jail.
-        return false
+        },
+        Err(err) => {
+            match err {
+                crate::jail::error::JailError::AlreadyInJail(_jailed_user) => {
+                    unreachable!("We aren't putting the user in jail here.")
+                },
+                crate::jail::error::JailError::UserNotInJail => {
+                    unreachable!("We aren't freeing the user from jail.")
+                },
+                crate::jail::error::JailError::StillServingSentence => {
+                    unreachable!("We aren't freeing the user from jail.")
+                },
+                crate::jail::error::JailError::DieselError(error) => {
+                    // Checking if the user was in jail failed.
+                    return Err(Error::CommandCheckFailed(CheckErroredOut(CommandCheckFailure{
+                        bot_error: Box::new(error.into()),
+                        where_fail: "Failed to check if user was in jail.".to_string(),
+                    })))
+                },
+            }
+        },
     }
 
     // User is not in jail.
 
     // All checks good!
     debug!("All checks pass, user can run command.");
-    true
+    Ok(true)
     
 }

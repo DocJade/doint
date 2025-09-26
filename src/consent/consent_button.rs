@@ -87,7 +87,7 @@ pub(crate) async fn opt_in(
 
     // Unable to inform user the standard way...
     // Roll back the database add.
-    let removal = conn.transaction(|conn| {
+    let removal: Result<usize, diesel::result::Error> = conn.transaction(|conn| {
         diesel::delete(users).filter(id.eq(users_id)).execute(conn)
     });
 
@@ -107,7 +107,7 @@ pub(crate) async fn opt_in(
             error!("Attempt to remove un-consenting user failed!");
             error!("{err:#?}");
             // TODO: This should message mods.
-            return Err(Box::new(err))
+            return Err(err)?
         },
     }
 

@@ -51,7 +51,7 @@ pub(crate) async fn rob(
     // Make sure you arent robbing yourself
     if robber.id == victim.id {
         // no
-        let _ = ctx.say("You cant rob yourself!").await?;
+        let _ = ctx.say("You robbed yourself, and stole your own wallet. Good job!").await?;
         return Ok(());
     }
 

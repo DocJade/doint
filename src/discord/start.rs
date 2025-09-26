@@ -16,7 +16,7 @@ use crate::invocable::standard::crime::rob::rob;
 use crate::invocable::standard::information::public::balance::balance;
 use crate::invocable::standard::information::public::leaderboard::leaderboard;
 use crate::invocable::standard::action::payment::pay;
-use crate::types::serenity_types::{Context, Data, DbPool};
+use crate::types::serenity_types::{Context, Data, DbPool, DointBotError};
 
 /// Create the client which will be used to start the bot.
 /// 
@@ -31,8 +31,8 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
         poise::FrameworkOptions {
             command_check: Some(|ctx| {
                 Box::pin(async move {
-                    debug!("Someone is trying to run command {}, checking if they can...", ctx.command().qualified_name);
-                    Ok(pre_command_call(ctx).await)
+                    // debug!("Someone is trying to run command {}, checking if they can...", ctx.command().qualified_name);
+                    pre_command_call(ctx).await
                 })
             }),
             commands: vec![
@@ -59,9 +59,8 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
                 admin_set_ubi_rate(),
             ],
             // Handle errors when they occur.
-            on_error: |error: poise::FrameworkError<'_, Data, Box<dyn Error + Send + Sync>>| {
-                todo!("error handler, weirdly wants to be on the heap. {error:#?}");
-                // handle_error(Box::new(&error));
+            on_error: |error: poise::FrameworkError<'_, Data, DointBotError>| {
+                Box::pin(handle_error(error))
             },
             // Handle discord events
             event_handler: |ctx, event, framework, data| {

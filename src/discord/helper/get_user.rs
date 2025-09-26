@@ -15,5 +15,5 @@ pub(crate) async fn get_user_from_id(ctx: Context<'_>, id: u64) -> Result<sereni
 
     // User was not cached.
     // We must go find them.
-    ctx.http().get_user(id.into()).await.map_err(|err| Box::new(err) as Box<dyn std::error::Error + Send + Sync>)
+    Ok(ctx.http().get_user(id.into()).await?)
 }
