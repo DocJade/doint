@@ -4,8 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+bigdecimal = { version = "0.4.8", features = ["serde"] }
 chrono = "0.4.42"
-diesel = { version = "2.2.12", features = ["mysql", "mysql_backend", "r2d2", "chrono"] }
+diesel = { version = "2.2.12", features = ["mysql", "mysql_backend", "r2d2", "chrono", "numeric"] }
 dotenvy = "0.15.7"
 env_logger = "0.11.8"
 lazy_static = "1.5.0"

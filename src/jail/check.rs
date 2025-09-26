@@ -11,7 +11,7 @@ impl DointUser {
     /// Check if this user is in jail.
     /// 
     /// Returns a `JailedUser`.
-    pub(crate) fn is_jailed(self, conn: &mut MysqlConnection) -> Result<Option<JailedUser>, JailError> {
+    pub(crate) fn is_jailed(&self, conn: &mut MysqlConnection) -> Result<Option<JailedUser>, JailError> {
         check_user_in_jail(self, conn)
     }
 }
@@ -19,6 +19,6 @@ impl DointUser {
 
 
 // actual implementation
-fn check_user_in_jail(user: DointUser, conn: &mut MysqlConnection) -> Result<Option<JailedUser>, JailError> {
+fn check_user_in_jail(user: &DointUser, conn: &mut MysqlConnection) -> Result<Option<JailedUser>, JailError> {
     Ok(JailedUser::belonging_to(&user).select(JailedUser::as_select()).first(conn).optional()?)
 }

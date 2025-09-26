@@ -3,7 +3,17 @@
 use chrono::Local;
 use log::{debug, info};
 
-use crate::{database::queries::get_user::get_doint_user, discord::{checks::consented::member_enrolled_in_doints}, types::serenity_types::{Context, Data, Error}};
+use crate::{
+    database::queries::get_user::get_doint_user,
+    discord::{
+        checks::consented::member_enrolled_in_doints
+    },
+    types::serenity_types::{
+        Context,
+        Data,
+        Error
+    }
+};
 
 
 /// Runs before every command.

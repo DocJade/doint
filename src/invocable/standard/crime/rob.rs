@@ -1,5 +1,7 @@
 // steal moneys from people
 
+use bigdecimal::{BigDecimal, FromPrimitive, Zero};
+use bigdecimal::ToPrimitive;
 use diesel::Connection;
 use log::{debug, warn};
 use poise::serenity_prelude::Member;
@@ -66,7 +68,7 @@ pub(crate) async fn rob(
 
     // if victim has less than half of the robbers bal, then thats fucked up, so we just jail the robber.
     // The same is also true if the victim is completely broke.
-    if robber.bal / 2 > victim.bal || victim.bal == 0 {
+    if &robber.bal / 2 > victim.bal || victim.bal == BigDecimal::zero() {
         // TO JAIL!
         robber.jail_user(&jail_form, &mut conn)?;
         
@@ -88,11 +90,11 @@ pub(crate) async fn rob(
     // Do note the math we get here is the chance of succeeding the robbery
 
     // We explicitly check
-    let robbery_odds: f64 = if robber.bal == 0 {
+    let robbery_odds: f64 = if robber.bal == BigDecimal::zero() {
         // 10% failure rate, thus 90% win rate
         0.90
     } else {
-        let raw_odds = (f64::from(victim.bal) / f64::from(robber.bal)) / 10.0;
+        let raw_odds = (victim.bal.to_f64().expect("Should fit") / robber.bal.to_f64().expect("Should fit")) / 10.0;
         
         // max odds of 90% win rate
         raw_odds.min(0.90)
@@ -105,16 +107,16 @@ pub(crate) async fn rob(
     // You can steal up to 5% of victim's bal, times win rate. Thus harder steals pay less.
     // On top of that, its also random, for fun.
 
-    let max_steal = f64::from(victim.bal) * 0.05 * robbery_odds;
+    let max_steal = victim.bal.to_f64().expect("Should fit.") * 0.05 * robbery_odds;
 
     // We also round down the steal amount.
     // Yes its possible to steal 0, we'll check for that.
     #[allow(clippy::cast_possible_truncation)] // Already floored.
     #[allow(clippy::cast_sign_loss)] // We floor it, this shouldn't ever be negative.
-    let steal_amount: u32 = rand::random_range(0.0..max_steal).floor() as u32;
+    let steal_amount: BigDecimal = BigDecimal::from_f64(rand::random_range(0.0..max_steal).floor()).expect("Should fit.");
 
     // If the steal amount is zero, special case.
-    if steal_amount == 0 {
+    if steal_amount == BigDecimal::zero() {
         // lol
         debug!("Robbery canceled, would have robbed 0 doint.");
         ctx.say("You were going to rob them, but you forgot to take your ADHD meds and forgot.").await?;
@@ -139,7 +141,7 @@ pub(crate) async fn rob(
         let transfer: DointTransfer = DointTransfer {
             sender: DointTransferParty::DointUser(victim.id),
             recipient: DointTransferParty::DointUser(robber.id),
-            transfer_amount: steal_amount,
+            transfer_amount: steal_amount.clone(),
             apply_fees: false, // this is theft
             transfer_reason: DointTransferReason::CrimeRobbery
         };
@@ -148,7 +150,7 @@ pub(crate) async fn rob(
     })?;
     
     // Inform user
-    let victory_message = format!("{} {}!", get_robbery_flavor_text(true), FormattingHelper::display_doint(steal_amount.try_into().expect("This'll be fine...")));
+    let victory_message = format!("{} {}!", get_robbery_flavor_text(true), FormattingHelper::display_doint(&steal_amount));
     ctx.say(victory_message).await?;
 
     Ok(())

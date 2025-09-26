@@ -12,11 +12,8 @@ pub(crate) fn get_doint_user(id: impl Into<u64>, conn: &mut MysqlConnection) -> 
     // Transaction not really needed here but lol.
     // Users table, find the user.
     let maybe_user = conn.transaction(|conn|{
-        users.find(id).load::<DointUser>(conn)
+        users.find(id).first::<DointUser>(conn).optional()
     })?;
-
-    if maybe_user.is_empty() {
-        return Ok(None)
-    }
-    Ok(Some(maybe_user[0]))
+    
+    return Ok(maybe_user)
 }

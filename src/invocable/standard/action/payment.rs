@@ -1,5 +1,6 @@
 // Pay another user some of your doints.
 
+use bigdecimal::{BigDecimal, FromPrimitive, Zero};
 use diesel::associations::HasTable;
 use diesel::{Connection, QueryDsl, RunQueryDsl, SaveChangesDsl};
 use log::{debug, warn};
@@ -21,9 +22,19 @@ pub(crate) async fn pay(
     ctx: Context<'_>,
     #[description = "Who you are paying."]
     recipient: Member,
-    #[description = "The amount of doints to pay them. 100 is 1.00"]
-    payment: u32,
+    #[description = "The amount of doints to pay them."]
+    payment: f64,
 ) -> Result<(), Error> {
+
+    // Turn that float into a BigDecimal
+    let payment = if let Some(worked) = BigDecimal::from_f64(payment) {
+        worked
+    } else {
+        // Failed to cast!
+        return Err("TODO: NEED A BETTER ERROR TO THROW HERE!".into())
+    };
+
+
     debug!("User [{}] is attempting to pay user [{}] {} doints.", ctx.author().id.get(), recipient.user.id.get(), payment);
 
     // Get the database pool
@@ -49,7 +60,7 @@ pub(crate) async fn pay(
     }
 
     // Gotta pay at least one doint.
-    if payment == 0 {
+    if payment == BigDecimal::zero() {
         debug!("User tried to pay 0 doints. Not allowed. Skipping.");
         let _ = ctx.say("You cant pay somebody nothing.").await?;
         return Ok(())
@@ -76,7 +87,7 @@ pub(crate) async fn pay(
             DointTransferError::SenderInsufficientFunds(details) => {
                 // Broke ass.
                 debug!("User cant afford the transfer. Cancelled.");
-                let fee_money = FormattingHelper::display_doint(details.fees_required.expect("/pay has fees").try_into().expect("Fees should not be larger than an i32 lmao"));
+                let fee_money = FormattingHelper::display_doint(&details.fees_required.expect("/pay has fees"));
                 let broke_response: String = format!("You cannot afford that.\nYou may need to factor in the transaction fee of {fee_money}.");
                 let _ = ctx.say(broke_response).await?;
                 return Ok(());
@@ -125,10 +136,10 @@ pub(crate) async fn pay(
     
 
     // Format the amount sent
-    let amount_string = FormattingHelper::display_doint(receipt.amount_sent.try_into().expect("Should be less than i32, checked"));
+    let amount_string = FormattingHelper::display_doint(&receipt.amount_sent);
     
     // Format the transfer fee
-    let fee_string: String = FormattingHelper::display_doint(receipt.fees_paid.expect("/pay has fees").try_into().expect("should be less than i32"));
+    let fee_string: String = FormattingHelper::display_doint(&receipt.fees_paid.expect("/pay has fees"));
 
     // Get the name of the recipient, or if that fails, just say `them`
     let recipient_name: String = match get_display_name(ctx, recipient.user.id.get()).await {

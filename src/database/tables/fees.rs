@@ -1,5 +1,6 @@
 // Fees pease!
 
+use bigdecimal::BigDecimal;
 use diesel::prelude::*;
 
 #[derive(Queryable, Selectable, AsChangeset, Identifiable, Clone, Debug)]
@@ -12,7 +13,7 @@ pub(crate) struct FeeInfo {
     id: String,
 
     /// How many doints every transaction must pay, regardless of transaction size.
-    pub flat_fee: i32,
+    pub flat_fee: BigDecimal,
 
     /// A percentage based fee that is applied on top of the flat fee.
     /// 

@@ -3,6 +3,7 @@
 use crate::bank::movement::move_doints::{DointTransfer, DointTransferError, DointTransferParty, DointTransferReason};
 use crate::database::tables::fees::FeeInfo;
 use crate::tests::setup::get_test_db;
+use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
 use diesel::{Connection};
 use log::info;
 
@@ -26,25 +27,25 @@ fn test_pay_slash_command() {
         // Make 2 test users to do transfers between
         let mut user1 = DointUser {
             id: 1,
-            bal: 1000,
+            bal: BigDecimal::from_usize(1000).unwrap(),
         };
         let mut user2 = DointUser {
             id: 2,
-            bal: 1000,
+            bal: BigDecimal::from_usize(1000).unwrap(),
         };
 
-        user1.insert_into(users).execute(conn).expect("Failed to insert user 1");
-        user2.insert_into(users).execute(conn).expect("Failed to insert user 2");
+        user1.clone().insert_into(users).execute(conn).expect("Failed to insert user 1");
+        user2.clone().insert_into(users).execute(conn).expect("Failed to insert user 2");
 
         // Set up the bank to a known state
         let mut the_bank: BankInfo = bank.first(conn).expect("Failed to get bank");
-        the_bank.doints_on_hand = 0;
-        the_bank.total_doints = 1_000_000;
+        the_bank.doints_on_hand = BigDecimal::zero();
+        the_bank.total_doints = BigDecimal::from_usize(1_000_000).unwrap();
         the_bank.save_changes::<BankInfo>(conn).expect("Couldn't set bank to known values.");
         
         // Set fees to known, easy to pre-calc (calculate) state.
         let mut the_fees: FeeInfo = fees.first(conn).expect("Failed to get bank");
-        the_fees.flat_fee = 1; // 1 doint
+        the_fees.flat_fee = BigDecimal::one(); // 1 doint
         the_fees.percentage_fee = 10; // 1%
         the_fees.save_changes::<FeeInfo>(conn).expect("Couldn't set fees to known values.");
 
@@ -56,7 +57,7 @@ fn test_pay_slash_command() {
         let zero_transfer = DointTransfer {
             sender: DointTransferParty::DointUser(user1.id),
             recipient: DointTransferParty::DointUser(user2.id),
-            transfer_amount: 0,
+            transfer_amount: BigDecimal::zero(),
             apply_fees: true,
             transfer_reason: DointTransferReason::UserPaymentNoReason,
         };
@@ -86,7 +87,7 @@ fn test_pay_slash_command() {
             let one_way = DointTransfer {
                 sender: DointTransferParty::DointUser(user1.id),
                 recipient: DointTransferParty::DointUser(user2.id),
-                transfer_amount: amount,
+                transfer_amount: BigDecimal::from_i32(amount).unwrap(),
                 apply_fees: true,
                 transfer_reason: DointTransferReason::UserPaymentNoReason,
             };
@@ -94,7 +95,7 @@ fn test_pay_slash_command() {
             let the_other = DointTransfer {
                 sender: DointTransferParty::DointUser(user2.id),
                 recipient: DointTransferParty::DointUser(user1.id),
-                transfer_amount: amount,
+                transfer_amount: BigDecimal::from_i32(amount).unwrap(),
                 apply_fees: true,
                 transfer_reason: DointTransferReason::UserPaymentNoReason,
             };
@@ -102,12 +103,12 @@ fn test_pay_slash_command() {
             let user1_sent = BankInterface::bank_transfer(conn, one_way).expect("In-range transfer failed.").amount_sent;
             let user2_sent = BankInterface::bank_transfer(conn, the_other).expect("In-range transfer failed.").amount_sent;
 
-            assert_eq!(user1_sent, amount, "Transfer amount incorrect");
+            assert_eq!(user1_sent, BigDecimal::from_i32(amount).unwrap(), "Transfer amount incorrect");
             assert_eq!(user1_sent, user2_sent, "Amounts sent were different somehow");
 
             // Now we also have to immediately reset the bal of the users, since the bank kept the fees
-            user1.bal = 1000;
-            user2.bal = 1000;
+            user1.bal = BigDecimal::from_usize(1000).unwrap();
+            user2.bal = BigDecimal::from_usize(1000).unwrap();
 
             user1.save_changes::<DointUser>(conn).expect("Failed to re-fill test user1's money!");
             user2.save_changes::<DointUser>(conn).expect("Failed to re-fill test user2's money!");
@@ -119,7 +120,7 @@ fn test_pay_slash_command() {
             let bad = DointTransfer {
                 sender: DointTransferParty::DointUser(user1.id),
                 recipient: DointTransferParty::DointUser(user2.id),
-                transfer_amount: amount,
+                transfer_amount: BigDecimal::from_i32(amount).unwrap(),
                 apply_fees: true,
                 transfer_reason: DointTransferReason::UserPaymentNoReason,
             };
@@ -146,7 +147,7 @@ fn test_pay_slash_command() {
         let nobody_is_home = DointTransfer {
             sender: DointTransferParty::DointUser(user1.id),
             recipient: DointTransferParty::DointUser(0),
-            transfer_amount: 50,
+            transfer_amount: BigDecimal::from_usize(50).unwrap(),
             apply_fees: true,
             transfer_reason: DointTransferReason::UserPaymentNoReason,
         };
@@ -164,7 +165,7 @@ fn test_pay_slash_command() {
 
         // After all of that, the bank should have collected some fees.
         let the_bank: BankInfo = bank.first(conn).expect("Failed to get bank");
-        assert!(the_bank.doints_on_hand > 0, "Fees were not collected!");
+        assert!(the_bank.doints_on_hand > BigDecimal::zero(), "Fees were not collected!");
 
         // All tests passed.
         Ok::<(), ()>(())

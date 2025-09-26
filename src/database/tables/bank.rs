@@ -1,5 +1,6 @@
 // laughing all the way there. haw haw haw.
 
+use bigdecimal::BigDecimal;
 use diesel::prelude::*;
 
 #[derive(Queryable, Selectable, AsChangeset, Identifiable, Clone, Debug)]
@@ -14,10 +15,10 @@ pub(crate) struct BankInfo {
     /// How many doints the bank currently has, and can give out.
     /// 
     /// IE these doints are not reserved for any use, and are liquid.
-    pub doints_on_hand: i32,
+    pub doints_on_hand: BigDecimal,
 
     /// How many doints are in circulation.
-    pub total_doints: i32,
+    pub total_doints: BigDecimal,
 
     /// The current tax rate.
     /// 

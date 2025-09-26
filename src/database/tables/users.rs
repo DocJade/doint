@@ -1,11 +1,12 @@
 // The user table's entries.
 
+use bigdecimal::BigDecimal;
 use diesel::prelude::*;
 
-#[derive(Queryable, Selectable, Insertable, Identifiable, AsChangeset, Clone, Copy)]
+#[derive(Queryable, Selectable, Insertable, Identifiable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::users)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub(crate) struct DointUser {
     pub id: u64,
-    pub bal: i32,
+    pub bal: BigDecimal,
 }

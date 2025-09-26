@@ -1,5 +1,6 @@
 // Move doints from one place to another, wether that be between users or between the bank and elsewhere.
 
+use bigdecimal::{BigDecimal, Zero};
 use diesel::{Connection, MysqlConnection};
 use log::warn;
 use thiserror::Error;
@@ -24,7 +25,7 @@ pub(crate) struct DointTransfer {
     /// 
     /// This must be a positive number. If you wish to take doints from one place, simply swap
     /// the order of sender and recipient.
-    pub(crate) transfer_amount: u32,
+    pub(crate) transfer_amount: BigDecimal,
 
     /// Do fees apply to this transaction?
     /// 
@@ -70,10 +71,10 @@ pub(crate) struct DointTransferReceipt {
     pub(crate) recipient: DointTransferParty,
 
     /// How much the sender sent. (Does not include fees if applicable)
-    pub(crate) amount_sent: u32,
+    pub(crate) amount_sent: BigDecimal,
 
     /// How much the sender spent on fees (if applicable).
-    pub(crate) fees_paid: Option<u32>,
+    pub(crate) fees_paid: Option<BigDecimal>,
 
     /// Why this transfer happened.
     pub(crate) transfer_reason: DointTransferReason,
@@ -114,10 +115,10 @@ pub(crate) enum DointTransferError {
 #[derive(Debug)]
 pub(crate) struct DointTransferSenderBroke {
     /// How much the transfer was worth
-    pub(crate) transfer_amount: u32,
+    pub(crate) transfer_amount: BigDecimal,
 
     /// How much in fee's the user would've needed to pay. (if applicable)
-    pub(crate) fees_required: Option<u32>,
+    pub(crate) fees_required: Option<BigDecimal>,
 }
 
 
@@ -156,7 +157,7 @@ fn run_bank_transfer(conn: &mut MysqlConnection, transfer: DointTransfer) -> Res
     };
     
     // Can't transfer nothing
-    if transfer.transfer_amount == 0 {
+    if transfer.transfer_amount == BigDecimal::zero() {
         warn!("Attempted to move 0 doints between parties! Pointless!");
         return Err(DointTransferError::PointlessTransfer)
     };
@@ -168,19 +169,14 @@ fn run_bank_transfer(conn: &mut MysqlConnection, transfer: DointTransfer) -> Res
 
     // If fees are enabled, calculate them and add them to the transfer
     let fees = if transfer.apply_fees {
-        BankInterface::calculate_fees(conn, transfer.transfer_amount)?
+        BankInterface::calculate_fees(conn, &transfer.transfer_amount)?
     } else {
         // no fee
-        0_u32
+        BigDecimal::zero()
     };
 
     // Cast that the same type the bal is stored as in the DB.
-    let full_sender_spend: i32 = if let Ok(spend) = (transfer.transfer_amount + fees).try_into() {
-        spend
-    } else {
-        // Cast failure.
-        return Err(DointTransferError::TransferTooBig)
-    };
+    let full_sender_spend: BigDecimal = &transfer.transfer_amount + &fees;
 
     // If this is a transfer between 2 users, assert it as such
     if transfer.transfer_reason == DointTransferReason::UserPaymentNoReason ||
@@ -250,9 +246,9 @@ fn run_bank_transfer(conn: &mut MysqlConnection, transfer: DointTransfer) -> Res
     // pre-make the response if the sender cannot afford it.
     let sender_cant_afford = DointTransferError::SenderInsufficientFunds(
         DointTransferSenderBroke {
-            transfer_amount: transfer.transfer_amount,
+            transfer_amount: transfer.transfer_amount.clone(),
             fees_required: if transfer.apply_fees {
-                Some(fees)
+                Some(fees.clone())
             } else {
                 None
             }
@@ -267,7 +263,7 @@ fn run_bank_transfer(conn: &mut MysqlConnection, transfer: DointTransfer) -> Res
             let bal = BankInterface::get_bank_balance(conn)?;
 
             // Bal must be positive.
-            if bal <= 0 {
+            if bal <= BigDecimal::zero() {
                 return Err(sender_cant_afford);
             }
 
@@ -297,12 +293,13 @@ fn run_bank_transfer(conn: &mut MysqlConnection, transfer: DointTransfer) -> Res
     match transfer.recipient {
         DointTransferParty::Bank => {
             // Bank must exist.
-            // Make sure it has room
-            let bal = BankInterface::get_bank_balance(conn)?;
-            if bal.checked_add_unsigned(transfer.transfer_amount).is_none() {
-                // Bank is too full.
-                return Err(DointTransferError::RecipientFull)
-            }
+            // Make sure it has room... Wait how does big-int behave if a number cant fit???
+            // TODO: ^
+            // let bal = BankInterface::get_bank_balance(conn)?;
+            // if bal.checked_add_unsigned(transfer.transfer_amount).is_none() {
+            //     // Bank is too full.
+            //     return Err(DointTransferError::RecipientFull)
+            // }
         },
         DointTransferParty::DointUser(id) => {
             let user = if let Some(found) = get_doint_user(id, conn)? {
@@ -312,10 +309,11 @@ fn run_bank_transfer(conn: &mut MysqlConnection, transfer: DointTransfer) -> Res
                 return Err(DointTransferError::InvalidParty)
             };
             // Have room?
-            if user.bal.checked_add_unsigned(transfer.transfer_amount).is_none() {
-                // Ough... im so full...
-                return Err(DointTransferError::RecipientFull)
-            }
+            // TODO: Same reason as above.
+            // if user.bal.checked_add_unsigned(transfer.transfer_amount).is_none() {
+            //     // Ough... im so full...
+            //     return Err(DointTransferError::RecipientFull)
+            // }
         },
     };
 
@@ -343,12 +341,12 @@ fn run_bank_transfer(conn: &mut MysqlConnection, transfer: DointTransfer) -> Res
         match transfer.recipient {
             DointTransferParty::Bank => {
                 let mut the_bank: BankInfo = bank.first(conn)?;
-                the_bank.doints_on_hand = the_bank.doints_on_hand.checked_add_unsigned(transfer.transfer_amount).expect("Already checked.");
+                the_bank.doints_on_hand += &transfer.transfer_amount;
                 the_bank.save_changes::<BankInfo>(conn)?;
             },
             DointTransferParty::DointUser(id) => {
                 let mut user = get_doint_user(id, conn)?.expect("Already checked.");
-                user.bal = user.bal.checked_add_unsigned(transfer.transfer_amount).expect("Already checked.");
+                user.bal += &transfer.transfer_amount;
                 user.save_changes::<DointUser>(conn)?;
             },
         };
@@ -356,7 +354,7 @@ fn run_bank_transfer(conn: &mut MysqlConnection, transfer: DointTransfer) -> Res
         // Put fees in the bank if needed
         if transfer.apply_fees {
             let mut the_bank: BankInfo = bank.first(conn)?;
-            the_bank.doints_on_hand = the_bank.doints_on_hand.checked_add_unsigned(fees).expect("Bigger issues if we're overflowing the bank");
+            the_bank.doints_on_hand += &fees;
             the_bank.save_changes::<BankInfo>(conn)?;
         }
 

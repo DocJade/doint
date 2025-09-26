@@ -29,7 +29,7 @@ pub(crate) async fn admin_force_disperse_ubi(
         Ok(ok) => match ok {
             Some(given) => {
                 #[allow(clippy::cast_possible_wrap)] // Nuh uh.
-                let formatted = FormattingHelper::display_doint(given as i32);
+                let formatted = FormattingHelper::display_doint(&given);
                 format!("Dispersed {formatted} to each player.")
             },
             None => {

@@ -34,7 +34,7 @@ pub(crate) async fn balance(
     };
 
     // Format the doint number
-    let doint_string = FormattingHelper::display_doint(user.bal);
+    let doint_string = FormattingHelper::display_doint(&user.bal);
 
     // Now print out their balance.
     let response: String = format!("You currently have {doint_string}.");

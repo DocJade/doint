@@ -2,3 +2,4 @@
 // Will contain things like needing to have doints to do actions, for easy command pre-checks.
 pub(crate) mod consented;
 pub(crate) mod pre_command;
+pub(crate) mod another_user;

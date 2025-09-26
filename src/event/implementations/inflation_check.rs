@@ -1,5 +1,6 @@
 // Check if the economy is fucked
 
+use bigdecimal::BigDecimal;
 use diesel::dsl::sum;
 use diesel::{Connection, MysqlConnection};
 
@@ -35,12 +36,12 @@ impl EventCaller {
             let expected_amount = the_bank.total_doints;
 
             // Tally up all the doints
-            let mut all_doints: i32 = the_bank.doints_on_hand;
+            let mut all_doints: BigDecimal = the_bank.doints_on_hand;
 
             // Get how much money all users have
-            let user_total: Option<i64> = users.select(sum(bal)).first(conn).expect("Sum should always return 1 thing");
-            let user_total: i64 = user_total.expect("This always returns a number even on 0 rows");
-            all_doints = all_doints.saturating_add(user_total.try_into().expect("Users should not own more than the type limit"));
+            let user_total: Option<BigDecimal> = users.select(sum(bal)).first(conn).expect("Sum should always return 1 thing");
+            let user_total: BigDecimal = user_total.expect("This always returns a number even on 0 rows");
+            all_doints += user_total;
 
             // Does that match?
             if expected_amount == all_doints {

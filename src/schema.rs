@@ -4,8 +4,8 @@ diesel::table! {
     bank (id) {
         #[max_length = 1]
         id -> Char,
-        doints_on_hand -> Integer,
-        total_doints -> Integer,
+        doints_on_hand -> Decimal,
+        total_doints -> Decimal,
         tax_rate -> Smallint,
         ubi_rate -> Smallint,
     }
@@ -15,7 +15,7 @@ diesel::table! {
     fees (id) {
         #[max_length = 1]
         id -> Char,
-        flat_fee -> Integer,
+        flat_fee -> Decimal,
         percentage_fee -> Smallint,
     }
 }
@@ -33,7 +33,7 @@ diesel::table! {
 diesel::table! {
     users (id) {
         id -> Unsigned<Bigint>,
-        bal -> Integer,
+        bal -> Decimal,
     }
 }
 

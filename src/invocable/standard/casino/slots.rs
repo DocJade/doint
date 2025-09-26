@@ -9,6 +9,7 @@
 use std::iter::{repeat, repeat_n};
 use std::ops::Deref;
 use std::time::Duration;
+use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
 use lazy_static::lazy_static;
 use poise::serenity_prelude::{ButtonStyle, ComponentInteractionCollector, CreateActionRow, CreateButton, CreateInteractionResponseFollowup};
 use poise::CreateReply;
@@ -34,7 +35,7 @@ struct SlotMachine<'a> {
     payout_table: SlotPayoutTable,
 
     /// The set bet amount (in full doints)
-    bet_size: u8,
+    bet_size: BigDecimal,
 
     /// The layout of the reels on this slot.
     /// 
@@ -47,7 +48,7 @@ struct SlotMachine<'a> {
     /// for convenience.
     /// 
     /// bet_size * jackpot
-    max_possible_payout: u64
+    max_possible_payout: BigDecimal
 }
 
 /// It is assumed that any un-covered combination has no payout.
@@ -93,7 +94,7 @@ impl SlotSymbol {
 
 struct SlotSpinResult {
     /// How much the user won, if anything
-    win_amount: u32,
+    win_amount: BigDecimal,
     /// The result on the slot machine reels.
     reel_result: [SlotSymbol; 3],
     /// Was this the jackpot?
@@ -160,7 +161,7 @@ lazy_static! {
             double_cherry: 5,
             single_cherry: 1,
         },
-        bet_size: 1, // One doint, max payout of 1200
+        bet_size: BigDecimal::one(), // One doint, max payout of 1200
         reel_layout: {
             let mut reel: Vec<SlotSymbol> = Vec::new();
             reel.extend(repeat_n(SlotSymbol::Jackpot(EMOJI_FREAKY_CANNY), 6));
@@ -172,7 +173,7 @@ lazy_static! {
             reel.extend(repeat_n(SlotSymbol::Blank(EMOJI_UNCANNY), 64));
             reel
         },
-        max_possible_payout: 1200,
+        max_possible_payout: BigDecimal::from_usize(1200).expect("1200 should fit."),
     };
 }
 
@@ -200,11 +201,11 @@ impl SlotMachine<'_> {
         };
 
         // If we won some amount, multiply it by the win multiplier.
-        let win_amount = if let Some(mult) = win_multiplier {
-            u32::from(self.bet_size) * u32::from(mult)
+        let win_amount: BigDecimal = if let Some(mult) = win_multiplier {
+            &self.bet_size * mult
         } else {
             // No multiplier, no win.
-            0
+            BigDecimal::zero()
         };
 
         // All done
@@ -332,18 +333,17 @@ pub(crate) async fn slots(
         };
 
         // Make sure the user can afford the bet.
-        let required_doints = i32::from(machine.bet_size) * 100;
-        if better.bal < required_doints {
+        let required_doints: &BigDecimal = &machine.bet_size;
+        if &better.bal < required_doints {
             // User cant afford bet.
-            let bet_string = FormattingHelper::display_doint(required_doints);
+            let bet_string = FormattingHelper::display_doint(&required_doints);
             let _ = ctx.say(format!("You cannot afford the {bet_string} bet.")).await?;
             return Ok(());
         }
 
         // Make sure the bank can afford the jackpot.
-        let bank_bal = BankInterface::get_bank_balance(&mut conn)?;
-        let mut max_payout: i32 = machine.max_possible_payout.try_into().expect("Jackpot should be less than i32");
-        max_payout *= 100;
+        let bank_bal: &BigDecimal = &BankInterface::get_bank_balance(&mut conn)?;
+        let mut max_payout: &BigDecimal = &machine.max_possible_payout;
         if bank_bal < max_payout {
             // Bank cant pay that out.
             warn!("Bank cant afford slots!");
@@ -381,9 +381,9 @@ pub(crate) async fn slots(
         .to_string();
 
         // Text for the outcome
-        let amount_actually_won = spin_result.win_amount * u32::from(machine.bet_size) * 100;
+        let amount_actually_won: BigDecimal = &spin_result.win_amount * &machine.bet_size;
         
-        let result_text: String = if spin_result.win_amount > 0 {
+        let result_text: String = if &spin_result.win_amount > &BigDecimal::zero() {
             // User won some.
             // Jackpot text if they won that too
             let jackpot_text = if spin_result.was_jackpot {
@@ -393,7 +393,7 @@ pub(crate) async fn slots(
                 ""
             };
 
-            let formatted_doints = FormattingHelper::display_doint(amount_actually_won.try_into().expect("You shouldnt win more than i32"));
+            let formatted_doints = FormattingHelper::display_doint(&amount_actually_won);
 
             format!("{jackpot_text}You won {formatted_doints}!")
         } else {
@@ -407,7 +407,7 @@ pub(crate) async fn slots(
         conn.transaction::<(), DointTransferError, _>(|conn| {
 
             // If user broke even, we dont need to do anything at all.
-            if amount_actually_won == u32::from(machine.bet_size) {
+            if amount_actually_won == machine.bet_size {
                 // Broke even, no action.
                 return Ok(())
             }
@@ -416,14 +416,14 @@ pub(crate) async fn slots(
             let transfer = DointTransfer {
                 sender: DointTransferParty::DointUser(ctx.author().id.get()),
                 recipient: DointTransferParty::Bank,
-                transfer_amount: u32::from(machine.bet_size) * 100,
+                transfer_amount: machine.bet_size.clone(),
                 apply_fees: false, // Slots aren't taxed.
                 transfer_reason: DointTransferReason::CasinoLoss
             };
             BankInterface::bank_transfer(conn, transfer)?;
 
             // Now give them their winnings, if needed
-            if spin_result.win_amount == 0 {
+            if spin_result.win_amount == BigDecimal::zero() {
                 // User lost, nothing left to do
                 return Ok(())
             }
@@ -494,7 +494,7 @@ pub(crate) async fn slots(
         let spin_again_uuid = ctx.id();
 
         // The color of the button depends on if you won or not.
-        let spin_button_style = if spin_result.win_amount > 0 {
+        let spin_button_style = if spin_result.win_amount > BigDecimal::zero() {
             // Green, positive enforcement.
             ButtonStyle::Success
         } else {

@@ -2,7 +2,7 @@ use diesel::r2d2::{self, ConnectionManager};
 use diesel::MysqlConnection;
 use log::{debug, info};
 // Starting the bot
-use poise::serenity_prelude as serenity;
+use poise::{serenity_prelude as serenity, PrefixFrameworkOptions};
 use std::error::Error;
 
 use crate::consent::consent_button::opt_in;

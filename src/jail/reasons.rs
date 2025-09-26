@@ -28,7 +28,7 @@ impl JailReason {
     pub(crate) fn to_time(self) -> TimeDelta {
         // First get how many seconds they should be in jail for
         let duration_seconds: i64 = match self {
-            JailReason::AttemptedRobbery => 5 * 60, // 5 minutes
+            JailReason::AttemptedRobbery => 60 * 60, // 1 hour
             #[allow(deprecated)] // Need to handle the case regardless.
             JailReason::Unknown => {
                 // You shouldn't be going to jail for an unknown reason.

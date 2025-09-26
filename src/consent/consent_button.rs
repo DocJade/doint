@@ -1,11 +1,31 @@
 // Clicking the consent button adds you to the database.
 
-use crate::{consent::dointer_role::{give_dointer_role, revoke_dointer_role}, database::queries::get_user::get_doint_user, knob::terms_and_conditions::TERMS_AND_CONDITIONS_TEXT, schema::users::id, types::serenity_types::{Context, Data, Error}};
-use log::{error, info, warn};
-use poise::{serenity_prelude as serenity, CreateReply};
-use diesel::{Connection, MysqlConnection};
+use crate::{
+    consent::dointer_role::{
+        give_dointer_role,
+        revoke_dointer_role
+    },
+    database::queries::get_user::get_doint_user,
+    knob::terms_and_conditions::TERMS_AND_CONDITIONS_TEXT,
+    schema::users::id,
+    types::serenity_types::{
+        Context,
+        Error
+    }
+};
+use bigdecimal::{
+    BigDecimal,
+    Zero
+};
+use log::{
+    error,
+    info,
+    warn
+};
+use poise::CreateReply;
+use diesel::Connection;
 use diesel::prelude::*;
-use crate::schema::users::dsl::{users, bal};
+use crate::schema::users::dsl::users;
 
 use crate::{database::tables::users::DointUser};
 
@@ -36,7 +56,7 @@ pub(crate) async fn opt_in(
     // Assemble them.
     let new_user: DointUser = DointUser {
         id: users_id,
-        bal: 0, // Broke ass lmao
+        bal: BigDecimal::zero(), // Broke ass lmao
     };
 
     // Add them.

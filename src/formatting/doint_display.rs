@@ -1,23 +1,40 @@
 // How to display doint numbers
 
+use bigdecimal::BigDecimal;
+
 use crate::{formatting::format_struct::FormattingHelper, knob::formatting::DOINT_SYMBOL};
 
 impl FormattingHelper {
     /// Format doints for display based on user preferences
-    pub(crate) fn display_doint(doints: i32) -> String {
+    pub(crate) fn display_doint(doints: &BigDecimal) -> String {
         // TODO: Allow users to set formatting preferences.
 
-        // Right now we display doints with 2 decimal places.
-        // Thus we must have at least 3 digits. So left pad with zeros.
-        let mut padded_raw: String = format!("{doints:03}");
-        
-        // Now insert the period
-        padded_raw.insert(padded_raw.len() - 2, '.');
+        let raw: String = format!("{doints}");
 
-        // Now finally, add the doint symbol.
-        padded_raw.insert(0, DOINT_SYMBOL);
+        // Get everything before the decimal point so we can add commas
+        let (pre_decimal, decimals) = raw.split_once('.').expect("Should have a decimal component.");
+
+        // Now reverse the pre to make adding the commas easier, and add commas
+        let mut new_pre_decimal = String::new();
+
+        for (index, char) in pre_decimal.chars().rev().enumerate() {
+            if (index + 1) % 3 == 0 {
+                // Add a comma as well
+                new_pre_decimal.insert_str(0, &format!(",{char}"));
+            } else {
+                new_pre_decimal.insert(0, char);
+            }
+        }
+
+        // Remove the comma at the end, if there is one.
+        if new_pre_decimal.starts_with(',') {
+            let _ = new_pre_decimal.remove(0);
+        }
+
+        // Add the doint symbol.
+        new_pre_decimal.insert(0, DOINT_SYMBOL);
 
         // done.
-        padded_raw
+        format!("{new_pre_decimal}.{decimals}")
     }
 }
