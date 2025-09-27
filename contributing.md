@@ -145,7 +145,7 @@ I'm also a fan of separating sections of files (or even sections of code) with l
 //
 ```
 
-See [slots](src\invocable\standard\casino\slots.rs) for an example of the kind of comments I like, and documentation comments for features.
+See [slots](src/invocable/standard/casino/slots.rs) for an example of the kind of comments I like, and documentation comments for features.
 
 Explain things!
 
