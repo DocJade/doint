@@ -33,9 +33,6 @@ pub(crate) enum IneligibleDestinationUser {
 /// Sometimes users are immune from a certain command, these are the reasons.
 #[derive(Debug)]
 pub(crate) enum UserImmuneReason {
-    /// This user is weast, weast is immune from everything at the moment.
-    UserIsWeast,
-    
     /// This user has paid for some kind of immunity to this action
     UserBoughtProtection,
 }
