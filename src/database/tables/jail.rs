@@ -3,7 +3,10 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::{database::tables::users::DointUser, jail::reasons::{JailCause, JailReason}};
+use crate::{
+    database::tables::users::DointUser,
+    jail::reasons::{JailCause, JailReason},
+};
 
 #[derive(Queryable, Selectable, Identifiable, Associations, Debug, Insertable)]
 #[diesel(belongs_to(DointUser, foreign_key = id))]
@@ -25,7 +28,6 @@ pub(crate) struct JailedUser {
     // Can this person be bailed out?
     pub can_bail: bool,
 }
-
 
 /*
 `id` BIGINT UNSIGNED NOT NULL COMMENT 'fkey to users table',

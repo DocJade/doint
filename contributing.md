@@ -90,7 +90,7 @@ Things that are pure chance, like coin flips, get their house edge via charging 
 
 ### Formatting
 
-Follow the Rust formatting conventions (clippy should yell at you if you ignore them) and run `cargo format` on your finalized code. Keeping things consistent makes Doints easy to work on.
+Follow the Rust formatting conventions (clippy should yell at you if you ignore them) and run `cargo fmt` on your finalized code. Keeping things consistent makes Doints easy to work on.
 ### No vibe coding
 
 FULLY AI generated code will not be merged. Doints are grass-fed and whole-grain. You are allowed to use AI for inspiration and debugging, but please don't submit entire swaths of code that was LLLM'ed into existence.

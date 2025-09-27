@@ -17,30 +17,30 @@ enum Coin {
     #[name = "Heads."]
     Heads,
     #[name = "Tails"]
-    Tails
+    Tails,
 }
 
 /// Flip a coin, pick a side. If you pick the correct side, you double your money (minus fees)
-#[poise::command(slash_command, guild_only, user_cooldown=300)]
+#[poise::command(slash_command, guild_only, user_cooldown = 300)]
 pub(crate) async fn flip(
     ctx: Context<'_>,
-    #[description = "Heads or tails?"]
-    side: Coin,
+    #[description = "Heads or tails?"] side: Coin,
     #[description = "How much are you betting? You can bet a maximum of 1,000.00"]
     #[max = 1000] // 1,000 doints
     bet: f64,
 ) -> Result<(), Error> {
-
     // Turn that float into a BigDecimal
     let bet = if let Some(worked) = BigDecimal::from_f64(bet) {
         worked
     } else {
         // Failed to cast!
-        return Err(Error::BigDecimalCastError)
+        return Err(Error::BigDecimalCastError);
     };
 
-
-    debug!("User [{}] is playing coin flip, they bet {bet} and picked {side:?}", ctx.author().id.get());
+    debug!(
+        "User [{}] is playing coin flip, they bet {bet} and picked {side:?}",
+        ctx.author().id.get()
+    );
 
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
@@ -53,7 +53,9 @@ pub(crate) async fn flip(
         // Has role, but not in DB.
         // TODO: error for this / correction
         warn!("User not in DB!");
-        let _ = ctx.say("Uhh, you're not in the doint DB properly, tell doc.").await?;
+        let _ = ctx
+            .say("Uhh, you're not in the doint DB properly, tell doc.")
+            .await?;
         return Ok(());
     };
 
@@ -77,7 +79,9 @@ pub(crate) async fn flip(
     if BankInterface::get_bank_balance(&mut conn)? < final_bet_amount {
         // bank couldn't pay this bet out
         debug!("Bank cant afford bet.");
-        let _ = ctx.say("The bank doesn't have enough money for that bet, sorry.").await?;
+        let _ = ctx
+            .say("The bank doesn't have enough money for that bet, sorry.")
+            .await?;
         return Ok(());
     }
 
@@ -87,19 +91,20 @@ pub(crate) async fn flip(
     // If the fees are more than or equal to the possible winnings, the flip is pointless.
     if fees_to_pay >= final_bet_amount {
         debug!("Fees outweigh possible winnings.");
-        let _ = ctx.say("Fees on this flip would cost more than the winnings.").await?;
+        let _ = ctx
+            .say("Fees on this flip would cost more than the winnings.")
+            .await?;
         return Ok(());
     }
 
     // Do the coin flip.
     // Heads or tails buddy?
-    let flip = if rand::random_bool(0.5) { // 50%
+    let flip = if rand::random_bool(0.5) {
+        // 50%
         Coin::Heads
     } else {
         Coin::Tails
     };
-
-    
 
     // Now move money around
     let receipt = conn.transaction(|conn| {
@@ -111,11 +116,11 @@ pub(crate) async fn flip(
                 recipient: DointTransferParty::Bank,
                 transfer_amount: final_bet_amount.clone(),
                 apply_fees: false, // fees get applied after wins
-                transfer_reason: DointTransferReason::CasinoLoss
+                transfer_reason: DointTransferReason::CasinoLoss,
             };
 
             // Need the receipt in both cases, since we need to know fees.
-            return BankInterface::bank_transfer(conn, transfer)
+            return BankInterface::bank_transfer(conn, transfer);
         }
 
         // User won!
@@ -126,7 +131,7 @@ pub(crate) async fn flip(
             recipient: DointTransferParty::DointUser(ctx.author().id.get()),
             transfer_amount: take_home,
             apply_fees: false, // already added in.
-            transfer_reason: DointTransferReason::CasinoWin
+            transfer_reason: DointTransferReason::CasinoWin,
         };
 
         BankInterface::bank_transfer(conn, transfer)
@@ -148,7 +153,9 @@ pub(crate) async fn flip(
         // win
         let paid_fees = FormattingHelper::display_doint(&fees_to_pay);
         let takeaway = FormattingHelper::display_doint(&receipt.amount_sent);
-        format!("{side_name}! You won {takeaway}!\n\n-# Paid a fee of {paid_fees}. ({bet_size} - {paid_fees} = {takeaway})")
+        format!(
+            "{side_name}! You won {takeaway}!\n\n-# Paid a fee of {paid_fees}. ({bet_size} - {paid_fees} = {takeaway})"
+        )
     } else {
         // | || || |_
         format!("{side_name}! You lost {bet_size}!\n\n-# Better luck next time!")

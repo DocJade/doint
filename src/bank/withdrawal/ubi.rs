@@ -2,38 +2,35 @@
 
 // Collect taxes from doint-holders.
 
-use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
-use diesel::result::Error;
-use diesel::{Connection, MysqlConnection};
-use diesel::prelude::*;
-use log::{debug, info, warn};
 use crate::bank::bank_struct::BankInterface;
 use crate::database::tables::bank::BankInfo;
 use crate::schema::bank::dsl::bank;
 use crate::schema::users::dsl::users;
+use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
+use diesel::prelude::*;
+use diesel::result::Error;
+use diesel::{Connection, MysqlConnection};
+use log::{debug, info, warn};
 
-
-use crate::{database::tables::users::DointUser};
+use crate::database::tables::users::DointUser;
 
 impl BankInterface {
     /// Disperse UBI to all enrolled users.
-    /// 
+    ///
     /// The UBI rate is a percentage of all of the liquid doints currently in the bank, then that amount is split
     /// between all dointers. Rounds down, with a minimum of 1 doint.
-    /// 
+    ///
     /// If the bank is too broke to afford UBI, dispersal will fail, returning None.
-    /// 
+    ///
     /// If UBI is disabled, IE the rate is set to 0, then Some(0) is returned.
-    /// 
+    ///
     /// Returns how many doints each user got.
-    /// 
+    ///
     /// Returns a diesel error if db stuff fails.
     pub(crate) fn disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<BigDecimal>, Error> {
         go_disperse_ubi(conn)
     }
 }
-
-
 
 fn go_disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<BigDecimal>, Error> {
     info!("Distributing universal basic income...");
@@ -45,7 +42,8 @@ fn go_disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<BigDecimal>, Err
 
         // Calculate the current ubi rate.
         // This is a multiplier, NOT a percentage.
-        let ubi_rate: BigDecimal = BigDecimal::from_f64(f64::from(the_bank.ubi_rate) / 1000.0).expect("idk this should be fine");
+        let ubi_rate: BigDecimal = BigDecimal::from_f64(f64::from(the_bank.ubi_rate) / 1000.0)
+            .expect("idk this should be fine");
 
         // Skip UBI if disabled.
         if ubi_rate < BigDecimal::from_f64(0.001).expect("Fine.") {
@@ -67,9 +65,11 @@ fn go_disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<BigDecimal>, Err
         }
 
         // Now figure out how much to pay to each user.
-        let number_of_users = BigDecimal::from_usize(people_to_pay.len()).expect("This should be fine! :)");
+        let number_of_users =
+            BigDecimal::from_usize(people_to_pay.len()).expect("This should be fine! :)");
         // Divide by how many people we need to pay
-        #[allow(clippy::cast_precision_loss)] // If we have more than 2^52 users we have bigger issues
+        #[allow(clippy::cast_precision_loss)]
+        // If we have more than 2^52 users we have bigger issues
         let unrounded_amount_per_person: BigDecimal = &amount_to_disperse / &number_of_users;
 
         // Now round that downwards to the nearest dent
@@ -82,10 +82,10 @@ fn go_disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<BigDecimal>, Err
         #[allow(clippy::cast_possible_truncation)] // We're already fucked if we have more than i32::MAX users.
         #[allow(clippy::cast_possible_wrap)]
         let total_bank_removal = &amount_per_person * number_of_users;
-        if  total_bank_removal > the_bank.doints_on_hand {
+        if total_bank_removal > the_bank.doints_on_hand {
             // Bank cant afford it
             debug!("Bank cant afford UBI. Skipping.");
-            return Ok(None)
+            return Ok(None);
         }
 
         // Juuust in case, make sure its positive
@@ -95,8 +95,7 @@ fn go_disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<BigDecimal>, Err
         }
 
         // Bank can afford it, start paying.
-        
-        
+
         // Now loop over every user, givin em money from the bank
         for user in &mut people_to_pay {
             // Give em that money

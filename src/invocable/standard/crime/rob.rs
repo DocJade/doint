@@ -1,7 +1,7 @@
 // steal moneys from people
 
-use bigdecimal::{BigDecimal, FromPrimitive, Zero};
 use bigdecimal::ToPrimitive;
+use bigdecimal::{BigDecimal, FromPrimitive, Zero};
 use diesel::Connection;
 use log::{debug, warn};
 use poise::serenity_prelude::Member;
@@ -17,15 +17,17 @@ use crate::jail::arrest::JailForm;
 use crate::jail::reasons::{JailCause, JailReason};
 use crate::types::serenity_types::{Context, Error};
 
-
 /// Rob someone. Odds of the robbery are based on wealth disparity.
 #[poise::command(slash_command, guild_only)]
 pub(crate) async fn rob(
     ctx: Context<'_>,
-    #[description = "Who would you like to rob?"]
-    who: Member,
+    #[description = "Who would you like to rob?"] who: Member,
 ) -> Result<(), Error> {
-    debug!("User [{}] is robbing User [{}]!", ctx.author().id.get(), who.user.id.get());
+    debug!(
+        "User [{}] is robbing User [{}]!",
+        ctx.author().id.get(),
+        who.user.id.get()
+    );
 
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
@@ -38,7 +40,9 @@ pub(crate) async fn rob(
         // Has role, but not in DB.
         // TODO: error for this / correction
         warn!("User not in DB!");
-        let _ = ctx.say("Uhh, you're not in the doint DB properly, tell doc.").await?;
+        let _ = ctx
+            .say("Uhh, you're not in the doint DB properly, tell doc.")
+            .await?;
         return Ok(());
     };
 
@@ -47,11 +51,13 @@ pub(crate) async fn rob(
         let _ = ctx.say("You cant rob someone who isn't a Dointer!").await?;
         return Ok(());
     };
-    
+
     // Make sure you arent robbing yourself
     if robber.id == victim.id {
         // no
-        let _ = ctx.say("You robbed yourself, and stole your own wallet. Good job!").await?;
+        let _ = ctx
+            .say("You robbed yourself, and stole your own wallet. Good job!")
+            .await?;
         return Ok(());
     }
 
@@ -62,8 +68,8 @@ pub(crate) async fn rob(
     let jail_form: JailForm = JailForm {
         law_broke: JailReason::AttemptedRobbery,
         arrested_by: JailCause::ThePolice,
-        jail_for: None, // Standard robbery, so none
-        can_bail: false // Currently unused.
+        jail_for: None,  // Standard robbery, so none
+        can_bail: false, // Currently unused.
     };
 
     // if victim has less than half of the robbers bal, then thats fucked up, so we just jail the robber.
@@ -71,16 +77,16 @@ pub(crate) async fn rob(
     if &robber.bal / 2 > victim.bal || victim.bal == BigDecimal::zero() {
         // TO JAIL!
         robber.jail_user(&jail_form, &mut conn)?;
-        
+
         let _ = ctx.say("Mf robbing poor people, straight to jail.").await?;
-        return Ok(())
+        return Ok(());
     }
-    
+
     // Robbing people in jail sends you to jail
     if victim.is_jailed(&mut conn)?.is_some() {
         robber.jail_user(&jail_form, &mut conn)?;
         let _ = ctx.say("You snuck into jail to rob them, thats breaking and entering! You've been sent to jail!").await?;
-        return Ok(())
+        return Ok(());
     }
 
     // the chance of success is based on how much the person you're robbing has.
@@ -94,8 +100,10 @@ pub(crate) async fn rob(
         // 10% failure rate, thus 90% win rate
         0.90
     } else {
-        let raw_odds = (victim.bal.to_f64().expect("Should fit") / robber.bal.to_f64().expect("Should fit")) / 10.0;
-        
+        let raw_odds = (victim.bal.to_f64().expect("Should fit")
+            / robber.bal.to_f64().expect("Should fit"))
+            / 10.0;
+
         // max odds of 90% win rate
         raw_odds.min(0.90)
     };
@@ -113,14 +121,16 @@ pub(crate) async fn rob(
     // Yes its possible to steal 0, we'll check for that.
     #[allow(clippy::cast_possible_truncation)] // Already floored.
     #[allow(clippy::cast_sign_loss)] // We floor it, this shouldn't ever be negative.
-    let steal_amount: BigDecimal = BigDecimal::from_f64(rand::random_range(0.0..max_steal).floor()).expect("Should fit.");
+    let steal_amount: BigDecimal =
+        BigDecimal::from_f64(rand::random_range(0.0..max_steal).floor()).expect("Should fit.");
 
     // If the steal amount is zero, special case.
     if steal_amount == BigDecimal::zero() {
         // lol
         debug!("Robbery canceled, would have robbed 0 doint.");
-        ctx.say("You were going to rob them, but you forgot to take your ADHD meds and forgot.").await?;
-        return Ok(())
+        ctx.say("You were going to rob them, but you forgot to take your ADHD meds and forgot.")
+            .await?;
+        return Ok(());
     }
 
     // Now flip the odds.
@@ -129,10 +139,13 @@ pub(crate) async fn rob(
     if !robbery_worked {
         // Robbery failed.
         // Send them to jail.
-        let failure_message = format!("{}\nYou've been sent to jail for attempted robbery!", get_robbery_flavor_text(false));
+        let failure_message = format!(
+            "{}\nYou've been sent to jail for attempted robbery!",
+            get_robbery_flavor_text(false)
+        );
         robber.jail_user(&jail_form, &mut conn)?;
         ctx.say(failure_message).await?;
-        return Ok(())
+        return Ok(());
     }
 
     // Robbery worked!
@@ -143,29 +156,35 @@ pub(crate) async fn rob(
             recipient: DointTransferParty::DointUser(robber.id),
             transfer_amount: steal_amount.clone(),
             apply_fees: false, // this is theft
-            transfer_reason: DointTransferReason::CrimeRobbery
+            transfer_reason: DointTransferReason::CrimeRobbery,
         };
 
         BankInterface::bank_transfer(conn, transfer)
     })?;
-    
+
     // Inform user
-    let victory_message = format!("{} {}!", get_robbery_flavor_text(true), FormattingHelper::display_doint(&steal_amount));
+    let victory_message = format!(
+        "{} {}!",
+        get_robbery_flavor_text(true),
+        FormattingHelper::display_doint(&steal_amount)
+    );
     ctx.say(victory_message).await?;
 
     Ok(())
 }
 
-
-
-
-
 // Dumb reasons as to why the robbery worked or failed.
 fn get_robbery_flavor_text(worked: bool) -> String {
     if worked {
-        (*SUCCESS_FLAVOR.choose(&mut rng()).expect("there are always messages")).to_string()
+        (*SUCCESS_FLAVOR
+            .choose(&mut rng())
+            .expect("there are always messages"))
+        .to_string()
     } else {
-        (*FAIL_FLAVOR.choose(&mut rng()).expect("there are always messages")).to_string()
+        (*FAIL_FLAVOR
+            .choose(&mut rng())
+            .expect("there are always messages"))
+        .to_string()
     }
 }
 

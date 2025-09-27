@@ -8,7 +8,7 @@ use diesel::prelude::*;
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
 pub(crate) struct FeeInfo {
     /// Used to lock the table to one row.
-    /// 
+    ///
     /// Useless, hence private
     id: String,
 
@@ -16,16 +16,16 @@ pub(crate) struct FeeInfo {
     pub flat_fee: BigDecimal,
 
     /// A percentage based fee that is applied on top of the flat fee.
-    /// 
+    ///
     /// Expressed as a percentage.
-    /// 
+    ///
     /// Examples:
     /// 1000: 100.0% fee, a action of 100 doints would get a fee of 100 added.
-    /// 
-    /// 100: 10.0% 
-    /// 
+    ///
+    /// 100: 10.0%
+    ///
     /// 10: 1.0%
-    /// 
+    ///
     /// 1: 0.1%
     pub percentage_fee: i16,
 }

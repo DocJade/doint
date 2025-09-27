@@ -2,22 +2,13 @@
 
 use crate::database::queries::get_user::get_doint_user;
 use crate::formatting::format_struct::FormattingHelper;
-use crate::{
-    types::serenity_types::{
-        Context,
-        Data,
-        Error
-    }
-};
+use crate::types::serenity_types::{Context, Data, Error};
 
 use crate::discord::checks::consented::ctx_member_enrolled_in_doints;
 
-
 /// See your doint balance.
 #[poise::command(slash_command, guild_only, aliases("bal"))]
-pub(crate) async fn balance(
-    ctx: Context<'_>,
-) -> Result<(), Error> {
+pub(crate) async fn balance(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 

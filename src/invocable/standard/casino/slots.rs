@@ -6,31 +6,39 @@
 // I like how lazy static works better.
 #![allow(clippy::non_std_lazy_statics)]
 
-use std::iter::{repeat, repeat_n};
-use std::ops::Deref;
-use std::time::Duration;
-use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
-use lazy_static::lazy_static;
-use poise::serenity_prelude::{ButtonStyle, ComponentInteractionCollector, CreateActionRow, CreateButton, CreateInteractionResponseFollowup};
-use poise::CreateReply;
-use rand::{rng, seq::IndexedRandom};
 use crate::database::queries::get_user::get_doint_user;
 use crate::discord::checks::consented::ctx_member_enrolled_in_doints;
 use crate::formatting::format_struct::FormattingHelper;
+use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
 use diesel::Connection;
+use lazy_static::lazy_static;
 use log::{debug, warn};
+use poise::CreateReply;
+use poise::serenity_prelude::{
+    ButtonStyle, ComponentInteractionCollector, CreateActionRow, CreateButton,
+    CreateInteractionResponseFollowup,
+};
+use rand::{rng, seq::IndexedRandom};
+use std::iter::{repeat, repeat_n};
+use std::ops::Deref;
+use std::time::Duration;
 
 use crate::bank::bank_struct::BankInterface;
-use crate::bank::movement::move_doints::{DointTransfer, DointTransferError, DointTransferParty, DointTransferReason};
+use crate::bank::movement::move_doints::{
+    DointTransfer, DointTransferError, DointTransferParty, DointTransferReason,
+};
 use crate::types::serenity_types::{Context, Error};
 
-use crate::knob::emoji::{EMOJI_ANIMATED_ULTRA_FLUSH, EMOJI_BLUNDER, EMOJI_BOOK, EMOJI_BRILLIANT, EMOJI_FERRIS_PARTY, EMOJI_FREAKY_CANNY, EMOJI_TRUE, EMOJI_UNCANNY};
+use crate::knob::emoji::{
+    EMOJI_ANIMATED_ULTRA_FLUSH, EMOJI_BLUNDER, EMOJI_BOOK, EMOJI_BRILLIANT, EMOJI_FERRIS_PARTY,
+    EMOJI_FREAKY_CANNY, EMOJI_TRUE, EMOJI_UNCANNY,
+};
 
 /// Slot machines
 struct SlotMachine<'a> {
     /// The display name of this slot machine
     machine_name: &'a str,
-    
+
     /// See SlotPayoutTable.
     payout_table: SlotPayoutTable,
 
@@ -38,21 +46,21 @@ struct SlotMachine<'a> {
     bet_size: BigDecimal,
 
     /// The layout of the reels on this slot.
-    /// 
+    ///
     /// There are always 3 reels.
-    /// 
+    ///
     /// All 3 reels are always the same.
     reel_layout: Vec<SlotSymbol>,
 
     /// The max possible payout. This should be the same as the jackpot, but is here
     /// for convenience.
-    /// 
+    ///
     /// bet_size * jackpot
-    max_possible_payout: BigDecimal
+    max_possible_payout: BigDecimal,
 }
 
 /// It is assumed that any un-covered combination has no payout.
-/// 
+///
 /// The payout number is a multiplier on bet size.
 struct SlotPayoutTable {
     jackpot: u16,
@@ -113,7 +121,7 @@ struct SlotSpinResult {
 
 // Reels
 // Reel 1:
-// 6 Jackpot 
+// 6 Jackpot
 // 8 Red 7
 // 9 Triple bar
 // 11 Double bar
@@ -130,7 +138,6 @@ struct SlotSpinResult {
 // CH = Cherry          (True)
 // BL = Blank           (Uncanny)
 
-
 // Pay table
 //  Pay table 3 (97%)
 //  Combo               Pays
@@ -145,7 +152,6 @@ struct SlotSpinResult {
 //  any 1 CH	        1
 
 // Lazy static due to the vec in reels
-
 
 lazy_static! {
     static ref DILLIONARE: SlotMachine<'static> = SlotMachine {
@@ -177,17 +183,24 @@ lazy_static! {
     };
 }
 
-
-
 /// Calculate the payout of a slot machine state
 impl SlotMachine<'_> {
     /// Spin the slot machine. Returns a spin result.
     fn spin(&self) -> SlotSpinResult {
         // Calculate the 3 wheels
         let mut rng = rng();
-        let wheel1_result: SlotSymbol = *self.reel_layout.choose(&mut rng).expect("Reel layout should not be empty");
-        let wheel2_result: SlotSymbol = *self.reel_layout.choose(&mut rng).expect("Reel layout should not be empty");
-        let wheel3_result: SlotSymbol = *self.reel_layout.choose(&mut rng).expect("Reel layout should not be empty");
+        let wheel1_result: SlotSymbol = *self
+            .reel_layout
+            .choose(&mut rng)
+            .expect("Reel layout should not be empty");
+        let wheel2_result: SlotSymbol = *self
+            .reel_layout
+            .choose(&mut rng)
+            .expect("Reel layout should not be empty");
+        let wheel3_result: SlotSymbol = *self
+            .reel_layout
+            .choose(&mut rng)
+            .expect("Reel layout should not be empty");
 
         // Calculate winnings
         let reel_result: [SlotSymbol; 3] = [wheel1_result, wheel2_result, wheel3_result];
@@ -212,12 +225,10 @@ impl SlotMachine<'_> {
         SlotSpinResult {
             win_amount,
             reel_result,
-            was_jackpot
+            was_jackpot,
         }
-
     }
 }
-
 
 // Helper functions
 /// Check if all 3 symbols are the same
@@ -228,24 +239,39 @@ fn all_same(symbols: [SlotSymbol; 3]) -> bool {
 
 /// Count how many times this symbol occurs
 fn occurrences(symbols: [SlotSymbol; 3], to_match: SlotSymbol) -> usize {
-    symbols.iter().filter(|i| matches!((**i, to_match),
-        (SlotSymbol::Cherry(_), SlotSymbol::Cherry(_)) |
-        (SlotSymbol::Jackpot(_), SlotSymbol::Jackpot(_)) |
-        (SlotSymbol::RedSeven(_), SlotSymbol::RedSeven(_)) |
-        (SlotSymbol::TripleBar(_), SlotSymbol::TripleBar(_)) |
-        (SlotSymbol::DoubleBar(_), SlotSymbol::DoubleBar(_)) |
-        (SlotSymbol::SingleBar(_), SlotSymbol::SingleBar(_)) |
-        (SlotSymbol::Blank(_), SlotSymbol::Blank(_))
-    )).count()
+    symbols
+        .iter()
+        .filter(|i| {
+            matches!(
+                (**i, to_match),
+                (SlotSymbol::Cherry(_), SlotSymbol::Cherry(_))
+                    | (SlotSymbol::Jackpot(_), SlotSymbol::Jackpot(_))
+                    | (SlotSymbol::RedSeven(_), SlotSymbol::RedSeven(_))
+                    | (SlotSymbol::TripleBar(_), SlotSymbol::TripleBar(_))
+                    | (SlotSymbol::DoubleBar(_), SlotSymbol::DoubleBar(_))
+                    | (SlotSymbol::SingleBar(_), SlotSymbol::SingleBar(_))
+                    | (SlotSymbol::Blank(_), SlotSymbol::Blank(_))
+            )
+        })
+        .count()
 }
 
 /// Check if the symbols only contain bars
 fn only_bars(symbols: [SlotSymbol; 3]) -> bool {
-    symbols.iter().filter(|i| matches!(i, SlotSymbol::SingleBar(_) | SlotSymbol::DoubleBar(_) | SlotSymbol::TripleBar(_))).count() == 3
+    symbols
+        .iter()
+        .filter(|i| {
+            matches!(
+                i,
+                SlotSymbol::SingleBar(_) | SlotSymbol::DoubleBar(_) | SlotSymbol::TripleBar(_)
+            )
+        })
+        .count()
+        == 3
 }
 
 /// Calculate winnings of a spin as a multiplier.
-/// 
+///
 /// Returns none if nothing was won
 fn calculate_winnings(symbols: [SlotSymbol; 3], payouts: &SlotPayoutTable) -> Option<u16> {
     // Are all 3 the same?
@@ -256,26 +282,18 @@ fn calculate_winnings(symbols: [SlotSymbol; 3], payouts: &SlotPayoutTable) -> Op
                 // User won the jackpot!
                 debug!("User won the jackpot!");
                 return Some(payouts.jackpot);
-            },
+            }
             SlotSymbol::RedSeven(_) => {
                 return Some(payouts.triple_red_seven);
-            },
-            SlotSymbol::TripleBar(_) => {
-                return Some(payouts.triple_triple_bar)
-            },
-            SlotSymbol::DoubleBar(_) => {
-                return Some(payouts.triple_double_bar)
-            },
-            SlotSymbol::SingleBar(_) => {
-                return Some(payouts.triple_single_bar)
-            },
-            SlotSymbol::Cherry(_) => {
-                return Some(payouts.triple_cherry)
-            },
+            }
+            SlotSymbol::TripleBar(_) => return Some(payouts.triple_triple_bar),
+            SlotSymbol::DoubleBar(_) => return Some(payouts.triple_double_bar),
+            SlotSymbol::SingleBar(_) => return Some(payouts.triple_single_bar),
+            SlotSymbol::Cherry(_) => return Some(payouts.triple_cherry),
             SlotSymbol::Blank(_) => {
                 // Whoop.
                 return None;
-            },
+            }
         }
     }
 
@@ -296,20 +314,23 @@ fn calculate_winnings(symbols: [SlotSymbol; 3], payouts: &SlotPayoutTable) -> Op
     None
 }
 
-
 //
 // The actual slash command
 //
 
 /// Play slots!
 #[allow(clippy::too_many_lines)] // TODO: yeah
-#[poise::command(slash_command, guild_only, check="ctx_member_enrolled_in_doints", user_cooldown=5)]
+#[poise::command(
+    slash_command,
+    guild_only,
+    check = "ctx_member_enrolled_in_doints",
+    user_cooldown = 5
+)]
 pub(crate) async fn slots(
     ctx: Context<'_>,
     // #[description = "Which machine would you like to play?"] // TODO: more slot machines
     // machine: Coin,
 ) -> Result<(), Error> {
-
     // One day we'll support multiple slots, hence the var here
     let machine = &DILLIONARE;
 
@@ -328,7 +349,9 @@ pub(crate) async fn slots(
         let Some(better) = get_doint_user(ctx.author().id, &mut conn)? else {
             // Has role, but not in DB.
             // TODO: error for this / correction
-            let _ = ctx.say("Uhh, you're not in the doint DB properly, tell doc.").await?;
+            let _ = ctx
+                .say("Uhh, you're not in the doint DB properly, tell doc.")
+                .await?;
             return Ok(());
         };
 
@@ -337,7 +360,9 @@ pub(crate) async fn slots(
         if &better.bal < required_doints {
             // User cant afford bet.
             let bet_string = FormattingHelper::display_doint(&required_doints);
-            let _ = ctx.say(format!("You cannot afford the {bet_string} bet.")).await?;
+            let _ = ctx
+                .say(format!("You cannot afford the {bet_string} bet."))
+                .await?;
             return Ok(());
         }
 
@@ -359,30 +384,21 @@ pub(crate) async fn slots(
         let guild_id = ctx.guild_id().expect("Has to run in doccord.");
 
         // Get the emoji we need.
-    let roller = guild_id
-        .emoji(ctx, EMOJI_ANIMATED_ULTRA_FLUSH.into())
-        .await?
-        .to_string();
+        let roller = guild_id
+            .emoji(ctx, EMOJI_ANIMATED_ULTRA_FLUSH.into())
+            .await?
+            .to_string();
 
-    let one_id = spin_result.reel_result[0].get_emoji_id();
-    let one_emoji = guild_id
-        .emoji(ctx, one_id.into())
-        .await?
-        .to_string();
-    let two_id = spin_result.reel_result[1].get_emoji_id();
-    let two_emoji = guild_id
-        .emoji(ctx, two_id.into())
-        .await?
-        .to_string();
-    let three_id = spin_result.reel_result[2].get_emoji_id();
-    let three_emoji = guild_id
-        .emoji(ctx, three_id.into())
-        .await?
-        .to_string();
+        let one_id = spin_result.reel_result[0].get_emoji_id();
+        let one_emoji = guild_id.emoji(ctx, one_id.into()).await?.to_string();
+        let two_id = spin_result.reel_result[1].get_emoji_id();
+        let two_emoji = guild_id.emoji(ctx, two_id.into()).await?.to_string();
+        let three_id = spin_result.reel_result[2].get_emoji_id();
+        let three_emoji = guild_id.emoji(ctx, three_id.into()).await?.to_string();
 
         // Text for the outcome
         let amount_actually_won: BigDecimal = &spin_result.win_amount * &machine.bet_size;
-        
+
         let result_text: String = if &spin_result.win_amount > &BigDecimal::zero() {
             // User won some.
             // Jackpot text if they won that too
@@ -401,15 +417,13 @@ pub(crate) async fn slots(
             "Too bad.".to_string()
         };
 
-
         // We actually pay the user before displaying anything, in-case that fails.
 
         conn.transaction::<(), DointTransferError, _>(|conn| {
-
             // If user broke even, we dont need to do anything at all.
             if amount_actually_won == machine.bet_size {
                 // Broke even, no action.
-                return Ok(())
+                return Ok(());
             }
 
             // Take the user's bet money
@@ -418,14 +432,14 @@ pub(crate) async fn slots(
                 recipient: DointTransferParty::Bank,
                 transfer_amount: machine.bet_size.clone(),
                 apply_fees: false, // Slots aren't taxed.
-                transfer_reason: DointTransferReason::CasinoLoss
+                transfer_reason: DointTransferReason::CasinoLoss,
             };
             BankInterface::bank_transfer(conn, transfer)?;
 
             // Now give them their winnings, if needed
             if spin_result.win_amount == BigDecimal::zero() {
                 // User lost, nothing left to do
-                return Ok(())
+                return Ok(());
             }
 
             // User won something!
@@ -434,7 +448,7 @@ pub(crate) async fn slots(
                 recipient: DointTransferParty::DointUser(ctx.author().id.get()),
                 transfer_amount: amount_actually_won,
                 apply_fees: false,
-                transfer_reason: DointTransferReason::CasinoWin
+                transfer_reason: DointTransferReason::CasinoWin,
             };
 
             BankInterface::bank_transfer(conn, transfer)?;
@@ -443,15 +457,14 @@ pub(crate) async fn slots(
 
         // Money has been transferred, now we can display things
 
-
-        let template = |
-            machine_name: &str,
-            slot_1_emoji: &String,
-            slot_2_emoji: &String,
-            slot_3_emoji: &String,
-            result_message: &String
-            | {
-            format!("***{machine_name}***\n{slot_1_emoji}{slot_2_emoji}{slot_3_emoji}\n-# {result_message}")
+        let template = |machine_name: &str,
+                        slot_1_emoji: &String,
+                        slot_2_emoji: &String,
+                        slot_3_emoji: &String,
+                        result_message: &String| {
+            format!(
+                "***{machine_name}***\n{slot_1_emoji}{slot_2_emoji}{slot_3_emoji}\n-# {result_message}"
+            )
         };
 
         // Spacer to prevent the window from jumping around
@@ -461,32 +474,93 @@ pub(crate) async fn slots(
         // Send the initial message if this is the first go-around
         let handle: poise::ReplyHandle<'_> = if let Some(old) = looped.take() {
             // Put in the roller.
-            old.edit(ctx, CreateReply::default().content(template(machine.machine_name,&roller,&roller,&roller,&vertical_spacing))).await?;
+            old.edit(
+                ctx,
+                CreateReply::default().content(template(
+                    machine.machine_name,
+                    &roller,
+                    &roller,
+                    &roller,
+                    &vertical_spacing,
+                )),
+            )
+            .await?;
             std::thread::sleep(Duration::from_secs_f64(rand::random_range(0.0..1.0)));
             old
         } else {
             // First run.
-            let handle = ctx.say(template(machine.machine_name,&roller,&roller,&roller,&vertical_spacing)).await?;
+            let handle = ctx
+                .say(template(
+                    machine.machine_name,
+                    &roller,
+                    &roller,
+                    &roller,
+                    &vertical_spacing,
+                ))
+                .await?;
             // Now wait a bit for dramatic effect
             std::thread::sleep(Duration::from_secs_f64(rand::random_range(0.5..2.0)));
             handle
         };
 
-
         // One
-        handle.edit(ctx, CreateReply::default().content(template(machine.machine_name,&one_emoji,&roller,&roller,&vertical_spacing))).await?;
+        handle
+            .edit(
+                ctx,
+                CreateReply::default().content(template(
+                    machine.machine_name,
+                    &one_emoji,
+                    &roller,
+                    &roller,
+                    &vertical_spacing,
+                )),
+            )
+            .await?;
         std::thread::sleep(Duration::from_secs_f64(rand::random_range(0.0..0.5)));
 
         // Two
-        handle.edit(ctx, CreateReply::default().content(template(machine.machine_name,&one_emoji,&two_emoji,&roller,&vertical_spacing))).await?;
+        handle
+            .edit(
+                ctx,
+                CreateReply::default().content(template(
+                    machine.machine_name,
+                    &one_emoji,
+                    &two_emoji,
+                    &roller,
+                    &vertical_spacing,
+                )),
+            )
+            .await?;
         std::thread::sleep(Duration::from_secs_f64(rand::random_range(0.0..0.5)));
 
         // Three
-        handle.edit(ctx, CreateReply::default().content(template(machine.machine_name,&one_emoji,&two_emoji,&three_emoji,&vertical_spacing))).await?;
+        handle
+            .edit(
+                ctx,
+                CreateReply::default().content(template(
+                    machine.machine_name,
+                    &one_emoji,
+                    &two_emoji,
+                    &three_emoji,
+                    &vertical_spacing,
+                )),
+            )
+            .await?;
         std::thread::sleep(Duration::from_secs_f64(rand::random_range(0.0..0.5)));
 
         // Result.
-        handle.edit(ctx, CreateReply::default().content(template(machine.machine_name,&one_emoji,&two_emoji,&three_emoji,&result_text))).await?;
+        handle
+            .edit(
+                ctx,
+                CreateReply::default().content(template(
+                    machine.machine_name,
+                    &one_emoji,
+                    &two_emoji,
+                    &three_emoji,
+                    &result_text,
+                )),
+            )
+            .await?;
 
         // Button that asks if they'd like to play again.
 
@@ -501,9 +575,13 @@ pub(crate) async fn slots(
             ButtonStyle::Danger
         };
 
-        let spin_button: CreateButton = CreateButton::new(format!("{spin_again_uuid}")).label("Spin again").style(spin_button_style);
+        let spin_button: CreateButton = CreateButton::new(format!("{spin_again_uuid}"))
+            .label("Spin again")
+            .style(spin_button_style);
         let action_row: CreateActionRow = CreateActionRow::Buttons(vec![spin_button]);
-        handle.edit(ctx, CreateReply::default().components(vec![action_row])).await?;
+        handle
+            .edit(ctx, CreateReply::default().components(vec![action_row]))
+            .await?;
 
         // User has 10 seconds to spin again.
         let mut spin_again: bool = false;
@@ -514,21 +592,42 @@ pub(crate) async fn slots(
         {
             interaction.defer(ctx).await?; // Should fix interaction failed issues.
             // Make sure it was the same user
-            if interaction.clone().member.expect("Slots in doccord").user.id != ctx.author().id {
+            if interaction
+                .clone()
+                .member
+                .expect("Slots in doccord")
+                .user
+                .id
+                != ctx.author().id
+            {
                 // Not the right user.
-                interaction.create_followup(ctx, CreateInteractionResponseFollowup::new().ephemeral(true).content("Get your own machine, asshole!")).await?;
+                interaction
+                    .create_followup(
+                        ctx,
+                        CreateInteractionResponseFollowup::new()
+                            .ephemeral(true)
+                            .content("Get your own machine, asshole!"),
+                    )
+                    .await?;
                 continue;
             }
             // User pressed the button again, SPIN!
             spin_again = true;
-            break
+            break;
         }
 
         if spin_again {
             // Grey out the spin again button
-            let cant_spin: CreateButton = CreateButton::new(format!("{spin_again_uuid}")).label("Spin again").disabled(true);
+            let cant_spin: CreateButton = CreateButton::new(format!("{spin_again_uuid}"))
+                .label("Spin again")
+                .disabled(true);
             let cant_spin_action_row: CreateActionRow = CreateActionRow::Buttons(vec![cant_spin]);
-            handle.edit(ctx, CreateReply::default().components(vec![cant_spin_action_row])).await?;
+            handle
+                .edit(
+                    ctx,
+                    CreateReply::default().components(vec![cant_spin_action_row]),
+                )
+                .await?;
 
             // Again!
             looped = Some(handle);
@@ -536,7 +635,9 @@ pub(crate) async fn slots(
         }
 
         // Button was not pushed, remove it
-        handle.edit(ctx, CreateReply::default().components(vec![])).await?;
+        handle
+            .edit(ctx, CreateReply::default().components(vec![]))
+            .await?;
 
         // All done.
         break;

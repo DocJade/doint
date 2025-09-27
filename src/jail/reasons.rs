@@ -4,7 +4,13 @@ use core::fmt;
 use std::io::Write;
 
 use chrono::TimeDelta;
-use diesel::{deserialize::{FromSql, FromSqlRow}, expression::AsExpression, mysql::{Mysql, MysqlValue}, serialize::{Output, ToSql}, sql_types::Text};
+use diesel::{
+    deserialize::{FromSql, FromSqlRow},
+    expression::AsExpression,
+    mysql::{Mysql, MysqlValue},
+    serialize::{Output, ToSql},
+    sql_types::Text,
+};
 use log::warn;
 
 /// All laws
@@ -16,10 +22,10 @@ pub(crate) enum JailReason {
     AttemptedRobbery,
 
     /// Unknown, probably an old reason that was deleted.
-    /// 
+    ///
     /// If a user has this reason, they'll be freed from jail as usual when their sentence ends.
     #[deprecated = "This is only used when loading in unknown values from the DB. This should NOT be outgoing!"]
-    Unknown
+    Unknown,
 }
 
 // Set default lengths for crimes.
@@ -35,7 +41,7 @@ impl JailReason {
                 // 10 seconds just to get them back out of jail ASAP.
                 warn!("Tried to send a user to jail for a reason of Unknown!");
                 10
-            },
+            }
         };
 
         // Turn that into a delta, and return it
@@ -56,9 +62,8 @@ pub(crate) enum JailCause {
 
     /// Unknown, probably old.
     #[deprecated = "This is only used when loading in unknown values from the DB. This should NOT be outgoing!"]
-    Unknown
+    Unknown,
 }
-
 
 //
 // impl that make the DB happy

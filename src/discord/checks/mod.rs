@@ -1,5 +1,5 @@
 // Checks that can be applied to commands.
 // Will contain things like needing to have doints to do actions, for easy command pre-checks.
+pub(crate) mod another_user;
 pub(crate) mod consented;
 pub(crate) mod pre_command;
-pub(crate) mod another_user;
