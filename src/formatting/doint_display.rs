@@ -12,7 +12,9 @@ impl FormattingHelper {
         let raw: String = format!("{doints:.2}");
 
         // Get everything before the decimal point so we can add commas
-        let (pre_decimal, decimals) = raw.split_once('.').expect("Should have a decimal component.");
+        let (pre_decimal, decimals) = raw
+            .split_once('.')
+            .expect("Should have a decimal component.");
 
         // Now reverse the pre to make adding the commas easier, and add commas
         let mut new_pre_decimal = String::new();

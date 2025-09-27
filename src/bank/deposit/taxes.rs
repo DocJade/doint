@@ -1,33 +1,31 @@
 // Collect taxes from doint-holders.
 
-use bigdecimal::{BigDecimal, FromPrimitive, Zero};
-use diesel::result::Error;
-use diesel::{Connection, MysqlConnection};
-use diesel::prelude::*;
-use log::info;
 use crate::bank::bank_struct::BankInterface;
 use crate::database::tables::bank::BankInfo;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::schema::bank::dsl::bank;
 use crate::schema::users::bal;
 use crate::schema::users::dsl::users;
+use bigdecimal::{BigDecimal, FromPrimitive, Zero};
+use diesel::prelude::*;
+use diesel::result::Error;
+use diesel::{Connection, MysqlConnection};
+use log::info;
 
-
-use crate::{database::tables::users::DointUser};
+use crate::database::tables::users::DointUser;
 
 impl BankInterface {
     /// Immediately collect taxes from all users.
-    /// 
+    ///
     /// Taxes are based on a percentage of all of your doints at the moment taxes are taken.
-    /// 
+    ///
     /// Returns how many doints were collected into the bank.
-    /// 
+    ///
     /// Returns a diesel error if tax collection fails.
     pub(crate) fn collect_taxes(conn: &mut MysqlConnection) -> Result<BigDecimal, Error> {
         go_collect_taxes(conn)
     }
 }
-
 
 fn go_collect_taxes(conn: &mut MysqlConnection) -> Result<BigDecimal, Error> {
     info!("Collecting taxes...");
@@ -39,7 +37,8 @@ fn go_collect_taxes(conn: &mut MysqlConnection) -> Result<BigDecimal, Error> {
 
         // Calculate the current tax rate.
         // This is a multiplier, NOT a percentage.
-        let tax_rate: BigDecimal = BigDecimal::from_f64(f64::from(the_bank.tax_rate) / 1000.0).expect("Should be representable.");
+        let tax_rate: BigDecimal = BigDecimal::from_f64(f64::from(the_bank.tax_rate) / 1000.0)
+            .expect("Should be representable.");
 
         // if the tax rate is zero, we can skip all taxation.
         // Tax rate is done in tenths of a percent, so if its under that, taxes are zero.
@@ -47,13 +46,14 @@ fn go_collect_taxes(conn: &mut MysqlConnection) -> Result<BigDecimal, Error> {
         if &tax_rate < &BigDecimal::from_f64(0.001).expect("Should be representable.") {
             // No taxes!
             info!("Tax rate is zero. Skipping!");
-            return Ok(BigDecimal::zero())
+            return Ok(BigDecimal::zero());
         }
-
 
         // Now we need to tax everyone.
         // No need to tax people with no money, or with negative money.
-        let mut to_update: Vec<DointUser> = users.filter(bal.gt(BigDecimal::zero())).load::<DointUser>(conn)?;
+        let mut to_update: Vec<DointUser> = users
+            .filter(bal.gt(BigDecimal::zero()))
+            .load::<DointUser>(conn)?;
 
         // Now loop over every user, figuring out how much to take from each of them.
         // We also keep track of how much money we have gathered
@@ -72,7 +72,10 @@ fn go_collect_taxes(conn: &mut MysqlConnection) -> Result<BigDecimal, Error> {
 
             // You must pay in at least 1 doint. (A full doint, not a dent.)
             // Tough luck if that's your last doint.
-            final_adjustment = std::cmp::max(final_adjustment, BigDecimal::from_u8(1).expect("Should be representable"));
+            final_adjustment = std::cmp::max(
+                final_adjustment,
+                BigDecimal::from_u8(1).expect("Should be representable"),
+            );
 
             // Now we have our amount to adjust by, remove that from the user
             user.bal -= &final_adjustment;
@@ -95,7 +98,10 @@ fn go_collect_taxes(conn: &mut MysqlConnection) -> Result<BigDecimal, Error> {
 
         // Taxes got!
         info!("Tax collection finished!");
-        info!("Collected [{}] doints via taxes.", FormattingHelper::display_doint(&collected_taxes));
+        info!(
+            "Collected [{}] doints via taxes.",
+            FormattingHelper::display_doint(&collected_taxes)
+        );
         Ok(collected_taxes)
     })
 }

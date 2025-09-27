@@ -6,14 +6,8 @@ use thiserror::Error;
 
 use crate::{
     database::queries::get_user::get_doint_user,
-    discord::{
-        checks::consented::member_enrolled_in_doints
-    },
-    types::serenity_types::{
-        Context,
-        Data,
-        Error
-    }
+    discord::checks::consented::member_enrolled_in_doints,
+    types::serenity_types::{Context, Data, Error},
 };
 
 /// Enum for keeping track of reasons that the user cannot be called against.
@@ -21,13 +15,12 @@ use crate::{
 pub(crate) enum IneligibleDestinationUser {
     #[error("That user is not a dointer.")]
     UserNotEnrolled,
-    
+
     #[error("User is immune from this command.")]
     UserImmune(UserImmuneReason),
 
-
     #[error("Other diesel related errors.")]
-    DieselError(#[from] diesel::result::Error)
+    DieselError(#[from] diesel::result::Error),
 }
 
 /// Sometimes users are immune from a certain command, these are the reasons.
@@ -45,24 +38,18 @@ pub(crate) enum CommandType {
 
     /// User will gain doints from the interaction with no downsides
     IncomingDoints,
-
-
 }
 
 /// Requirements for the user being checked.
-/// 
+///
 /// Check is skipped on a None.
-/// 
+///
 /// All users must be in the doint DB. This will always be checked.
-pub(crate) struct DestinationUserRequirements {
-
-}
+pub(crate) struct DestinationUserRequirements {}
 
 /// Checks that a user you're trying to do an operation against can receive this command.
-/// 
+///
 /// Prints information to the user if this user is unable to have actions called against them.
-/// 
+///
 /// Returns an error if the user does not pass after printing information to user.
-pub(crate) fn check_destination_user(ctx: Context<'_>, member: Member) {
-    
-}
+pub(crate) fn check_destination_user(ctx: Context<'_>, member: Member) {}

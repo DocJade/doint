@@ -20,9 +20,11 @@ async fn main() {
     // And the database url
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
-
     // Run the bot.
-    let result = create_client(discord_token, database_url).await.start().await;
+    let result = create_client(discord_token, database_url)
+        .await
+        .start()
+        .await;
     if let Err(error) = result {
         panic!("Bot died! {error:#?}");
     }

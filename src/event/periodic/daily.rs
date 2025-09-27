@@ -4,16 +4,13 @@ use diesel::{Connection, MysqlConnection};
 use log::info;
 
 use crate::{
-    event::event_struct::EventCaller, types::serenity_types::{
-        Context,
-        Data,
-        Error
-    }
+    event::event_struct::EventCaller,
+    types::serenity_types::{Context, Data, Error},
 };
 
 impl EventCaller {
     /// Actions that run once a day. Doesn't run at a specific time, just every 24 hours after the bot starts.
-    /// 
+    ///
     /// Returns true if all events worked correctly.
     pub(crate) fn daily_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
         do_daily_events(conn)
@@ -23,8 +20,7 @@ impl EventCaller {
 pub(crate) fn do_daily_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
     info!("Running daily events...");
     // Do everything in a transaction.
-    conn.transaction(|conn|{
-        
+    conn.transaction(|conn| {
         // Collect taxes
         info!("Collecting taxes...");
         let tax_collected = EventCaller::tax_time(conn)?;

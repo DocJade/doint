@@ -2,13 +2,16 @@
 
 use bigdecimal::BigDecimal;
 
-use crate::{database::{queries::top_n::get_top_n, tables::users::DointUser}, discord::helper::get_nick::get_display_name, formatting::format_struct::FormattingHelper, types::serenity_types::{Context, Data, Error}};
+use crate::{
+    database::{queries::top_n::get_top_n, tables::users::DointUser},
+    discord::helper::get_nick::get_display_name,
+    formatting::format_struct::FormattingHelper,
+    types::serenity_types::{Context, Data, Error},
+};
 
 /// See the top Doint holders!
 #[poise::command(slash_command, guild_only, aliases("lb"))]
-pub(crate) async fn leaderboard(
-    ctx: Context<'_>,
-) -> Result<(), Error> {
+pub(crate) async fn leaderboard(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -23,7 +26,7 @@ pub(crate) async fn leaderboard(
     for user in users {
         let name = get_display_name(ctx, user.id).await?;
         names_and_points.push((name, user.bal));
-    };
+    }
 
     // Now make a leaderboard message out of that.
     let mut response: String = "Leaderboard:".to_string();
@@ -31,7 +34,7 @@ pub(crate) async fn leaderboard(
         // Format the doint string
         let doint_string = FormattingHelper::display_doint(doints);
         response.push_str(&format!("\n- {}: {name} - {doint_string}", rank + 1));
-    };
+    }
 
     // Send it.
     let _ = ctx.say(response).await?;

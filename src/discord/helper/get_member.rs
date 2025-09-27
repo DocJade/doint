@@ -1,17 +1,23 @@
 // Gets a member from a user ID.
 // Assumes we are in doccord.
 
-use crate::{knob::guild::DOCCORD_SERVER_ID, types::serenity_types::{Context, Data, Error}};
+use crate::types::serenity_types::ThisShouldNotHappen::BotIsOutsideServer;
+use crate::{
+    knob::guild::DOCCORD_SERVER_ID,
+    types::serenity_types::{Context, Data, Error},
+};
 use log::warn;
 use poise::serenity_prelude::{self as serenity, Member, UserId};
-use crate::types::serenity_types::ThisShouldNotHappen::BotIsOutsideServer;
 
 /// Get the Member that this ID refers to, if they exist.
-/// 
+///
 /// Incoming context must come from a guild.
-/// 
+///
 /// Tries reading from cache first.
-pub(crate) async fn get_member_from_id(ctx: Context<'_>, user_id: u64) -> Result<Option<serenity::Member>, Error> {
+pub(crate) async fn get_member_from_id(
+    ctx: Context<'_>,
+    user_id: u64,
+) -> Result<Option<serenity::Member>, Error> {
     // Get the cached guild if possible.
     let guild = if let Some(guild) = ctx.cache().guild(DOCCORD_SERVER_ID) {
         guild.clone()
@@ -29,8 +35,10 @@ pub(crate) async fn get_member_from_id(ctx: Context<'_>, user_id: u64) -> Result
     // Does the guild have this member?
     // `after` here can be used to filter for a person.
     // Not sure if the `after` is exclusive, so workarounds.
-    let maybe = guild.members(ctx, Some(2), Some(UserId::from(user_id - 1))).await?;
-    
+    let maybe = guild
+        .members(ctx, Some(2), Some(UserId::from(user_id - 1)))
+        .await?;
+
     // We should always get a result (unless this person happened to have a REALLY high user ID)
     // doing .find on empty is fine.
 

@@ -7,7 +7,7 @@ use crate::formatting::format_struct::FormattingHelper;
 use crate::types::serenity_types::{Context, Data, Error};
 
 /// Force disperse UBI immediately.
-/// 
+///
 /// This may be automatically overridden later by other tax calculations.
 #[poise::command(slash_command,
     guild_only,
@@ -15,9 +15,7 @@ use crate::types::serenity_types::{Context, Data, Error};
     default_member_permissions = "ADMINISTRATOR" // Only admins can run/see this command.
     )
 ]
-pub(crate) async fn admin_force_disperse_ubi(
-    ctx: Context<'_>,
-) -> Result<(), Error> {
+pub(crate) async fn admin_force_disperse_ubi(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -31,18 +29,18 @@ pub(crate) async fn admin_force_disperse_ubi(
                 #[allow(clippy::cast_possible_wrap)] // Nuh uh.
                 let formatted = FormattingHelper::display_doint(&given);
                 format!("Dispersed {formatted} to each player.")
-            },
-            None => {
-                "Bank could not afford UBI.".to_string()
-            },
+            }
+            None => "Bank could not afford UBI.".to_string(),
         },
         Err(err) => {
             format!("UBI failed: {err:#?}")
-        },
+        }
     };
 
     // Assemble a response
-    let response = CreateReply::default().ephemeral(true).content(response_text);
+    let response = CreateReply::default()
+        .ephemeral(true)
+        .content(response_text);
 
     // Send it.
     let _ = ctx.send(response).await?;

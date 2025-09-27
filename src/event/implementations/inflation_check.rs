@@ -4,15 +4,15 @@ use bigdecimal::BigDecimal;
 use diesel::dsl::sum;
 use diesel::{Connection, MysqlConnection};
 
-use crate::database::tables::users::DointUser;
-use crate::{bank::bank_struct::BankInterface, event::event_struct::EventCaller};
-use diesel::result::Error;
-use diesel::prelude::*;
-use log::{debug, info, warn};
 use crate::database::tables::bank::BankInfo;
+use crate::database::tables::users::DointUser;
 use crate::schema::bank::dsl::bank;
 use crate::schema::users::bal;
 use crate::schema::users::dsl::users;
+use crate::{bank::bank_struct::BankInterface, event::event_struct::EventCaller};
+use diesel::prelude::*;
+use diesel::result::Error;
+use log::{debug, info, warn};
 
 #[derive(Debug)]
 pub(crate) enum InflationLeak {
@@ -25,9 +25,11 @@ pub(crate) enum InflationLeak {
 // Collect taxes
 impl EventCaller {
     /// Make sure the total money in circulation is the same as the amount that's supposed to be.
-    /// 
+    ///
     /// Returns `Some()` if there is a leak
-    pub(crate) fn inflation_check(conn: &mut MysqlConnection) -> Result<Option<InflationLeak>, Error> {
+    pub(crate) fn inflation_check(
+        conn: &mut MysqlConnection,
+    ) -> Result<Option<InflationLeak>, Error> {
         debug!("Checking for inflation/deflation.");
         // TODO: admin warnings
         match conn.transaction(|conn| {
@@ -39,20 +41,23 @@ impl EventCaller {
             let mut all_doints: BigDecimal = the_bank.doints_on_hand;
 
             // Get how much money all users have
-            let user_total: Option<BigDecimal> = users.select(sum(bal)).first(conn).expect("Sum should always return 1 thing");
-            let user_total: BigDecimal = user_total.expect("This always returns a number even on 0 rows");
+            let user_total: Option<BigDecimal> = users
+                .select(sum(bal))
+                .first(conn)
+                .expect("Sum should always return 1 thing");
+            let user_total: BigDecimal =
+                user_total.expect("This always returns a number even on 0 rows");
             all_doints += user_total;
 
             // Does that match?
             if expected_amount == all_doints {
                 // All good!
                 debug!("No inflation/deflation detected.");
-                return Ok(None)
+                return Ok(None);
             }
 
             warn!("The economy is leaking!");
-            
-            
+
             // There's a leak!
             if expected_amount > all_doints {
                 // Not enough
@@ -71,7 +76,7 @@ impl EventCaller {
                 // Check failed
                 warn!("Inflation check did not run! {err:#?}");
                 Err(err)
-            },
+            }
         }
     }
 }

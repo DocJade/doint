@@ -2,8 +2,11 @@ use std::{sync::Once, time::Duration};
 
 use log::{error, info, warn};
 // Handles / dispatches discord related events
+use crate::{
+    event::event_struct::EventCaller,
+    types::serenity_types::{/* Context ,*/ Data, Error},
+};
 use poise::serenity_prelude as serenity;
-use crate::{event::event_struct::EventCaller, types::serenity_types::{ /* Context ,*/ Data, Error}};
 
 // Only run initialization code a single time.
 static INIT: Once = Once::new();
@@ -18,7 +21,7 @@ pub async fn handle_discord_event(
     match event {
         serenity::FullEvent::Ready { data_about_bot, .. } => {
             info!("Ready! Logged in as {}", data_about_bot.user.name);
-            
+
             // Set up things that run a single time.
             info!("Doing first time setup");
 
@@ -68,7 +71,7 @@ pub async fn handle_discord_event(
                         };
 
                         if worked {
-                            break
+                            break;
                         }
                         warn!("Daily task failed...");
                     }
@@ -105,7 +108,6 @@ pub async fn handle_discord_event(
                             continue;
                         };
 
-                        
                         let run = EventCaller::hourly_events(&mut conn);
                         worked = if let Ok(maybe) = run {
                             maybe
@@ -116,7 +118,7 @@ pub async fn handle_discord_event(
                         };
 
                         if worked {
-                            break
+                            break;
                         }
                         warn!("Hourly task failed...");
                     }
@@ -162,7 +164,7 @@ pub async fn handle_discord_event(
                         };
 
                         if worked {
-                            break
+                            break;
                         }
                         warn!("Minute task failed...");
                     }
@@ -181,9 +183,7 @@ pub async fn handle_discord_event(
                     tokio::time::sleep(Duration::from_secs(60)).await;
                 }
             });
-
-
-        },
+        }
         serenity::FullEvent::Ratelimit { data } => {
             info!("Ratelimited! [{}]", data.path);
         }
@@ -191,7 +191,3 @@ pub async fn handle_discord_event(
     }
     Ok(())
 }
-
-
-
-

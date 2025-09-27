@@ -1,39 +1,24 @@
 // Clicking the consent button adds you to the database.
 
+use crate::schema::users::dsl::users;
 use crate::{
-    consent::dointer_role::{
-        give_dointer_role,
-        revoke_dointer_role
-    },
+    consent::dointer_role::{give_dointer_role, revoke_dointer_role},
     database::queries::get_user::get_doint_user,
     knob::terms_and_conditions::TERMS_AND_CONDITIONS_TEXT,
     schema::users::id,
-    types::serenity_types::{
-        Context,
-        Error
-    }
+    types::serenity_types::{Context, Error},
 };
-use bigdecimal::{
-    BigDecimal,
-    Zero
-};
-use log::{
-    error,
-    info,
-    warn
-};
-use poise::CreateReply;
+use bigdecimal::{BigDecimal, Zero};
 use diesel::Connection;
 use diesel::prelude::*;
-use crate::schema::users::dsl::users;
+use log::{error, info, warn};
+use poise::CreateReply;
 
-use crate::{database::tables::users::DointUser};
+use crate::database::tables::users::DointUser;
 
 /// Consent to the doint system.
 #[poise::command(slash_command, guild_only)]
-pub(crate) async fn opt_in(
-    ctx: Context<'_>,
-) -> Result<(), Error> {
+pub(crate) async fn opt_in(ctx: Context<'_>) -> Result<(), Error> {
     // User wants to opt into the database. Check if they're already here.
     let users_id: u64 = ctx.author().id.into();
 
@@ -45,7 +30,13 @@ pub(crate) async fn opt_in(
         // User is already in DB.
         // Tell user they are an idiot.
         // ephemeral so only they see it.
-        let _ = ctx.send(CreateReply::default().ephemeral(true).content("You've already opted in.")).await?;
+        let _ = ctx
+            .send(
+                CreateReply::default()
+                    .ephemeral(true)
+                    .content("You've already opted in."),
+            )
+            .await?;
         return Ok(());
     }
 
@@ -60,15 +51,15 @@ pub(crate) async fn opt_in(
     };
 
     // Add them.
-    conn.transaction(|conn| {
-        diesel::insert_into(users).values(new_user).execute(conn)
-    })?;
-    
+    conn.transaction(|conn| diesel::insert_into(users).values(new_user).execute(conn))?;
+
     // User added!
 
     // Now that they have been added to the database, inform the user of their rights.
     // ephemeral so only they see it.
-    let terms = CreateReply::default().ephemeral(true).content(TERMS_AND_CONDITIONS_TEXT);
+    let terms = CreateReply::default()
+        .ephemeral(true)
+        .content(TERMS_AND_CONDITIONS_TEXT);
 
     // We'll try replying 3 times before bailing out
     for _ in 0..3 {
@@ -77,7 +68,9 @@ pub(crate) async fn opt_in(
             // Adding the role failed.
             continue;
         }
-        if ctx.send(terms.clone()).await.is_err() { continue }
+        if ctx.send(terms.clone()).await.is_err() {
+            continue;
+        }
         // User now has role, and saw message.
         return Ok(());
     }
@@ -87,9 +80,8 @@ pub(crate) async fn opt_in(
 
     // Unable to inform user the standard way...
     // Roll back the database add.
-    let removal: Result<usize, diesel::result::Error> = conn.transaction(|conn| {
-        diesel::delete(users).filter(id.eq(users_id)).execute(conn)
-    });
+    let removal: Result<usize, diesel::result::Error> =
+        conn.transaction(|conn| diesel::delete(users).filter(id.eq(users_id)).execute(conn));
 
     match removal {
         Ok(ok) => {
@@ -100,15 +92,15 @@ pub(crate) async fn opt_in(
                 error!("Failed to remove un-consenting user!");
                 // TODO: This should message mods.
             }
-        },
+        }
         Err(err) => {
             // Removing the user failed completely.
             // This is different from removing 0 people.
             error!("Attempt to remove un-consenting user failed!");
             error!("{err:#?}");
             // TODO: This should message mods.
-            return Err(err)?
-        },
+            return Err(err)?;
+        }
     }
 
     // Removing the role is done afterwards, since if they didnt get removed from the DB, they still need the role.
@@ -118,6 +110,6 @@ pub(crate) async fn opt_in(
         // TODO: This should message mods.
         // No error to return. We're done.
     }
-    
+
     Ok(())
 }
