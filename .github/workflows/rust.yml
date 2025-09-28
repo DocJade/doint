@@ -1,0 +1,124 @@
+name: rust
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+  push:
+    branches:
+      - main
+
+jobs:
+  fmt:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
+    permissions:
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "rust-stable"
+          shared-key: "clippy"
+      - name: Install sarif-fmt & clippy-sarif
+        uses: taiki-e/install-action@v2
+        with:
+          tool: sarif-fmt,clippy-sarif
+      - name: Run clippy
+        run: cargo clippy --message-format=json | clippy-sarif | tee results.sarif | sarif-fmt
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
+    permissions:
+      contents: read
+      actions: read
+      checks: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "rust-stable"
+          shared-key: "tests"
+          cache-on-failure: true
+      - name: Install nextest
+        uses: taiki-e/install-action@v2
+        with:
+          tool: nextest
+      - name: Run tests
+        run: cargo nextest run --config-file nextest.ci.toml -P ci || true
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Tests Report
+          path: target/nextest/ci/report.xml
+          reporter: java-junit
+          fail-on-error: true
+
+  build:
+    name: Build ${{ matrix.platform.os_name }} [rust ${{ matrix.toolchain }}]
+    runs-on: ${{ matrix.platform.os }}
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
+    strategy:
+      matrix:
+        platform:
+          - os_name: Windows-x86_64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os_name: Linux-x86_64
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os_name: MacOS-x86_64
+            os: macos-latest
+            target: x86_64-apple-darwin
+          - os_name: MacOS-aarch64
+            os: macos-latest
+            target: aarch64-apple-darwin
+        toolchain:
+          - stable
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup ${{ matrix.toolchain }} toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          targets: ${{ matrix.platform.target }}
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: "rust-${{ matrix.toolchain }}"
+          shared-key: "build-${{ matrix.platform.target }}"
+      - name: Build
+        run: cargo build --target ${{ matrix.platform.target }}
