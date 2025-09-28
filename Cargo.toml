@@ -3,6 +3,13 @@ name = "doint"
 version = "0.1.0"
 edition = "2024"
 
+[lints.rust]
+unused_must_use = "forbid"
+
+[lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+
 [dependencies]
 bigdecimal = { version = "0.4.8", features = ["serde"] }
 chrono = "0.4.42"
