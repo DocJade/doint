@@ -26,8 +26,3 @@ pub(super) fn get_test_db()
         .get()
         .expect("Opening the DB failed. Test failure non-test related.")
 }
-
-/// Makes a test user with specified parameters, returns their id.
-pub(super) fn make_test_user() -> u64 {
-    todo!()
-}

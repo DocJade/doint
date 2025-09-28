@@ -425,6 +425,7 @@ dependencies = [
  "num-traits",
  "percent-encoding",
  "r2d2",
+ "serde_json",
  "url",
 ]
 

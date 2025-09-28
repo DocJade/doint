@@ -5,3 +5,5 @@ mod bank;
 mod casino;
 #[cfg(test)]
 mod setup;
+#[cfg(test)]
+mod settings;
