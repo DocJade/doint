@@ -31,6 +31,13 @@ diesel::table! {
 }
 
 diesel::table! {
+    user_preferences (id) {
+        id -> Unsigned<Bigint>,
+        settings -> Text,
+    }
+}
+
+diesel::table! {
     users (id) {
         id -> Unsigned<Bigint>,
         bal -> Decimal,
@@ -38,5 +45,6 @@ diesel::table! {
 }
 
 diesel::joinable!(jail -> users (id));
+diesel::joinable!(user_preferences -> users (id));
 
-diesel::allow_tables_to_appear_in_same_query!(bank, fees, jail, users,);
+diesel::allow_tables_to_appear_in_same_query!(bank, fees, jail, user_preferences, users,);

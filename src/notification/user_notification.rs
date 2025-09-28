@@ -28,9 +28,10 @@ impl DointUser {
     /// If the final attempt fails, this will return an Error.
     pub(crate) fn notify(&self) -> Result<(), Error> {
         // Get the user's preferences
-        self.
+        self;
         // Get the user's notification preference for this action
-        find_notification_destination()
+        todo!();
+        // find_notification_destination()
     }
 }
 
