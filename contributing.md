@@ -25,6 +25,12 @@ See an open issue, and think you can tackle it? Go for it!
 Have an idea? Write it down!
 Think something works in a stupid way? Talk is cheap! Send patches!
 
+### Tell people what you're working on
+
+Please don't just open pull requests for new features without first making a tracking issue. Chances are, it wont be merged.
+
+If you plan to work on a bug, claim it! Don't work on it silently!
+
 # What SHOULDN'T I do?
 
 ### Don't try to do things you don't understand.
@@ -33,11 +39,6 @@ IE, if you wanna contribute a new epic feature, but need new database stuff to g
 
 If you think something is out of your ability, you can sure as hell try (in fact, you SHOULD! This is how you learn things), but don't submit code that you know has flaws, or is _really_ jank. Some jank is fine tho.
 
-### Tell people what you're working on
-
-Please don't just open pull requests for new features without first making a tracking issue. Chances are, it wont be merged.
-
-If you plan to work on a bug, claim it! Don't work on it silently!
 # Ground Rules
 ### Etiquette
 
