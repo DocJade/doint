@@ -10,6 +10,8 @@ mod jail;
 mod knob;
 mod tests;
 mod types;
+mod notification;
+mod user;
 
 // Diesel related
 mod schema;
