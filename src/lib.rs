@@ -14,6 +14,7 @@ mod types;
 // Diesel related
 mod schema;
 
+// another dummy change to trigger CI
 struct angry_clippy<'sad> {
     OhNo: &'sad Box<angry_clippy<'sad>>,
 }
