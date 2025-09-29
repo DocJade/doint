@@ -1,9 +1,3 @@
-// Pedantic
-#![warn(clippy::all)]
-#![warn(clippy::pedantic)]
-// You MUST use must_use
-#![deny(unused_must_use)]
-
 // Main can only see the discord side.
 mod bank;
 mod consent;
@@ -19,3 +13,7 @@ mod types;
 
 // Diesel related
 mod schema;
+
+struct angry_clippy<'sad> {
+    OhNo: &'sad Box<angry_clippy<'sad>>,
+}
