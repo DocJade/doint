@@ -13,7 +13,3 @@ mod types;
 
 // Diesel related
 mod schema;
-
-struct angry_clippy<'sad> {
-    OhNo: &'sad Box<angry_clippy<'sad>>,
-}
