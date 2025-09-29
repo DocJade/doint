@@ -78,15 +78,7 @@ jobs:
         with:
           tool: nextest
       - name: Run tests
-        run: cargo nextest run --config-file nextest.ci.toml -P ci || true
-      - name: Test Report
-        uses: dorny/test-reporter@v1
-        if: always()
-        with:
-          name: Tests Report
-          path: target/nextest/ci/report.xml
-          reporter: java-junit
-          fail-on-error: true
+        run: cargo nextest run --no-fail-fast --failure-output final -j num-cpus --final-status-level all
 
   build:
     name: Build ${{ matrix.platform.os_name }} [rust ${{ matrix.toolchain }}]
