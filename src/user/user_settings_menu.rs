@@ -48,6 +48,38 @@ use crate::types::serenity_types::{Context, Error};
 // [Back] [^] [\/] [Set]
 
 
+
+
+// To store the descriptions and such in the JSON we'll need a new tree format.
+
+struct SettingsTree {
+    root: SettingsTreeNode
+}
+
+struct SettingsTreeNode {
+    node_type: SettingsTreeNodeType
+}
+
+enum SettingsTreeNodeType {
+
+}
+
+/// 
+struct SettingsTreeItem {
+
+}
+
+// The serialization does not keep track of the names / type of the struct, so we need to do that all ourselves.
+
+
+
+
+
+
+
+
+
+
 //
 // The user settings command
 //
@@ -57,7 +89,20 @@ use crate::types::serenity_types::{Context, Error};
 pub(crate) async fn settings(
     ctx: Context<'_>,
 ) -> Result<(), Error> {
+
+    // Get the database pool
+    let pool = ctx.data().db_pool.clone();
+
+    // Get a connection
+    let mut conn = pool.get()?;
+
+
+
     // We need to generate buttons
 
     todo!()
 }
+
+
+
+/// Turn a struct into a tree structure
