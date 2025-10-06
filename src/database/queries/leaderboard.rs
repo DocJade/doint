@@ -6,7 +6,7 @@ use diesel::{Connection, MysqlConnection};
 
 use crate::database::tables::users::DointUser;
 
-pub(crate) enum DointBalanceLeaderQueryType {
+pub(crate) enum DointBalanceSortMode {
     HighestBalance,
     LowestBalance,
 }
@@ -16,14 +16,14 @@ pub(crate) enum DointBalanceLeaderQueryType {
 /// If the number of users is less than `limit`, all users will be returned.
 pub(crate) fn get_doint_balance_leaderboard(
     limit: i64,
-    mode: DointBalanceLeaderQueryType,
+    mode: DointBalanceSortMode,
     conn: &mut MysqlConnection,
 ) -> Result<Vec<DointUser>, diesel::result::Error> {
     conn.transaction(|conn| {
         users
-            .order_by(match DointBalanceLeaderQueryType {
-                DointBalanceLeaderQueryType::HighestBalance => bal.desc(),
-                DointBalanceLeaderQueryType::LowestBalance => bal.asc(),
+            .order_by(match DointBalanceSortMode {
+                DointBalanceSortMode::HighestBalance => bal.desc(),
+                DointBalanceSortMode::LowestBalance => bal.asc(),
             })
             .limit(limit)
             .load::<DointUser>(conn)
