@@ -11,6 +11,7 @@ use rand::seq::IndexedRandom;
 use crate::bank::bank_struct::BankInterface;
 use crate::bank::movement::move_doints::{DointTransfer, DointTransferParty, DointTransferReason};
 use crate::database::queries::user::get_doint_user;
+use crate::discord::helper::get_nick::get_display_name;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::jail::arrest::JailForm;
 use crate::jail::reasons::{JailCause, JailReason};
@@ -140,7 +141,7 @@ pub(crate) async fn rob(
         // Send them to jail.
         let failure_message = format!(
             "{}\nYou've been sent to jail for attempted robbery!",
-            get_robbery_flavor_text(false)
+            get_robbery_flavor_text(false, get_display_name(ctx, victim.id).await?)
         );
         robber.jail_user(&jail_form, &mut conn)?;
         ctx.say(failure_message).await?;
@@ -164,7 +165,7 @@ pub(crate) async fn rob(
     // Inform user
     let victory_message = format!(
         "{} {}!",
-        get_robbery_flavor_text(true),
+        get_robbery_flavor_text(true, get_display_name(ctx, victim.id).await?),
         FormattingHelper::display_doint(&steal_amount)
     );
     ctx.say(victory_message).await?;
@@ -173,32 +174,34 @@ pub(crate) async fn rob(
 }
 
 // Dumb reasons as to why the robbery worked or failed.
-fn get_robbery_flavor_text(worked: bool) -> String {
+fn get_robbery_flavor_text(worked: bool, user_display_name: String) -> String {
     if worked {
         (*SUCCESS_FLAVOR
             .choose(&mut rng())
             .expect("there are always messages"))
+        .replace("*", &user_display_name)
         .to_string()
     } else {
         (*FAIL_FLAVOR
             .choose(&mut rng())
             .expect("there are always messages"))
+        .replace("*", &user_display_name)
         .to_string()
     }
 }
 
 const SUCCESS_FLAVOR: [&str; 5] = [
-    "You ran by and stole their hat worth",
+    "You ran by and stole *'s hat worth",
     "You ran off with",
-    "You tied their shoelaces together while you leafed through their wallet, taking",
-    "You pointed a banana at them, and they thought it was a gun! Ran off with",
-    "You dipped into their back pocket, which contained 3 jelly beans, a fish skeleton, and",
+    "You tied *'s shoelaces together while you leafed through *'s wallet, taking",
+    "You pointed a banana at *, and they thought it was a gun! * Ran off with",
+    "You dipped into *'s back pocket, which contained 3 jelly beans, a fish skeleton, and",
 ];
 
 const FAIL_FLAVOR: [&str; 5] = [
     "You asked a cop what the best way to rob somebody was, and they didn't think that was very funny!",
     "You sneezed while reaching into their backpack, and they called the police!",
-    "You reached into their back pocket, but it wasn't a back pocket... Shit!",
+    "You reached into *'s back pocket, but it wasn't a back pocket... Shit!",
     "Some french lady started yelling when you walked near the target, alerting the police!",
-    "You tried to mug them with a banana, but they didn't fall for it!",
+    "You tried to * with a banana, but they didn't fall for it!",
 ];
