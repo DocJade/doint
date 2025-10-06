@@ -7,6 +7,7 @@ use poise::serenity_prelude::Member;
 use crate::bank::bank_struct::BankInterface;
 use crate::bank::movement::move_doints::{DointTransfer, DointTransferParty, DointTransferReason};
 use crate::database::queries::user::get_doint_user;
+use crate::discord::helper::get_nick::get_display_name;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::types::serenity_types::{Context, Error};
 
@@ -50,7 +51,7 @@ pub(crate) async fn snoop(
     // Get a connection
     let mut conn = pool.get()?;
 
-    let Some(user) = get_doint_user(ctx.author().id, &mut conn)? else {
+    let Some(executor) = get_doint_user(ctx.author().id, &mut conn)? else {
         // Couldn't find em.
         ctx.reply("You don't exist!").await?;
         return Ok(());
@@ -59,14 +60,14 @@ pub(crate) async fn snoop(
     let cost: BigDecimal = BigDecimal::from_i32(5).expect("Should always exist");
 
     // Make sure user has enough
-    if BankInterface::get_bank_balance(&mut conn)? < cost {
+    if executor.bal < cost {
         ctx.say("You don't have enough Doints for this").await?;
         return Ok(());
     }
 
     conn.transaction(|conn| {
         let transfer = DointTransfer {
-            sender: DointTransferParty::DointUser(user.id),
+            sender: DointTransferParty::DointUser(executor.id),
             recipient: DointTransferParty::Bank,
             transfer_amount: cost,
             apply_fees: false,
@@ -84,12 +85,12 @@ pub(crate) async fn snoop(
     };
 
     // Format the doint number
-    let doint_string = FormattingHelper::display_doint(&user.bal);
+    let doint_string = FormattingHelper::display_doint(&victim.bal);
 
     // Now print out their balance.
     let response: String = format!(
         "{} currently has {doint_string}. Was that worth the fee?",
-        victim.id
+        get_display_name(ctx, victim.id).await?
     );
 
     // Send it.
