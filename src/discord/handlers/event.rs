@@ -4,6 +4,7 @@ use log::{error, info, warn};
 // Handles / dispatches discord related events
 use crate::{
     event::event_struct::EventCaller,
+    knob::guild::DOCCORD_SERVER_ID,
     types::serenity_types::{/* Context ,*/ Data, Error},
 };
 use poise::serenity_prelude as serenity;
@@ -13,7 +14,7 @@ static INIT: Once = Once::new();
 
 #[allow(clippy::too_many_lines)] // shush
 pub async fn handle_discord_event(
-    _ctx: &serenity::Context,
+    ctx: &serenity::Context,
     event: &serenity::FullEvent,
     _framework: poise::FrameworkContext<'_, Data, Error>,
     data: &Data,
@@ -21,6 +22,23 @@ pub async fn handle_discord_event(
     match event {
         serenity::FullEvent::Ready { data_about_bot, .. } => {
             info!("Ready! Logged in as {}", data_about_bot.user.name);
+            info!(
+                "Obtained eminent domain over {} guilds",
+                data_about_bot.guilds.len()
+            );
+
+            // Leave servers other than Doccord since they're too unpriviledged to be graced by our perfect application.
+            if data_about_bot.guilds.len() != 1 {
+                while let Some(guild_id) = &data_about_bot
+                    .guilds
+                    .iter()
+                    .filter(|id| id != DOCCORD_SERVER_ID)
+                {
+                    ctx.http.leave_guild(guild_id);
+                }
+
+                return Err(Error::ThisShouldNotHappen(BotIsOutsideServer));
+            }
 
             // Set up things that run a single time.
             info!("Doing first time setup");
