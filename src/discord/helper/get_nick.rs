@@ -4,7 +4,7 @@ use crate::{
     types::serenity_types::{Context, Error},
 };
 
-/// Gets the display of a user based on a UserID.
+/// Gets the display of a user based on a `UserID`.
 ///
 /// Note that this is may be different from their nickname.
 pub(crate) async fn get_display_name(ctx: Context<'_>, id: u64) -> Result<String, Error> {

@@ -14,5 +14,5 @@ pub(crate) fn get_doint_user(
     let id: u64 = id.into();
     let maybe_user = conn.transaction(|conn| users.find(id).first::<DointUser>(conn).optional())?;
 
-    return Ok(maybe_user);
+    Ok(maybe_user)
 }

@@ -38,7 +38,7 @@ struct SlotMachine<'a> {
     /// The display name of this slot machine
     machine_name: &'a str,
 
-    /// See SlotPayoutTable.
+    /// See `SlotPayoutTable`.
     payout_table: SlotPayoutTable,
 
     /// The set bet amount (in full doints)
@@ -54,7 +54,7 @@ struct SlotMachine<'a> {
     /// The max possible payout. This should be the same as the jackpot, but is here
     /// for convenience.
     ///
-    /// bet_size * jackpot
+    /// `bet_size` * jackpot
     max_possible_payout: BigDecimal,
 }
 
@@ -358,7 +358,7 @@ pub(crate) async fn slots(
         let required_doints: &BigDecimal = &machine.bet_size;
         if &better.bal < required_doints {
             // User cant afford bet.
-            let bet_string = FormattingHelper::display_doint(&required_doints);
+            let bet_string = FormattingHelper::display_doint(required_doints);
             let _ = ctx
                 .say(format!("You cannot afford the {bet_string} bet."))
                 .await?;
@@ -398,7 +398,7 @@ pub(crate) async fn slots(
         // Text for the outcome
         let amount_actually_won: BigDecimal = &spin_result.win_amount * &machine.bet_size;
 
-        let result_text: String = if &spin_result.win_amount > &BigDecimal::zero() {
+        let result_text: String = if spin_result.win_amount > BigDecimal::zero() {
             // User won some.
             // Jackpot text if they won that too
             let jackpot_text = if spin_result.was_jackpot {

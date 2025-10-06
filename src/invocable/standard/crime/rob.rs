@@ -179,13 +179,13 @@ fn get_robbery_flavor_text(worked: bool, user_display_name: String) -> String {
         (*SUCCESS_FLAVOR
             .choose(&mut rng())
             .expect("there are always messages"))
-        .replace("*", &user_display_name)
+        .replace('*', &user_display_name)
         .to_string()
     } else {
         (*FAIL_FLAVOR
             .choose(&mut rng())
             .expect("there are always messages"))
-        .replace("*", &user_display_name)
+        .replace('*', &user_display_name)
         .to_string()
     }
 }

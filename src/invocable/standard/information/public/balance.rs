@@ -75,7 +75,7 @@ pub(crate) async fn snoop(
             transfer_reason: DointTransferReason::BalSnoop,
         };
 
-        return BankInterface::bank_transfer(conn, transfer);
+        BankInterface::bank_transfer(conn, transfer)
     })?;
 
     // Get the user, if they dont exist, return false.

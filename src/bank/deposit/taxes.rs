@@ -43,7 +43,7 @@ fn go_collect_taxes(conn: &mut MysqlConnection) -> Result<BigDecimal, Error> {
         // if the tax rate is zero, we can skip all taxation.
         // Tax rate is done in tenths of a percent, so if its under that, taxes are zero.
         // Yes we coulda just compared earlier, shush.
-        if &tax_rate < &BigDecimal::from_f64(0.001).expect("Should be representable.") {
+        if tax_rate < BigDecimal::from_f64(0.001).expect("Should be representable.") {
             // No taxes!
             info!("Tax rate is zero. Skipping!");
             return Ok(BigDecimal::zero());

@@ -8,7 +8,7 @@ use crate::{
     types::serenity_types::{CommandCheckFailure, Context, DointBotError, Error},
 };
 
-use crate::types::serenity_types::CommandCheckFailureReason::*;
+use crate::types::serenity_types::CommandCheckFailureReason::{MemberNotFound, CheckErroredOut, UserNotEnrolled, R2D2Failure, UserInJail};
 
 /// Runs before every command.
 ///
@@ -58,13 +58,12 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
     }
 
     // If the user is an admin, we dont need to do any more checks.
-    if let Some(perms) = member.permissions {
-        if perms.administrator() {
+    if let Some(perms) = member.permissions
+        && perms.administrator() {
             // User is an admin
             info!("Skipping pre_command checks, this user is an administrator.");
             return Ok(true);
         }
-    }
 
     // User is enrolled, get the actual DB entry to do more checks
     // Get the database pool
