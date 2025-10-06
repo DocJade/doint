@@ -25,7 +25,6 @@ impl EventCaller {
 }
 
 pub(crate) fn do_minute_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
-    // info!("Running daily events..."); // no info message, too noisy.
     // Do everything in a transaction.
     conn.transaction(|conn| {
         // Loop over the people in jail and free them if we can.

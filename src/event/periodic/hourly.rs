@@ -18,7 +18,7 @@ impl EventCaller {
 }
 
 pub(crate) fn do_hourly_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
-    info!("Running daily events...");
+    info!("Running hourly events...");
     // Do everything in a transaction.
     conn.transaction(|conn| {
         // all checks pass?
