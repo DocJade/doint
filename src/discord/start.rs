@@ -1,9 +1,8 @@
 use diesel::MysqlConnection;
 use diesel::r2d2::{self, ConnectionManager};
-use log::{debug, info};
+use log::info;
 // Starting the bot
-use poise::{PrefixFrameworkOptions, serenity_prelude as serenity};
-use std::error::Error;
+use poise::serenity_prelude as serenity;
 
 use crate::consent::consent_button::opt_in;
 use crate::discord::checks::pre_command::pre_command_call;
@@ -18,7 +17,7 @@ use crate::invocable::standard::casino::slots::slots;
 use crate::invocable::standard::crime::rob::rob;
 use crate::invocable::standard::information::public::balance::balance;
 use crate::invocable::standard::information::public::leaderboard::{broke, leaderboard};
-use crate::types::serenity_types::{Context, Data, DbPool, DointBotError};
+use crate::types::serenity_types::{Data, DbPool, DointBotError};
 
 /// Create the client which will be used to start the bot.
 ///

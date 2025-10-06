@@ -3,12 +3,8 @@
 use crate::bank::bank_struct::BankInterface;
 use crate::database::tables::bank::BankInfo;
 use crate::schema::bank::dsl::bank;
-use crate::schema::users::bal;
-use crate::schema::users::dsl::users;
 use diesel::prelude::*;
-use diesel::result::Error;
 use diesel::{Connection, MysqlConnection};
-use log::info;
 
 impl BankInterface {
     /// Change the tax rate of the bank.

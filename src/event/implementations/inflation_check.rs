@@ -5,14 +5,13 @@ use diesel::dsl::sum;
 use diesel::{Connection, MysqlConnection};
 
 use crate::database::tables::bank::BankInfo;
-use crate::database::tables::users::DointUser;
 use crate::schema::bank::dsl::bank;
 use crate::schema::users::bal;
 use crate::schema::users::dsl::users;
-use crate::{bank::bank_struct::BankInterface, event::event_struct::EventCaller};
+use crate::event::event_struct::EventCaller;
 use diesel::prelude::*;
 use diesel::result::Error;
-use log::{debug, info, warn};
+use log::{debug, warn};
 
 #[derive(Debug)]
 pub(crate) enum InflationLeak {

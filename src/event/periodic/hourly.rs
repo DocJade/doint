@@ -5,7 +5,7 @@ use log::{info, warn};
 
 use crate::{
     event::event_struct::EventCaller,
-    types::serenity_types::{Context, Data, Error},
+    types::serenity_types::Error,
 };
 
 impl EventCaller {

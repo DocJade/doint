@@ -4,15 +4,12 @@ use crate::database::tables::jail::JailedUser;
 use crate::database::tables::users::DointUser;
 use crate::schema::jail::dsl::jail;
 use crate::schema::users::dsl::users;
-use diesel::associations::BelongsTo;
-use diesel::query_dsl::methods::FilterDsl;
-use diesel::{Connection, ExpressionMethods, MysqlConnection, QueryDsl, RunQueryDsl};
-use log::{debug, info, warn};
+use diesel::{Connection, MysqlConnection, QueryDsl, RunQueryDsl};
+use log::warn;
 
-use crate::schema::jail::*;
 use crate::{
     event::event_struct::EventCaller,
-    types::serenity_types::{Context, Data, Error},
+    types::serenity_types::Error,
 };
 
 impl EventCaller {

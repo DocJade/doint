@@ -19,8 +19,7 @@ use poise::serenity_prelude::{
     CreateInteractionResponseFollowup,
 };
 use rand::{rng, seq::IndexedRandom};
-use std::iter::{repeat, repeat_n};
-use std::ops::Deref;
+use std::iter::repeat_n;
 use std::time::Duration;
 
 use crate::bank::bank_struct::BankInterface;
@@ -368,7 +367,7 @@ pub(crate) async fn slots(
 
         // Make sure the bank can afford the jackpot.
         let bank_bal: &BigDecimal = &BankInterface::get_bank_balance(&mut conn)?;
-        let mut max_payout: &BigDecimal = &machine.max_possible_payout;
+        let max_payout: &BigDecimal = &machine.max_possible_payout;
         if bank_bal < max_payout {
             // Bank cant pay that out.
             warn!("Bank cant afford slots!");

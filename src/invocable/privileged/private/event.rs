@@ -4,7 +4,7 @@ use poise::CreateReply;
 
 use crate::event::event_struct::EventCaller;
 use crate::formatting::format_struct::FormattingHelper;
-use crate::types::serenity_types::{Context, Data, Error};
+use crate::types::serenity_types::{Context, Error};
 
 /// Force disperse UBI immediately.
 ///
