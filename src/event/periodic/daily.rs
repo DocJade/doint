@@ -3,10 +3,7 @@
 use diesel::{Connection, MysqlConnection};
 use log::info;
 
-use crate::{
-    event::event_struct::EventCaller,
-    types::serenity_types::Error,
-};
+use crate::{event::event_struct::EventCaller, types::serenity_types::Error};
 
 impl EventCaller {
     /// Actions that run once a day. Doesn't run at a specific time, just every 24 hours after the bot starts.
