@@ -42,8 +42,7 @@ pub(crate) async fn balance(ctx: Context<'_>) -> Result<(), Error> {
 #[poise::command(slash_command, guild_only, aliases("sn"))]
 pub(crate) async fn snoop(
     ctx: Context<'_>,
-    #[description = "Who do you want to snoop on?"]
-    victim: Member,
+    #[description = "Who do you want to snoop on?"] victim: Member,
 ) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
@@ -78,7 +77,7 @@ pub(crate) async fn snoop(
     })?;
 
     // Get the user, if they dont exist, return false.
-    let Some(victim) = get_doint_user(victim, &mut conn)? else {
+    let Some(victim) = get_doint_user(victim.user.id, &mut conn)? else {
         // Couldn't find em.
         ctx.reply("User doesn't exist, no refunds!").await?;
         return Ok(());
