@@ -1,9 +1,13 @@
 // See your doint balance
 
+use bigdecimal::{BigDecimal, FromPrimitive};
+use diesel::Connection;
+
+use crate::bank::bank_struct::BankInterface;
+use crate::bank::movement::move_doints::{DointTransfer, DointTransferParty, DointTransferReason};
 use crate::database::queries::user::get_doint_user;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::types::serenity_types::{Context, Error};
-
 
 /// See your doint balance.
 #[poise::command(slash_command, guild_only, aliases("bal"))]
@@ -28,6 +32,66 @@ pub(crate) async fn balance(ctx: Context<'_>) -> Result<(), Error> {
 
     // Now print out their balance.
     let response: String = format!("You currently have {doint_string}.");
+
+    // Send it.
+    let _ = ctx.say(response).await?;
+    Ok(())
+}
+
+/// Get another user's doing balance, for a fee.
+#[poise::command(slash_command, guild_only, aliases("sn"))]
+pub(crate) async fn snoop(
+    ctx: Context<'_>,
+    #[description = "Who do you want to snoop on?"] victim: u64,
+) -> Result<(), Error> {
+    // Get the database pool
+    let pool = ctx.data().db_pool.clone();
+
+    // Get a connection
+    let mut conn = pool.get()?;
+
+    let user = if let Some(user) = get_doint_user(ctx.author().id, &mut conn)? {
+        user
+    } else {
+        // Couldn't find em.
+        ctx.reply("You don't exist!").await?;
+        return Ok(());
+    };
+
+    let cost: BigDecimal = BigDecimal::from_i32(5).expect("Should always exist");
+
+    // Make sure user has enough
+    if BankInterface::get_bank_balance(&mut conn)? < cost {
+        ctx.say("You don't have enough Doints for this").await?;
+        return Ok(());
+    }
+
+    conn.transaction(|conn| {
+        let transfer = DointTransfer {
+            sender: DointTransferParty::DointUser(user.id),
+            recipient: DointTransferParty::Bank,
+            transfer_amount: cost,
+            apply_fees: false,
+            transfer_reason: DointTransferReason::BalSnoop,
+        };
+
+        return BankInterface::bank_transfer(conn, transfer);
+    })?;
+
+    // Get the user, if they dont exist, return false.
+    let victim = if let Some(user) = get_doint_user(victim, &mut conn)? {
+        user
+    } else {
+        // Couldn't find em.
+        ctx.reply("User doesn't exist, no refunds!").await?;
+        return Ok(());
+    };
+
+    // Format the doint number
+    let doint_string = FormattingHelper::display_doint(&user.bal);
+
+    // Now print out their balance.
+    let response: String = format!("{} currently has {doint_string}. Was that worth the fee?", victim.id);
 
     // Send it.
     let _ = ctx.say(response).await?;

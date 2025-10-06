@@ -58,6 +58,7 @@ pub(crate) enum DointTransferReason {
     UniversalBasicIncome,
     UserPaymentNoReason,
     CrimeRobbery,
+    BalSnoop,
     UserPaymentWithReason(String),
 }
 

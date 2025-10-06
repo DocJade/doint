@@ -10,3 +10,9 @@ pub(crate) struct DointUser {
     pub id: u64,
     pub bal: BigDecimal,
 }
+
+impl Into<u64> for DointUser {
+    fn into(self) -> u64 {
+        self.id
+    }
+}
