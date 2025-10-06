@@ -7,10 +7,7 @@ use crate::schema::users::dsl::users;
 use diesel::{Connection, MysqlConnection, QueryDsl, RunQueryDsl};
 use log::warn;
 
-use crate::{
-    event::event_struct::EventCaller,
-    types::serenity_types::Error,
-};
+use crate::{event::event_struct::EventCaller, types::serenity_types::Error};
 
 impl EventCaller {
     /// Runs every minute.

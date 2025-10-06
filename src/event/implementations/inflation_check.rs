@@ -5,10 +5,10 @@ use diesel::dsl::sum;
 use diesel::{Connection, MysqlConnection};
 
 use crate::database::tables::bank::BankInfo;
+use crate::event::event_struct::EventCaller;
 use crate::schema::bank::dsl::bank;
 use crate::schema::users::bal;
 use crate::schema::users::dsl::users;
-use crate::event::event_struct::EventCaller;
 use diesel::prelude::*;
 use diesel::result::Error;
 use log::{debug, warn};

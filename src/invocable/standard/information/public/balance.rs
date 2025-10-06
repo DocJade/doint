@@ -91,7 +91,10 @@ pub(crate) async fn snoop(
     let doint_string = FormattingHelper::display_doint(&user.bal);
 
     // Now print out their balance.
-    let response: String = format!("{} currently has {doint_string}. Was that worth the fee?", victim.id);
+    let response: String = format!(
+        "{} currently has {doint_string}. Was that worth the fee?",
+        victim.id
+    );
 
     // Send it.
     let _ = ctx.say(response).await?;
