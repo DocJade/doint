@@ -108,25 +108,25 @@ pub(super) enum SettingValue {
 
 // Render the folder view.
 // We dont have a "go up a directory" function, since that would require tracking parents, which is annoying.
-impl SettingsMenuFolder {
+impl dyn SettingsMenuFolder {
     /// Render out the folder, regardless if it has settings or more folders contained within.
     fn render(&self) -> CreateReply {
         todo!("Render out the string selection list for the sub-folders or settings in the folder")
     }
 
     /// Open a sub-folder.
-    fn open_subfolder(&self, subfolder_identifier: String) -> SettingsMenuFolder {
+    fn open_subfolder(&self, subfolder_identifier: String) -> Box<dyn SettingsMenuFolder> {
         todo!("Return the sub-folder that matches.")
     }
 
     /// Open a setting
-    fn open_setting(&self, setting_identifier: String) -> SettingsMenuSetting {
+    fn open_setting(&self, setting_identifier: String) -> Box<dyn SettingsMenuSetting> {
         todo!("Return the setting")
     }
 }
 
 // render the setting view
-impl SettingsMenuSetting {
+impl dyn SettingsMenuSetting {
     /// Render out the setting. Regardless of setting type.
     fn render(&self) -> CreateReply {
         // This includes it's name, description, and has a section to change the setting accordingly.
