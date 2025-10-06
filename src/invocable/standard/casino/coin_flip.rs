@@ -14,7 +14,7 @@ use crate::types::serenity_types::{Context, Error};
 // a coin
 #[derive(Debug, poise::ChoiceParameter, PartialEq, Eq)]
 enum Coin {
-    #[name = "Heads."]
+    #[name = "Heads"]
     Heads,
     #[name = "Tails"]
     Tails,
