@@ -11,12 +11,22 @@ use serde::{Deserialize, Serialize};
 
 use crate::notification::notification_settings::UserNotificationSettings;
 
-/// Everything that a user can configure goes inhere. Everything from notification preferences, to 
-#[derive(Documented, Default, Clone, Debug, PartialEq, Eq)] // Access to doc comments is required, and make sure we can get a default variant.
+/// Everything that a user can configure goes in here.
+#[derive(Documented, Clone, Debug, PartialEq, Eq)] // Access to doc comments is required, and make sure we can get a default variant.
 #[derive(Serialize, Deserialize)] // Turn it back and forth from JSON
 #[derive(FromSqlRow, AsExpression)]
 #[diesel(sql_type = Text)]
 pub struct DointUserSettings {
     /// How you get notified about Doint events.
     pub(crate) notification_settings: UserNotificationSettings
+}
+
+// The default settings have every notification turned off.
+// In the future, if there are more than notification settings, we might have to manually
+// define defaults here.
+
+impl Default for DointUserSettings {
+    fn default() -> Self {
+        Self { notification_settings: Default::default() }
+    }
 }
