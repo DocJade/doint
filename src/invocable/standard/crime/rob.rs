@@ -141,7 +141,7 @@ pub(crate) async fn rob(
         // Send them to jail.
         let failure_message = format!(
             "{}\nYou've been sent to jail for attempted robbery!",
-            get_robbery_flavor_text(false, get_display_name(ctx, victim.id).await?)
+            get_robbery_flavor_text(false, &get_display_name(ctx, victim.id).await?)
         );
         robber.jail_user(&jail_form, &mut conn)?;
         ctx.say(failure_message).await?;
@@ -165,7 +165,7 @@ pub(crate) async fn rob(
     // Inform user
     let victory_message = format!(
         "{} {}!",
-        get_robbery_flavor_text(true, get_display_name(ctx, victim.id).await?),
+        get_robbery_flavor_text(true, &get_display_name(ctx, victim.id).await?),
         FormattingHelper::display_doint(&steal_amount)
     );
     ctx.say(victory_message).await?;
@@ -174,18 +174,18 @@ pub(crate) async fn rob(
 }
 
 // Dumb reasons as to why the robbery worked or failed.
-fn get_robbery_flavor_text(worked: bool, user_display_name: String) -> String {
+fn get_robbery_flavor_text(worked: bool, user_display_name: &str) -> String {
     if worked {
         (*SUCCESS_FLAVOR
             .choose(&mut rng())
             .expect("there are always messages"))
-        .replace("*", &user_display_name)
+        .replace('*', user_display_name)
         .to_string()
     } else {
         (*FAIL_FLAVOR
             .choose(&mut rng())
             .expect("there are always messages"))
-        .replace("*", &user_display_name)
+        .replace('*', user_display_name)
         .to_string()
     }
 }

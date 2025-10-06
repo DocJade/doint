@@ -130,7 +130,7 @@ pub(crate) struct DointTransferSenderBroke {
 impl BankInterface {
     /// Transfer funds between two parties.
     ///
-    /// Requires a DointTransfer.
+    /// Requires a `DointTransfer`.
     ///
     /// Returns a receipt.
     pub(crate) fn bank_transfer(
@@ -161,13 +161,13 @@ fn run_bank_transfer(
     if transfer.sender == transfer.recipient {
         warn!("Attempted to send money between self and self! Pointless!");
         return Err(DointTransferError::PointlessTransfer);
-    };
+    }
 
     // Can't transfer nothing
     if transfer.transfer_amount == BigDecimal::zero() {
         warn!("Attempted to move 0 doints between parties! Pointless!");
         return Err(DointTransferError::PointlessTransfer);
-    };
+    }
 
     // Fees cannot be enabled if the sender is the bank
     if transfer.sender == DointTransferParty::Bank && transfer.apply_fees {
@@ -199,14 +199,14 @@ fn run_bank_transfer(
                 // Not a user
                 return Err(DointTransferError::InvalidTransferReason);
             }
-        };
+        }
         match transfer.recipient {
             DointTransferParty::DointUser(_) => {}
             _ => {
                 // Not a user
                 return Err(DointTransferError::InvalidTransferReason);
             }
-        };
+        }
         // All good.
     }
 
@@ -218,7 +218,7 @@ fn run_bank_transfer(
                 // Taxes have to come from users.
                 return Err(DointTransferError::InvalidTransferReason);
             }
-        };
+        }
 
         match transfer.recipient {
             DointTransferParty::Bank => {}
@@ -226,7 +226,7 @@ fn run_bank_transfer(
                 // Taxes have to go into the bank
                 return Err(DointTransferError::InvalidTransferReason);
             }
-        };
+        }
     }
 
     // UBI can only come from the bank, to the users.
@@ -237,7 +237,7 @@ fn run_bank_transfer(
                 // Taxes have to go into the bank
                 return Err(DointTransferError::InvalidTransferReason);
             }
-        };
+        }
 
         match transfer.recipient {
             DointTransferParty::DointUser(_) => {}
@@ -245,7 +245,7 @@ fn run_bank_transfer(
                 // Taxes have to come from users.
                 return Err(DointTransferError::InvalidTransferReason);
             }
-        };
+        }
     }
 
     //
@@ -299,7 +299,7 @@ fn run_bank_transfer(
                 return Err(sender_cant_afford);
             }
         }
-    };
+    }
     match transfer.recipient {
         DointTransferParty::Bank => {
             // Bank must exist.
@@ -325,7 +325,7 @@ fn run_bank_transfer(
             //     return Err(DointTransferError::RecipientFull)
             // }
         }
-    };
+    }
 
     // Enter a transaction, everything past this point is an operation that would need
     // to be rolled back
@@ -358,7 +358,7 @@ fn run_bank_transfer(
                 user.bal += &transfer.transfer_amount;
                 user.save_changes::<DointUser>(conn)?;
             }
-        };
+        }
 
         // Put fees in the bank if needed
         if transfer.apply_fees {
@@ -368,7 +368,7 @@ fn run_bank_transfer(
         }
 
         // Done.
-        return Ok(());
+        Ok(())
     })?;
 
     // Now return a receipt.

@@ -31,10 +31,9 @@ pub async fn handle_discord_event(
                 while let Some(guild) = &data_about_bot
                     .guilds
                     .iter()
-                    .filter(|guild| guild.id != DOCCORD_SERVER_ID)
-                    .next()
+                    .find(|guild| guild.id != DOCCORD_SERVER_ID)
                 {
-                    ctx.http.leave_guild(guild.id).await?
+                    ctx.http.leave_guild(guild.id).await?;
                 }
 
                 return Ok(());

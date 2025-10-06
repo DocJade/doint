@@ -11,8 +11,8 @@ pub(crate) struct DointUser {
     pub bal: BigDecimal,
 }
 
-impl Into<u64> for DointUser {
-    fn into(self) -> u64 {
-        self.id
+impl From<DointUser> for u64 {
+    fn from(val: DointUser) -> Self {
+        val.id
     }
 }

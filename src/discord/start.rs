@@ -87,7 +87,7 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
                             Err(err) => {
                                 panic!("Could not delete the following command! : {err:#?}")
                             }
-                        };
+                        }
                     }
                     info!("Done cleaning up old slash commands!");
                 }

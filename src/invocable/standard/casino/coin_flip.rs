@@ -29,9 +29,7 @@ pub(crate) async fn flip(
     bet: f64,
 ) -> Result<(), Error> {
     // Turn that float into a BigDecimal
-    let bet = if let Some(worked) = BigDecimal::from_f64(bet) {
-        worked
-    } else {
+    let Some(bet) = BigDecimal::from_f64(bet) else {
         // Failed to cast!
         return Err(Error::BigDecimalCastError);
     };
@@ -59,7 +57,7 @@ pub(crate) async fn flip(
     };
 
     // Make sure the user can afford the bet.
-    let final_bet_amount: BigDecimal = if &better.bal < &bet {
+    let final_bet_amount: BigDecimal = if better.bal < bet {
         // User cant afford bet, Guess the'll bet it ALL! HAHA
         debug!("User tried to bet more than they have, defaulting to all of their money...");
         better.bal.clone()

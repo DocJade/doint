@@ -8,7 +8,9 @@ use crate::{
     types::serenity_types::{CommandCheckFailure, Context, DointBotError, Error},
 };
 
-use crate::types::serenity_types::CommandCheckFailureReason::*;
+use crate::types::serenity_types::CommandCheckFailureReason::{
+    CheckErroredOut, MemberNotFound, R2D2Failure, UserInJail, UserNotEnrolled,
+};
 
 /// Runs before every command.
 ///
@@ -58,12 +60,12 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
     }
 
     // If the user is an admin, we dont need to do any more checks.
-    if let Some(perms) = member.permissions {
-        if perms.administrator() {
-            // User is an admin
-            info!("Skipping pre_command checks, this user is an administrator.");
-            return Ok(true);
-        }
+    if let Some(perms) = member.permissions
+        && perms.administrator()
+    {
+        // User is an admin
+        info!("Skipping pre_command checks, this user is an administrator.");
+        return Ok(true);
     }
 
     // User is enrolled, get the actual DB entry to do more checks
@@ -116,12 +118,6 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
                 crate::jail::error::JailError::AlreadyInJail(_jailed_user) => {
                     unreachable!("We aren't putting the user in jail here.")
                 }
-                crate::jail::error::JailError::UserNotInJail => {
-                    unreachable!("We aren't freeing the user from jail.")
-                }
-                crate::jail::error::JailError::StillServingSentence => {
-                    unreachable!("We aren't freeing the user from jail.")
-                }
                 crate::jail::error::JailError::DieselError(error) => {
                     // Checking if the user was in jail failed.
                     return Err(Error::CommandCheckFailed(CheckErroredOut(
@@ -131,6 +127,7 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
                         },
                     )));
                 }
+                _ => unreachable!(),
             }
         }
     }
