@@ -45,6 +45,7 @@ pub(crate) async fn leaderboard(ctx: Context<'_>) -> Result<(), Error> {
 }
 
 #[poise::command(slash_command, guild_only, aliases("poor"))]
+/// See the bottom 10 Doint holders!
 pub(crate) async fn broke(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();

@@ -2,6 +2,7 @@
 
 use bigdecimal::{BigDecimal, FromPrimitive};
 use diesel::Connection;
+use poise::serenity_prelude::Member;
 
 use crate::bank::bank_struct::BankInterface;
 use crate::bank::movement::move_doints::{DointTransfer, DointTransferParty, DointTransferReason};
@@ -40,7 +41,8 @@ pub(crate) async fn balance(ctx: Context<'_>) -> Result<(), Error> {
 #[poise::command(slash_command, guild_only, aliases("sn"))]
 pub(crate) async fn snoop(
     ctx: Context<'_>,
-    #[description = "Who do you want to snoop on?"] victim: u64,
+    #[description = "Who do you want to snoop on?"]
+    victim: Member,
 ) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
