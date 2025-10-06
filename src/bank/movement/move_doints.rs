@@ -8,7 +8,7 @@ use thiserror::Error;
 use crate::database::tables::bank::BankInfo;
 use crate::database::tables::users::DointUser;
 use crate::schema::bank::dsl::bank;
-use crate::{bank::bank_struct::BankInterface, database::queries::get_user::get_doint_user};
+use crate::{bank::bank_struct::BankInterface, database::queries::user::get_doint_user};
 use diesel::prelude::*;
 
 /// Struct for facilitating doint transfers between two parties.

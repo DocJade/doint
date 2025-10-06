@@ -11,7 +11,7 @@ use crate::bank::movement::move_doints::{
     DointTransfer, DointTransferError, DointTransferParty, DointTransferReason,
     DointTransferReceipt,
 };
-use crate::database::queries::get_user::get_doint_user;
+use crate::database::queries::user::get_doint_user;
 use crate::database::tables::users::DointUser;
 use crate::discord::checks::consented::{ctx_member_enrolled_in_doints, member_enrolled_in_doints};
 use crate::discord::helper::get_nick::get_display_name;

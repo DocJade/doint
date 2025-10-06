@@ -6,25 +6,31 @@ use diesel::{Connection, MysqlConnection};
 
 use crate::database::tables::users::DointUser;
 
-pub(crate) enum DointBalanceSortMode {
-    HighestBalance,
-    LowestBalance,
-}
-
-/// Get the users with the highest (or lowest) doint balances.
-/// 
+/// Get the users with the highest doint balances.
+///
 /// If the number of users is less than `limit`, all users will be returned.
-pub(crate) fn get_doint_balance_leaderboard(
+pub(crate) fn get_top_doint_balances(
     limit: i64,
-    mode: DointBalanceSortMode,
     conn: &mut MysqlConnection,
 ) -> Result<Vec<DointUser>, diesel::result::Error> {
     conn.transaction(|conn| {
         users
-            .order_by(match DointBalanceSortMode {
-                DointBalanceSortMode::HighestBalance => bal.desc(),
-                DointBalanceSortMode::LowestBalance => bal.asc(),
-            })
+            .order_by(bal.desc())
+            .limit(limit)
+            .load::<DointUser>(conn)
+    })
+}
+
+/// Get the users with the lowest doint balances.
+///
+/// If the number of users is less than `limit`, all users will be returned.
+pub(crate) fn get_bottom_doint_balances(
+    limit: i64,
+    conn: &mut MysqlConnection,
+) -> Result<Vec<DointUser>, diesel::result::Error> {
+    conn.transaction(|conn| {
+        users
+            .order_by(bal.asc())
             .limit(limit)
             .load::<DointUser>(conn)
     })

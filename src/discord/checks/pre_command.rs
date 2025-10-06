@@ -3,7 +3,7 @@
 use log::{debug, info};
 
 use crate::{
-    database::queries::get_user::get_doint_user,
+    database::queries::user::get_doint_user,
     discord::checks::consented::member_enrolled_in_doints,
     types::serenity_types::{CommandCheckFailure, Context, DointBotError, Error},
 };

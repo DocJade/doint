@@ -1,7 +1,7 @@
 use std::{sync::Once, time::Duration};
 
 use log::{error, info, warn};
-// Handles / dispatches discord related events
+
 use crate::{
     event::event_struct::EventCaller,
     knob::guild::DOCCORD_SERVER_ID,
@@ -9,7 +9,6 @@ use crate::{
 };
 use poise::serenity_prelude as serenity;
 
-// Only run initialization code a single time.
 static INIT: Once = Once::new();
 
 #[allow(clippy::too_many_lines)] // shush
@@ -29,15 +28,15 @@ pub async fn handle_discord_event(
 
             // Leave servers other than Doccord since they're too unpriviledged to be graced by our perfect application.
             if data_about_bot.guilds.len() != 1 {
-                while let Some(guild_id) = &data_about_bot
+                while let Some(guild) = &data_about_bot
                     .guilds
                     .iter()
-                    .filter(|id| id != DOCCORD_SERVER_ID)
+                    .filter(|guild| guild.id != DOCCORD_SERVER_ID).next()
                 {
-                    ctx.http.leave_guild(guild_id);
+                    ctx.http.leave_guild(guild.id).await?
                 }
 
-                return Err(Error::ThisShouldNotHappen(BotIsOutsideServer));
+                return Ok(())
             }
 
             // Set up things that run a single time.
