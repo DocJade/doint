@@ -1,22 +1,17 @@
 // Pay another user some of your doints.
 
 use bigdecimal::{BigDecimal, FromPrimitive, Zero};
-use diesel::associations::HasTable;
-use diesel::{Connection, QueryDsl, RunQueryDsl, SaveChangesDsl};
+use diesel::QueryDsl;
 use log::{debug, warn};
 use poise::serenity_prelude::Member;
 
 use crate::bank::bank_struct::BankInterface;
 use crate::bank::movement::move_doints::{
     DointTransfer, DointTransferError, DointTransferParty, DointTransferReason,
-    DointTransferReceipt,
 };
-use crate::database::queries::user::get_doint_user;
-use crate::database::tables::users::DointUser;
-use crate::discord::checks::consented::{ctx_member_enrolled_in_doints, member_enrolled_in_doints};
+use crate::discord::checks::consented::member_enrolled_in_doints;
 use crate::discord::helper::get_nick::get_display_name;
 use crate::formatting::format_struct::FormattingHelper;
-use crate::schema::users::dsl::users;
 use crate::types::serenity_types::{Context, Error};
 
 /// Pay another player

@@ -1,7 +1,7 @@
 // get a Serenity User from a ID
 // Tries the cache first.
 
-use crate::types::serenity_types::{Context, Data, Error};
+use crate::types::serenity_types::{Context, Error};
 use poise::serenity_prelude as serenity;
 
 /// Get the User that this ID refers to.

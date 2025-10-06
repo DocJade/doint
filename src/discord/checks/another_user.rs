@@ -4,11 +4,7 @@
 use poise::serenity_prelude::Member;
 use thiserror::Error;
 
-use crate::{
-    database::queries::user::get_doint_user,
-    discord::checks::consented::member_enrolled_in_doints,
-    types::serenity_types::{Context, Data, Error},
-};
+use crate::types::serenity_types::Context;
 
 /// Enum for keeping track of reasons that the user cannot be called against.
 #[derive(Error, Debug)]

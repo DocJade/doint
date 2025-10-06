@@ -7,7 +7,6 @@ use log::{debug, warn};
 use crate::bank::bank_struct::BankInterface;
 use crate::bank::movement::move_doints::{DointTransfer, DointTransferParty, DointTransferReason};
 use crate::database::queries::user::get_doint_user;
-use crate::discord::checks::consented::ctx_member_enrolled_in_doints;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::types::serenity_types::{Context, Error};
 

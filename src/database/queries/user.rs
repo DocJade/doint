@@ -1,6 +1,6 @@
 // user CRUD functions
 
-use crate::schema::users::dsl::{bal, users};
+use crate::schema::users::dsl::users;
 use diesel::prelude::*;
 use diesel::{Connection, MysqlConnection};
 

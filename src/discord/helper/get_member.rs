@@ -4,10 +4,10 @@
 use crate::types::serenity_types::ThisShouldNotHappen::BotIsOutsideServer;
 use crate::{
     knob::guild::DOCCORD_SERVER_ID,
-    types::serenity_types::{Context, Data, Error},
+    types::serenity_types::{Context, Error},
 };
 use log::warn;
-use poise::serenity_prelude::{self as serenity, Member, UserId};
+use poise::serenity_prelude::{self as serenity, UserId};
 
 /// Get the Member that this ID refers to, if they exist.
 ///

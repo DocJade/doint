@@ -6,7 +6,7 @@ use poise::CreateReply;
 use crate::bank::bank_struct::BankInterface;
 use crate::database::tables::bank::BankInfo;
 use crate::schema::bank::dsl::bank;
-use crate::types::serenity_types::{Context, Data, Error};
+use crate::types::serenity_types::{Context, Error};
 
 /// Forcibly collect taxes immediately.
 #[poise::command(slash_command,
