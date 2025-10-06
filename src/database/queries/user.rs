@@ -1,4 +1,4 @@
-// Check if a user exists by an ID.
+// user CRUD functions
 
 use crate::schema::users::dsl::{bal, users};
 use diesel::prelude::*;
@@ -6,14 +6,12 @@ use diesel::{Connection, MysqlConnection};
 
 use crate::database::tables::users::DointUser;
 
-/// Gets the DointUser from a discord user ID, if they exist.
+/// Returns a `DointUser` if the user with the respective `id` exists.
 pub(crate) fn get_doint_user(
     id: impl Into<u64>,
     conn: &mut MysqlConnection,
 ) -> Result<Option<DointUser>, diesel::result::Error> {
     let id: u64 = id.into();
-    // Transaction not really needed here but lol.
-    // Users table, find the user.
     let maybe_user = conn.transaction(|conn| users.find(id).first::<DointUser>(conn).optional())?;
 
     return Ok(maybe_user);
