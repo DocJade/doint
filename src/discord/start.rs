@@ -17,7 +17,7 @@ use crate::invocable::standard::casino::coin_flip::flip;
 use crate::invocable::standard::casino::slots::slots;
 use crate::invocable::standard::crime::rob::rob;
 use crate::invocable::standard::information::public::balance::balance;
-use crate::invocable::standard::information::public::leaderboard::leaderboard;
+use crate::invocable::standard::information::public::leaderboard::{broke, leaderboard};
 use crate::types::serenity_types::{Context, Data, DbPool, DointBotError};
 
 /// Create the client which will be used to start the bot.
@@ -41,6 +41,7 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
                 opt_in(),
                 // Normal user commands
                 leaderboard(),
+                broke(),
                 balance(),
                 pay(),
                 // Gambling

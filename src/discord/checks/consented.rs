@@ -3,10 +3,8 @@
 use poise::serenity_prelude::Member;
 
 use crate::{
-    database::{queries::top_n::get_top_n, tables::users::DointUser},
-    discord::helper::get_nick::get_display_name,
     knob::roles::DOINTS_ENABLED_ROLE_ID,
-    types::serenity_types::{Context, Data, Error},
+    types::serenity_types::{Context, Error},
 };
 
 /// Check if the caller has the dointer role.

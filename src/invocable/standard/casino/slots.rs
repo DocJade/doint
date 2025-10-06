@@ -6,7 +6,7 @@
 // I like how lazy static works better.
 #![allow(clippy::non_std_lazy_statics)]
 
-use crate::database::queries::get_user::get_doint_user;
+use crate::database::queries::user::get_doint_user;
 use crate::discord::checks::consented::ctx_member_enrolled_in_doints;
 use crate::formatting::format_struct::FormattingHelper;
 use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};

@@ -1,6 +1,6 @@
 // See your doint balance
 
-use crate::database::queries::get_user::get_doint_user;
+use crate::database::queries::user::get_doint_user;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::types::serenity_types::{Context, Data, Error};
 
