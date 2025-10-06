@@ -86,6 +86,7 @@ enum SlotSymbol {
 }
 
 impl SlotSymbol {
+    #[allow(clippy::pedantic)]
     fn get_emoji_id(&self) -> u64 {
         match self {
             SlotSymbol::Jackpot(emoji_id) => *emoji_id,

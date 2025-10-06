@@ -11,12 +11,12 @@ impl DointUser {
     ///
     /// Returns appropriate errors if user is not eligible for removal from jail.
     pub(crate) fn free_user_from_jail(self, conn: &mut MysqlConnection) -> Result<(), JailError> {
-        go_free_user_from_jail(self, conn)
+        go_free_user_from_jail(&self, conn)
     }
 }
 
 // actual implementation
-fn go_free_user_from_jail(user: DointUser, conn: &mut MysqlConnection) -> Result<(), JailError> {
+fn go_free_user_from_jail(user: &DointUser, conn: &mut MysqlConnection) -> Result<(), JailError> {
     // Make sure they're still in jail
     let Some(jailed_user) = user.is_jailed(conn)? else {
         // User isn't in jail, cant free them.

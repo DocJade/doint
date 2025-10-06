@@ -29,9 +29,7 @@ pub(crate) async fn flip(
     bet: f64,
 ) -> Result<(), Error> {
     // Turn that float into a BigDecimal
-    let bet = if let Some(worked) = BigDecimal::from_f64(bet) {
-        worked
-    } else {
+    let Some(bet) = BigDecimal::from_f64(bet) else {
         // Failed to cast!
         return Err(Error::BigDecimalCastError);
     };

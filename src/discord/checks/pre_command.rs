@@ -115,12 +115,6 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
                 crate::jail::error::JailError::AlreadyInJail(_jailed_user) => {
                     unreachable!("We aren't putting the user in jail here.")
                 }
-                crate::jail::error::JailError::UserNotInJail => {
-                    unreachable!("We aren't freeing the user from jail.")
-                }
-                crate::jail::error::JailError::StillServingSentence => {
-                    unreachable!("We aren't freeing the user from jail.")
-                }
                 crate::jail::error::JailError::DieselError(error) => {
                     // Checking if the user was in jail failed.
                     return Err(Error::CommandCheckFailed(CheckErroredOut(
@@ -130,6 +124,7 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
                         },
                     )));
                 }
+                _ => unreachable!()
             }
         }
     }

@@ -1,5 +1,5 @@
 // Emoji!
-
+#![allow(clippy::unreadable_literal)]
 pub(crate) const EMOJI_FREAKY_CANNY: u64 = 1344576228061089914;
 pub(crate) const EMOJI_FERRIS_PARTY: u64 = 1207482672927084606;
 pub(crate) const EMOJI_UNCANNY: u64 = 1254590987851006003;

@@ -19,9 +19,7 @@ pub(crate) async fn balance(ctx: Context<'_>) -> Result<(), Error> {
     let mut conn = pool.get()?;
 
     // Get the user, if they dont exist, return false.
-    let user = if let Some(user) = get_doint_user(ctx.author().id, &mut conn)? {
-        user
-    } else {
+    let Some(user) = get_doint_user(ctx.author().id, &mut conn)? else {
         // Couldn't find em.
         // TODO: When commands fail, tell the user the reason instead of just silence.
         return Ok(());
@@ -50,9 +48,7 @@ pub(crate) async fn snoop(
     // Get a connection
     let mut conn = pool.get()?;
 
-    let user = if let Some(user) = get_doint_user(ctx.author().id, &mut conn)? {
-        user
-    } else {
+    let Some(user) = get_doint_user(ctx.author().id, &mut conn)? else {
         // Couldn't find em.
         ctx.reply("You don't exist!").await?;
         return Ok(());
@@ -79,9 +75,7 @@ pub(crate) async fn snoop(
     })?;
 
     // Get the user, if they dont exist, return false.
-    let victim = if let Some(user) = get_doint_user(victim, &mut conn)? {
-        user
-    } else {
+    let Some(victim) = get_doint_user(victim, &mut conn)? else {
         // Couldn't find em.
         ctx.reply("User doesn't exist, no refunds!").await?;
         return Ok(());

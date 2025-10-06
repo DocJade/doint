@@ -22,9 +22,7 @@ pub(crate) async fn pay(
     #[description = "The amount of doints to pay them."] payment: f64,
 ) -> Result<(), Error> {
     // Turn that float into a BigDecimal
-    let payment = if let Some(worked) = BigDecimal::from_f64(payment) {
-        worked
-    } else {
+    let Some(payment) = BigDecimal::from_f64(payment) else {
         // Failed to cast!
         return Err(Error::BigDecimalCastError);
     };

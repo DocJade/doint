@@ -1,3 +1,5 @@
+#![allow(clippy::result_large_err)]
+
 // Main can only see the discord side.
 mod bank;
 mod consent;

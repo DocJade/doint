@@ -40,13 +40,13 @@ impl DointUser {
         form: &JailForm,
         conn: &mut MysqlConnection,
     ) -> Result<(), JailError> {
-        put_user_in_jail(self, form, conn)
+        put_user_in_jail(&self, form, conn)
     }
 }
 
 // actual implementation
 fn put_user_in_jail(
-    user: DointUser,
+    user: &DointUser,
     form: &JailForm,
     conn: &mut MysqlConnection,
 ) -> Result<(), JailError> {
