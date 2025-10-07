@@ -7,18 +7,6 @@ use crate::{
     types::serenity_types::{Context, Error},
 };
 
-/// Check if the caller has the dointer role.
-pub(crate) async fn ctx_member_enrolled_in_doints(ctx: Context<'_>) -> Result<bool, Error> {
-    let member = if let Some(member) = ctx.author_member().await {
-        member
-    } else {
-        // Couldnt find user.
-        // If we cant load them, chances are we arent in doccord.
-        return Ok(false);
-    };
-    member_enrolled_in_doints(member.into_owned(), ctx).await
-}
-
 // Inner function that checks a member, not context
 pub(crate) async fn member_enrolled_in_doints(
     member: Member,

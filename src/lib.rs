@@ -7,6 +7,7 @@ mod database;
 pub mod discord;
 mod event;
 mod formatting;
+mod guards;
 mod invocable;
 mod jail;
 mod knob;

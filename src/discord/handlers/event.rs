@@ -26,7 +26,7 @@ pub async fn handle_discord_event(
                 data_about_bot.guilds.len()
             );
 
-            // Leave servers other than Doccord since they're too unpriviledged to be graced by our perfect application.
+            // Leave servers other than Doccord.
             if data_about_bot.guilds.len() != 1 {
                 while let Some(guild) = &data_about_bot
                     .guilds

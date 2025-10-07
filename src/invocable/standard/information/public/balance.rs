@@ -9,10 +9,11 @@ use crate::bank::movement::move_doints::{DointTransfer, DointTransferParty, Doin
 use crate::database::queries::user::get_doint_user;
 use crate::discord::helper::get_nick::get_display_name;
 use crate::formatting::format_struct::FormattingHelper;
+use crate::guards;
 use crate::types::serenity_types::{Context, Error};
 
 /// See your doint balance.
-#[poise::command(slash_command, guild_only, aliases("bal"))]
+#[poise::command(slash_command, guild_only, aliases("bal"), check = guards::in_doints_category, check = guards::in_commands)]
 pub(crate) async fn balance(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
@@ -39,7 +40,7 @@ pub(crate) async fn balance(ctx: Context<'_>) -> Result<(), Error> {
 }
 
 /// Get another user's doing balance, for a fee.
-#[poise::command(slash_command, guild_only, aliases("sn"))]
+#[poise::command(slash_command, guild_only, aliases("sn"), check = guards::in_doints_category)]
 pub(crate) async fn snoop(
     ctx: Context<'_>,
     #[description = "Who do you want to snoop on?"] victim: Member,
@@ -56,7 +57,7 @@ pub(crate) async fn snoop(
         return Ok(());
     };
 
-    let cost: BigDecimal = BigDecimal::from_i32(5).expect("Should always exist");
+    let cost: BigDecimal = BigDecimal::from_i32(50).expect("Should always exist");
 
     // Make sure user has enough
     if executor.bal < cost {
@@ -68,7 +69,7 @@ pub(crate) async fn snoop(
         let transfer = DointTransfer {
             sender: DointTransferParty::DointUser(executor.id),
             recipient: DointTransferParty::Bank,
-            transfer_amount: cost,
+            transfer_amount: cost.clone(),
             apply_fees: false,
             transfer_reason: DointTransferReason::BalSnoop,
         };
@@ -88,8 +89,9 @@ pub(crate) async fn snoop(
 
     // Now print out their balance.
     let response: String = format!(
-        "{} currently has {doint_string}. Was that worth the fee?",
-        get_display_name(ctx, victim.id).await?
+        "{} currently has {doint_string}.\n\n-#Paid a fee of {}.",
+        get_display_name(ctx, victim.id).await?,
+        FormattingHelper::display_doint(&cost)
     );
 
     // Send it.
