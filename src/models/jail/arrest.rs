@@ -51,7 +51,7 @@ fn put_user_in_jail(
     conn: &mut MysqlConnection,
 ) -> Result<(), JailError> {
     // Make sure they aren't already in jail
-    if let Some(in_jail) = JailInterface::is_jailed(user, conn)? {
+    if let Some(in_jail) = user.in_jail(conn)? {
         // User is already in jail.
         return Err(JailError::AlreadyInJail(in_jail));
     }

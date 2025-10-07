@@ -105,7 +105,7 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
     };
 
     // Check if the user is in jail
-    match JailInterface::is_jailed(&user, &mut conn) {
+    match user.in_jail(&mut conn) {
         Ok(ok) => {
             if let Some(jail) = ok {
                 // Cant run commands while in jail.

@@ -84,7 +84,7 @@ pub(crate) async fn rob(
     }
 
     // Robbing people in jail sends you to jail
-    if JailInterface::is_jailed(&victim, &mut conn)?.is_some() {
+    if victim.in_jail(&mut conn)?.is_some() {
         robber.jail_user(&jail_form, &mut conn)?;
         let _ = ctx.say("You snuck into jail to rob them, thats breaking and entering! You've been sent to jail!").await?;
         return Ok(());

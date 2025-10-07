@@ -28,7 +28,7 @@ impl JailInterface {
 
 fn impl_free_user(user: &DointUser, conn: &mut MysqlConnection) -> Result<(), JailError> {
     // Make sure they're in jail
-    let Some(jailed_user) = JailInterface::is_jailed(user, conn)? else {
+    let Some(jailed_user) = user.in_jail(conn)? else {
         return Err(JailError::UserNotInJail);
     };
 

@@ -26,7 +26,7 @@ pub(crate) fn do_minute_events(conn: &mut MysqlConnection) -> Result<bool, Error
         for in_jail in &jail.load::<JailedUser>(conn)? {
             let user = users.find(in_jail.id).get_result::<DointUser>(conn)?;
             // try freeing them
-            if let Err(bad) = JailInterface::free_user(&user, conn) {
+            if let Err(bad) = user.free_from_jail(conn) {
                 match bad {
                     JailError::AlreadyInJail(_) => {
                         unreachable!("We aren't putting someone in jail.")
