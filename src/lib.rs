@@ -8,7 +8,6 @@ mod event;
 mod formatting;
 mod guards;
 mod invocable;
-mod jail;
 mod knob;
 mod models;
 mod tests;

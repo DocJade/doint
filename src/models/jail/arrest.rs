@@ -1,14 +1,14 @@
 // Time to go to jail!
 // We will also add this method to the user type itself.
 
-use crate::schema::jail::dsl::jail;
+use crate::{models::JailInterface, schema::jail::dsl::jail};
 use chrono::{Local, NaiveDateTime, TimeDelta};
 use diesel::{Connection, MysqlConnection, RunQueryDsl};
 
 use crate::{
     database::tables::{jail::JailedUser, users::DointUser},
-    jail::{
-        error::JailError,
+    models::jail::{
+        JailError,
         reasons::{JailCause, JailReason},
     },
 };
@@ -51,7 +51,7 @@ fn put_user_in_jail(
     conn: &mut MysqlConnection,
 ) -> Result<(), JailError> {
     // Make sure they aren't already in jail
-    if let Some(in_jail) = user.is_jailed(conn)? {
+    if let Some(in_jail) = JailInterface::is_jailed(user, conn)? {
         // User is already in jail.
         return Err(JailError::AlreadyInJail(in_jail));
     }
