@@ -10,8 +10,8 @@ mod guards;
 mod invocable;
 mod jail;
 mod knob;
-mod tests;
 mod models;
+mod tests;
 mod types;
 
 // Diesel related

@@ -2,8 +2,8 @@
 
 // Collect taxes from doint-holders.
 
-use crate::models::BankInterface;
 use crate::database::tables::bank::BankInfo;
+use crate::models::BankInterface;
 use crate::schema::bank::dsl::bank;
 use crate::schema::users::dsl::users;
 use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};

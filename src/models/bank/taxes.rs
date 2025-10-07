@@ -1,5 +1,5 @@
-use crate::database::tables::users::DointUser;
 use crate::database::tables::bank::BankInfo;
+use crate::database::tables::users::DointUser;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::models::BankInterface;
 use crate::models::bank::conversions;
@@ -11,7 +11,6 @@ use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::{Connection, MysqlConnection};
 use log::info;
-
 
 impl BankInterface {
     /// Immediately collect taxes from all users.

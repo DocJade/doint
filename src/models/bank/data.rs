@@ -1,14 +1,14 @@
 use bigdecimal::BigDecimal;
 use diesel::{Connection, MysqlConnection, RunQueryDsl, SaveChangesDsl};
 
-use crate::models::BankInterface;
 use crate::database::tables::bank::BankInfo;
+use crate::models::BankInterface;
 
 use crate::schema::bank::dsl::bank;
 
 impl BankInterface {
     /// Returns the balance of a `BankInterface`.
-    /// 
+    ///
     /// Returns a [`DieselError`][diesel::result::Error] if retrieving fails
     pub(crate) fn get_bank_balance(
         conn: &mut MysqlConnection,
@@ -23,7 +23,6 @@ fn get_balance(conn: &mut MysqlConnection) -> Result<BigDecimal, diesel::result:
         Ok(the_bank.doints_on_hand)
     })
 }
-
 
 impl BankInterface {
     /// Change the tax rate of the bank.
