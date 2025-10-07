@@ -9,10 +9,11 @@ use crate::bank::movement::move_doints::{DointTransfer, DointTransferParty, Doin
 use crate::database::queries::user::get_doint_user;
 use crate::discord::helper::get_nick::get_display_name;
 use crate::formatting::format_struct::FormattingHelper;
+use crate::guards;
 use crate::types::serenity_types::{Context, Error};
 
 /// See your doint balance.
-#[poise::command(slash_command, guild_only, aliases("bal"))]
+#[poise::command(slash_command, guild_only, aliases("bal"), check = guards::in_doints_category,)]
 pub(crate) async fn balance(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
@@ -39,7 +40,7 @@ pub(crate) async fn balance(ctx: Context<'_>) -> Result<(), Error> {
 }
 
 /// Get another user's doing balance, for a fee.
-#[poise::command(slash_command, guild_only, aliases("sn"))]
+#[poise::command(slash_command, guild_only, aliases("sn"), check = guards::in_doints_category)]
 pub(crate) async fn snoop(
     ctx: Context<'_>,
     #[description = "Who do you want to snoop on?"] victim: Member,

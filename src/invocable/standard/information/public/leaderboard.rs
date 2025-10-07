@@ -9,11 +9,12 @@ use crate::{
     },
     discord::helper::get_nick::get_display_name,
     formatting::format_struct::FormattingHelper,
+    guards,
     types::serenity_types::{Context, Error},
 };
 
 /// See the top Doint holders!
-#[poise::command(slash_command, guild_only, aliases("lb"))]
+#[poise::command(slash_command, guild_only, aliases("lb"), check = guards::in_doints_category)]
 pub(crate) async fn leaderboard(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
@@ -44,7 +45,7 @@ pub(crate) async fn leaderboard(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-#[poise::command(slash_command, guild_only, aliases("poor"))]
+#[poise::command(slash_command, guild_only, aliases("poor"), check = guards::in_doints_category)]
 /// See the bottom 10 Doint holders!
 pub(crate) async fn broke(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool

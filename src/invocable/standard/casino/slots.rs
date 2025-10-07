@@ -7,8 +7,8 @@
 #![allow(clippy::non_std_lazy_statics)]
 
 use crate::database::queries::user::get_doint_user;
-use crate::discord::checks::consented::ctx_member_enrolled_in_doints;
 use crate::formatting::format_struct::FormattingHelper;
+use crate::guards;
 use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
 use diesel::Connection;
 use lazy_static::lazy_static;
@@ -323,8 +323,9 @@ fn calculate_winnings(symbols: [SlotSymbol; 3], payouts: &SlotPayoutTable) -> Op
 #[poise::command(
     slash_command,
     guild_only,
-    check = "ctx_member_enrolled_in_doints",
-    user_cooldown = 5
+    user_cooldown = 5,
+    check = guards::in_doints_category,
+    check = guards::ctx_member_enrolled_in_doints,
 )]
 pub(crate) async fn slots(
     ctx: Context<'_>,

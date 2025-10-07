@@ -8,6 +8,7 @@ use crate::bank::bank_struct::BankInterface;
 use crate::bank::movement::move_doints::{DointTransfer, DointTransferParty, DointTransferReason};
 use crate::database::queries::user::get_doint_user;
 use crate::formatting::format_struct::FormattingHelper;
+use crate::guards;
 use crate::types::serenity_types::{Context, Error};
 
 // a coin
@@ -20,7 +21,7 @@ enum Coin {
 }
 
 /// Flip a coin, pick a side. If you pick the correct side, you double your money (minus fees)
-#[poise::command(slash_command, guild_only, user_cooldown = 300)]
+#[poise::command(slash_command, guild_only, user_cooldown = 300, check = guards::in_doints_category)]
 pub(crate) async fn flip(
     ctx: Context<'_>,
     #[description = "Heads or tails?"] side: Coin,

@@ -1,7 +1,6 @@
 // Pay another user some of your doints.
 
 use bigdecimal::{BigDecimal, FromPrimitive, Zero};
-use diesel::QueryDsl;
 use log::{debug, warn};
 use poise::serenity_prelude::Member;
 
@@ -12,10 +11,11 @@ use crate::bank::movement::move_doints::{
 use crate::discord::checks::consented::member_enrolled_in_doints;
 use crate::discord::helper::get_nick::get_display_name;
 use crate::formatting::format_struct::FormattingHelper;
+use crate::guards::{self};
 use crate::types::serenity_types::{Context, Error};
 
 /// Pay another player
-#[poise::command(slash_command, guild_only)]
+#[poise::command(slash_command, guild_only, check = guards::in_doints_category)]
 pub(crate) async fn pay(
     ctx: Context<'_>,
     #[description = "Who you are paying."] recipient: Member,

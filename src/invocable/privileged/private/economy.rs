@@ -5,6 +5,7 @@ use poise::CreateReply;
 
 use crate::bank::bank_struct::BankInterface;
 use crate::database::tables::bank::BankInfo;
+use crate::guards;
 use crate::schema::bank::dsl::bank;
 use crate::types::serenity_types::{Context, Error};
 
@@ -12,7 +13,8 @@ use crate::types::serenity_types::{Context, Error};
 #[poise::command(slash_command,
     guild_only,
     required_permissions = "ADMINISTRATOR",
-    default_member_permissions = "ADMINISTRATOR" // Only admins can run/see this command.
+    default_member_permissions = "ADMINISTRATOR", // Only admins can run/see this command.
+    check = guards::in_doints_category
     )
 ]
 pub(crate) async fn admin_tax_now(ctx: Context<'_>) -> Result<(), Error> {
@@ -39,7 +41,8 @@ pub(crate) async fn admin_tax_now(ctx: Context<'_>) -> Result<(), Error> {
 #[poise::command(slash_command,
     guild_only,
     required_permissions = "ADMINISTRATOR",
-    default_member_permissions = "ADMINISTRATOR" // Only admins can run/see this command.
+    default_member_permissions = "ADMINISTRATOR", // Only admins can run/see this command.
+    check = guards::in_doints_category
     )
 ]
 pub(crate) async fn admin_bank_info(ctx: Context<'_>) -> Result<(), Error> {
@@ -87,7 +90,8 @@ pub(crate) async fn admin_bank_info(ctx: Context<'_>) -> Result<(), Error> {
 #[poise::command(slash_command,
     guild_only,
     required_permissions = "ADMINISTRATOR",
-    default_member_permissions = "ADMINISTRATOR" // Only admins can run/see this command.
+    default_member_permissions = "ADMINISTRATOR", // Only admins can run/see this command.
+    check = guards::in_doints_category
     )
 ]
 pub(crate) async fn admin_set_tax_rate(
@@ -126,7 +130,8 @@ pub(crate) async fn admin_set_tax_rate(
 #[poise::command(slash_command,
     guild_only,
     required_permissions = "ADMINISTRATOR",
-    default_member_permissions = "ADMINISTRATOR" // Only admins can run/see this command.
+    default_member_permissions = "ADMINISTRATOR", // Only admins can run/see this command.
+    check = guards::in_doints_category
     )
 ]
 pub(crate) async fn admin_set_ubi_rate(
