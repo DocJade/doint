@@ -56,7 +56,7 @@ pub(crate) async fn snoop(
         return Ok(());
     };
 
-    let cost: BigDecimal = BigDecimal::from_i32(5).expect("Should always exist");
+    let cost: BigDecimal = BigDecimal::from_i32(50).expect("Should always exist");
 
     // Make sure user has enough
     if executor.bal < cost {
@@ -68,7 +68,7 @@ pub(crate) async fn snoop(
         let transfer = DointTransfer {
             sender: DointTransferParty::DointUser(executor.id),
             recipient: DointTransferParty::Bank,
-            transfer_amount: cost,
+            transfer_amount: cost.clone(),
             apply_fees: false,
             transfer_reason: DointTransferReason::BalSnoop,
         };
@@ -88,8 +88,9 @@ pub(crate) async fn snoop(
 
     // Now print out their balance.
     let response: String = format!(
-        "{} currently has {doint_string}. Was that worth the fee?",
-        get_display_name(ctx, victim.id).await?
+        "{} currently has {doint_string}.\n\n-#Paid a fee of {}.",
+        get_display_name(ctx, victim.id).await?,
+        FormattingHelper::display_doint(&cost)
     );
 
     // Send it.
