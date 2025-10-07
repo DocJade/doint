@@ -39,7 +39,7 @@ pub(crate) enum DointBotError {
 
     #[error("Failed to jail a user.")] // TODO: Phase this out, its varients need to be handled lower down.
     #[deprecated]
-    JailingError(#[from] crate::jail::error::JailError),
+    JailingError(#[from] crate::models::jail::JailError),
 
     #[error(
         "Some errors are highly unlikely, this should be handled elsewhere, but this is your way out."

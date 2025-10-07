@@ -287,9 +287,7 @@ fn run_bank_transfer(
             // All good.
         }
         DointTransferParty::DointUser(id) => {
-            let user = if let Some(found) = get_doint_user(id, conn)? {
-                found
-            } else {
+            let Some(user) = get_doint_user(id, conn)? else {
                 // Couldn't find them
                 return Err(DointTransferError::InvalidParty);
             };
@@ -312,9 +310,7 @@ fn run_bank_transfer(
             // }
         }
         DointTransferParty::DointUser(id) => {
-            let user = if let Some(found) = get_doint_user(id, conn)? {
-                found
-            } else {
+            let Some(user) = get_doint_user(id, conn)? else {
                 // User does not exist.
                 return Err(DointTransferError::InvalidParty);
             };

@@ -5,7 +5,7 @@ use diesel::prelude::*;
 
 use crate::{
     database::tables::users::DointUser,
-    jail::reasons::{JailCause, JailReason},
+    models::jail::reasons::{JailCause, JailReason},
 };
 
 #[derive(Queryable, Selectable, Identifiable, Associations, Debug, Insertable)]

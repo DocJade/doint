@@ -1,10 +1,13 @@
-// errors related to the jail system.
+pub mod data;
+// Naughty Dointers
+
+pub(crate) mod arrest;
+pub(crate) mod reasons;
 
 use thiserror::Error;
 
 use crate::database::tables::jail::JailedUser;
 
-/// Jail-related errors.
 #[derive(Error, Debug)]
 pub(crate) enum JailError {
     #[error("The user is already in jail")]

@@ -5,6 +5,7 @@ use log::{debug, info};
 use crate::{
     database::queries::user::get_doint_user,
     discord::checks::consented::member_enrolled_in_doints,
+    models::{JailInterface, jail::JailError},
     types::serenity_types::{CommandCheckFailure, Context, DointBotError, Error},
 };
 
@@ -27,9 +28,7 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
     }
 
     // Get the user that called the command
-    let member = if let Some(member) = ctx.author_member().await {
-        member
-    } else {
+    let Some(member) = ctx.author_member().await else {
         // Couldnt find user.
         // If we cant load them, chances are we arent in doccord.
         // We just wont respond.
@@ -106,7 +105,7 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
     };
 
     // Check if the user is in jail
-    match user.is_jailed(&mut conn) {
+    match user.in_jail(&mut conn) {
         Ok(ok) => {
             if let Some(jail) = ok {
                 // Cant run commands while in jail.
@@ -115,10 +114,10 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
         }
         Err(err) => {
             match err {
-                crate::jail::error::JailError::AlreadyInJail(_jailed_user) => {
+                JailError::AlreadyInJail(_jailed_user) => {
                     unreachable!("We aren't putting the user in jail here.")
                 }
-                crate::jail::error::JailError::DieselError(error) => {
+                JailError::DieselError(error) => {
                     // Checking if the user was in jail failed.
                     return Err(Error::CommandCheckFailed(CheckErroredOut(
                         CommandCheckFailure {
