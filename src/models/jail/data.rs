@@ -53,3 +53,14 @@ fn impl_free_user(user: &DointUser, conn: &mut MysqlConnection) -> Result<(), Ja
     info!("User `{}` was freed from jail", user.id);
     Ok(())
 }
+
+impl DointUser {
+    #[inline]
+    pub fn in_jail(&self, conn: &mut MysqlConnection) -> Result<Option<JailedUser>, JailError> {
+        JailInterface::is_jailed(self, conn)
+    }
+    #[inline]
+    pub fn free_from_jail(&self, conn: &mut MysqlConnection) -> Result<(), JailError> {
+        JailInterface::free_user(self, conn)
+    }
+}
