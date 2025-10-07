@@ -43,7 +43,7 @@ impl BankInterface {
 }
 
 fn go_set_tax_rate(conn: &mut MysqlConnection, new_rate: u16) -> bool {
-    // 1000% is greater than 100%, exit.
+    // Can't set tax_rate about 100%.
     if new_rate > 1000 {
         return false;
     }
@@ -58,7 +58,7 @@ fn go_set_tax_rate(conn: &mut MysqlConnection, new_rate: u16) -> bool {
 }
 
 fn go_set_ubi_rate(conn: &mut MysqlConnection, new_rate: u16) -> bool {
-    // 1000 is greater than 100%, exit.
+    // Can't set tax_rate greater than 100%.
     if new_rate > 1000 {
         return false;
     }

@@ -26,13 +26,15 @@ fn go_calculate_fees(
     let fee_info: FeeInfo = conn.transaction(|conn| fees.first(conn))?;
 
     let mut total_fee: BigDecimal = fee_info.flat_fee;
-
+    
+    // Add the percentage fee.
+    // Rounds down.
     let percent_fee: BigDecimal = BigDecimal::from_f64(
         conversions::tax_rate_to_percentage(fee_info.percentage_fee)
             .floor()
             .abs(),
     )
-    .expect("Should ");
+    .expect("Should always be valid");
 
     let mut calculated_percent_fee_int: BigDecimal = transaction_amount * percent_fee;
 
