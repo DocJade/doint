@@ -26,7 +26,7 @@ fn go_calculate_fees(
     let fee_info: FeeInfo = conn.transaction(|conn| fees.first(conn))?;
 
     let mut total_fee: BigDecimal = fee_info.flat_fee;
-    
+
     // Add the percentage fee.
     // Rounds down.
     let percent_fee: BigDecimal = BigDecimal::from_f64(
