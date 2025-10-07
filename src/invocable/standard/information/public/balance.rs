@@ -13,7 +13,7 @@ use crate::guards;
 use crate::types::serenity_types::{Context, Error};
 
 /// See your doint balance.
-#[poise::command(slash_command, guild_only, aliases("bal"), check = guards::in_doints_category,)]
+#[poise::command(slash_command, guild_only, aliases("bal"), check = guards::in_doints_category, check = guards::in_commands)]
 pub(crate) async fn balance(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();

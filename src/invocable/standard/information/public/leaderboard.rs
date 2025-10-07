@@ -14,7 +14,7 @@ use crate::{
 };
 
 /// See the top Doint holders!
-#[poise::command(slash_command, guild_only, aliases("lb"), check = guards::in_doints_category)]
+#[poise::command(slash_command, guild_only, aliases("lb"), check = guards::in_doints_category, check = guards::in_commands)]
 pub(crate) async fn leaderboard(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
@@ -45,7 +45,7 @@ pub(crate) async fn leaderboard(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-#[poise::command(slash_command, guild_only, aliases("poor"), check = guards::in_doints_category)]
+#[poise::command(slash_command, guild_only, aliases("poor"), check = guards::in_doints_category, check = guards::in_commands)]
 /// See the bottom 10 Doint holders!
 pub(crate) async fn broke(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool

@@ -19,7 +19,7 @@ use crate::jail::reasons::{JailCause, JailReason};
 use crate::types::serenity_types::{Context, Error};
 
 /// Rob someone. Odds of the robbery are based on wealth disparity.
-#[poise::command(slash_command, guild_only, check = guards::in_doints_category)]
+#[poise::command(slash_command, guild_only, check = guards::in_doints_category, check = guards::in_commands)]
 pub(crate) async fn rob(
     ctx: Context<'_>,
     #[description = "Who would you like to rob?"] who: Member,

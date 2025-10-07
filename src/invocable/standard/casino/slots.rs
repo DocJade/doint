@@ -326,6 +326,7 @@ fn calculate_winnings(symbols: [SlotSymbol; 3], payouts: &SlotPayoutTable) -> Op
     user_cooldown = 5,
     check = guards::in_doints_category,
     check = guards::ctx_member_enrolled_in_doints,
+    check = guards::in_casino
 )]
 pub(crate) async fn slots(
     ctx: Context<'_>,

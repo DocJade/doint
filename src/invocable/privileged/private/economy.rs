@@ -14,7 +14,8 @@ use crate::types::serenity_types::{Context, Error};
     guild_only,
     required_permissions = "ADMINISTRATOR",
     default_member_permissions = "ADMINISTRATOR", // Only admins can run/see this command.
-    check = guards::in_doints_category
+    check = guards::in_doints_category,
+    check = guards::in_commands
     )
 ]
 pub(crate) async fn admin_tax_now(ctx: Context<'_>) -> Result<(), Error> {
@@ -42,7 +43,8 @@ pub(crate) async fn admin_tax_now(ctx: Context<'_>) -> Result<(), Error> {
     guild_only,
     required_permissions = "ADMINISTRATOR",
     default_member_permissions = "ADMINISTRATOR", // Only admins can run/see this command.
-    check = guards::in_doints_category
+    check = guards::in_doints_category,
+    check = guards::in_commands
     )
 ]
 pub(crate) async fn admin_bank_info(ctx: Context<'_>) -> Result<(), Error> {
@@ -91,7 +93,8 @@ pub(crate) async fn admin_bank_info(ctx: Context<'_>) -> Result<(), Error> {
     guild_only,
     required_permissions = "ADMINISTRATOR",
     default_member_permissions = "ADMINISTRATOR", // Only admins can run/see this command.
-    check = guards::in_doints_category
+    check = guards::in_doints_category,
+    check = guards::in_commands
     )
 ]
 pub(crate) async fn admin_set_tax_rate(

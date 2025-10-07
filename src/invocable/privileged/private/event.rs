@@ -14,7 +14,8 @@ use crate::types::serenity_types::{Context, Error};
     guild_only,
     required_permissions = "ADMINISTRATOR",
     default_member_permissions = "ADMINISTRATOR", // Only admins can run/see this command.
-    check = guards::in_doints_category
+    check = guards::in_doints_category,
+    check = guards::in_commands
     )
 ]
 pub(crate) async fn admin_force_disperse_ubi(ctx: Context<'_>) -> Result<(), Error> {
