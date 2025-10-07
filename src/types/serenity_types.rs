@@ -35,7 +35,7 @@ pub(crate) enum DointBotError {
 
     #[error("A bank transfer failed.")] // TODO: Phase this out, its varients need to be handled lower down.
     #[deprecated]
-    BankTransferError(#[from] crate::bank::movement::move_doints::DointTransferError),
+    BankTransferError(#[from] crate::models::bank::transfer::DointTransferError),
 
     #[error("Failed to jail a user.")] // TODO: Phase this out, its varients need to be handled lower down.
     #[deprecated]

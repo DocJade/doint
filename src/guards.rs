@@ -1,4 +1,4 @@
-#[allow(dead_code)]
+#![allow(dead_code)]
 
 use paste::paste;
 use poise::CreateReply;
@@ -30,7 +30,7 @@ pub async fn in_doints_category(ctx: Context<'_>) -> Result<bool, Error> {
 macro_rules! create_channel_guard {
     ($fn_name:ident,$channel_id:expr) => {
         paste! {
-            pub async fn $fn_name(ctx: crate::types::serenity_types::Context<'_>) -> Result<bool, crate::types::serenity_types::Error> {
+            pub async fn $fn_name(ctx: $crate::types::serenity_types::Context<'_>) -> Result<bool, crate::types::serenity_types::Error> {
                 if ctx.channel_id() == $channel_id {
                     Ok(true)
                 } else {

@@ -3,7 +3,7 @@
 use diesel::{Connection, RunQueryDsl};
 use poise::CreateReply;
 
-use crate::bank::bank_struct::BankInterface;
+use crate::models::BankInterface;
 use crate::database::tables::bank::BankInfo;
 use crate::guards;
 use crate::schema::bank::dsl::bank;

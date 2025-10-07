@@ -4,12 +4,12 @@ use bigdecimal::{BigDecimal, FromPrimitive};
 use diesel::Connection;
 use poise::serenity_prelude::Member;
 
-use crate::bank::bank_struct::BankInterface;
-use crate::bank::movement::move_doints::{DointTransfer, DointTransferParty, DointTransferReason};
 use crate::database::queries::user::get_doint_user;
 use crate::discord::helper::get_nick::get_display_name;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::guards;
+use crate::models::BankInterface;
+use crate::models::bank::transfer::{DointTransfer, DointTransferParty, DointTransferReason};
 use crate::types::serenity_types::{Context, Error};
 
 /// See your doint balance.
