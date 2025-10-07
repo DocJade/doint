@@ -21,7 +21,7 @@ impl EventCaller {
 
 pub(crate) fn do_minute_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
     // Do everything in a transaction.
-    conn.transaction(|mut conn| {
+    conn.transaction(|conn| {
         // Loop over the people in jail and free them if we can.
         for in_jail in &jail.load::<JailedUser>(conn)? {
             let user = users.find(in_jail.id).get_result::<DointUser>(conn)?;
