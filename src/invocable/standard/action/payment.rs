@@ -4,14 +4,14 @@ use bigdecimal::{BigDecimal, FromPrimitive, Zero};
 use log::{debug, warn};
 use poise::serenity_prelude::Member;
 
-use crate::bank::bank_struct::BankInterface;
-use crate::bank::movement::move_doints::{
-    DointTransfer, DointTransferError, DointTransferParty, DointTransferReason,
-};
 use crate::discord::checks::consented::member_enrolled_in_doints;
 use crate::discord::helper::get_nick::get_display_name;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::guards::{self};
+use crate::models::BankInterface;
+use crate::models::bank::transfer::{
+    DointTransfer, DointTransferError, DointTransferParty, DointTransferReason,
+};
 use crate::types::serenity_types::{Context, Error};
 
 /// Pay another player

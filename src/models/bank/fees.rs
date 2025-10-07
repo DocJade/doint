@@ -1,19 +1,15 @@
-// Transactional fees
-
+use crate::database::tables::fees::FeeInfo;
+use crate::models::BankInterface;
+use crate::models::bank::conversions;
 use bigdecimal::{BigDecimal, FromPrimitive};
 use diesel::{Connection, MysqlConnection, RunQueryDsl};
-
-use crate::{bank::bank_struct::BankInterface, database::tables::fees::FeeInfo};
 
 use crate::schema::fees::dsl::fees;
 
 impl BankInterface {
-    /// Put in how much the user is "spending", and the returned amount will be the
-    /// fees alone. Flat + percentage.
+    /// Calculate the fees for a transaction.
     ///
-    /// Fees will always be positive.
-    ///
-    /// Returns diesel error if DB stuff dies.
+    /// Returns a [`DieselError`][diesel::result::Error] if tax collection fails.
     pub(crate) fn calculate_fees(
         conn: &mut MysqlConnection,
         transaction_amount: &BigDecimal,
@@ -26,17 +22,19 @@ fn go_calculate_fees(
     conn: &mut MysqlConnection,
     transaction_amount: &BigDecimal,
 ) -> Result<BigDecimal, diesel::result::Error> {
-    // Get the rates
-    // Start with the flat fee
+    // Get the fee info
     let fee_info: FeeInfo = conn.transaction(|conn| fees.first(conn))?;
 
     let mut total_fee: BigDecimal = fee_info.flat_fee;
 
     // Add the percentage fee.
     // Rounds down.
-    let percent_fee: BigDecimal =
-        BigDecimal::from_f64((f64::from(fee_info.percentage_fee) / 1000.0).floor().abs())
-            .expect("hehe");
+    let percent_fee: BigDecimal = BigDecimal::from_f64(
+        conversions::tax_rate_to_percentage(fee_info.percentage_fee)
+            .floor()
+            .abs(),
+    )
+    .expect("Should always be valid");
 
     let mut calculated_percent_fee_int: BigDecimal = transaction_amount * percent_fee;
 
@@ -45,6 +43,5 @@ fn go_calculate_fees(
 
     total_fee += calculated_percent_fee_int;
 
-    // All done
     Ok(total_fee)
 }

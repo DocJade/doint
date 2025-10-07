@@ -22,8 +22,8 @@ use rand::{rng, seq::IndexedRandom};
 use std::iter::repeat_n;
 use std::time::Duration;
 
-use crate::bank::bank_struct::BankInterface;
-use crate::bank::movement::move_doints::{
+use crate::models::BankInterface;
+use crate::models::bank::transfer::{
     DointTransfer, DointTransferError, DointTransferParty, DointTransferReason,
 };
 use crate::types::serenity_types::{Context, Error};

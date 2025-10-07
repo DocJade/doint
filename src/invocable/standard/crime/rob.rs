@@ -8,14 +8,14 @@ use poise::serenity_prelude::Member;
 use rand::rng;
 use rand::seq::IndexedRandom;
 
-use crate::bank::bank_struct::BankInterface;
-use crate::bank::movement::move_doints::{DointTransfer, DointTransferParty, DointTransferReason};
 use crate::database::queries::user::get_doint_user;
 use crate::discord::helper::get_nick::get_display_name;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::guards;
 use crate::jail::arrest::JailForm;
 use crate::jail::reasons::{JailCause, JailReason};
+use crate::models::BankInterface;
+use crate::models::bank::transfer::{DointTransfer, DointTransferParty, DointTransferReason};
 use crate::types::serenity_types::{Context, Error};
 
 /// Rob someone. Odds of the robbery are based on wealth disparity.
