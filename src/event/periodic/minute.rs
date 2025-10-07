@@ -1,10 +1,10 @@
 // This gets ran a lot, so only very quick things here!
 
-use crate::models::jail::JailError;
-use crate::{database::tables::jail::JailedUser, models::JailInterface};
 use crate::database::tables::users::DointUser;
+use crate::models::jail::JailError;
 use crate::schema::jail::dsl::jail;
 use crate::schema::users::dsl::users;
+use crate::{database::tables::jail::JailedUser, models::JailInterface};
 use diesel::{Connection, MysqlConnection, QueryDsl, RunQueryDsl};
 use log::warn;
 
@@ -26,7 +26,7 @@ pub(crate) fn do_minute_events(conn: &mut MysqlConnection) -> Result<bool, Error
         for in_jail in &jail.load::<JailedUser>(conn)? {
             let user = users.find(in_jail.id).get_result::<DointUser>(conn)?;
             // try freeing them
-            if let Err(bad) = JailInterface::free_user(&user, &mut conn) {
+            if let Err(bad) = JailInterface::free_user(&user, conn) {
                 match bad {
                     JailError::AlreadyInJail(_) => {
                         unreachable!("We aren't putting someone in jail.")

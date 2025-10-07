@@ -28,9 +28,7 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
     }
 
     // Get the user that called the command
-    let member = if let Some(member) = ctx.author_member().await {
-        member
-    } else {
+    let Some(member) = ctx.author_member().await else {
         // Couldnt find user.
         // If we cant load them, chances are we arent in doccord.
         // We just wont respond.

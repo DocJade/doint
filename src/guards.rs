@@ -40,7 +40,7 @@ macro_rules! create_channel_guard {
                 }
             }
 
-            pub async fn [<not_ $fn_name>](ctx: $crate::types::serenity_types::Context<'_>) -> Result<bool, crate::types::serenity_types::Error> {
+            pub async fn [<not_ $fn_name>](ctx: $crate::types::serenity_types::Context<'_>) -> Result<bool, $crate::types::serenity_types::Error> {
                 if ctx.channel_id() == $channel_id {
                     Ok(true)
                 } else {
@@ -60,9 +60,7 @@ create_channel_guard!(in_dev, channels::DOINTS_DEV_CHANNEL_ID);
 
 /// Check if the caller has the dointer role.
 pub async fn ctx_member_enrolled_in_doints(ctx: Context<'_>) -> Result<bool, Error> {
-    let member = if let Some(member) = ctx.author_member().await {
-        member
-    } else {
+    let Some(member) = ctx.author_member().await else {
         // Couldnt find user.
         // If we cant load them, chances are we arent in doccord.
         return Ok(false);

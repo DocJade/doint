@@ -1,6 +1,7 @@
 use chrono::Local;
 use diesel::{
-    query_dsl::methods::SelectDsl, BelongingToDsl, Connection, MysqlConnection, OptionalExtension, RunQueryDsl, SelectableHelper
+    BelongingToDsl, Connection, MysqlConnection, OptionalExtension, RunQueryDsl, SelectableHelper,
+    query_dsl::methods::SelectDsl,
 };
 use log::{info, warn};
 

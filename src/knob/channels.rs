@@ -1,4 +1,5 @@
 // Channels in doccord that the bot cares about.
+#![allow(clippy::unreadable_literal)]
 pub const DOINTS_CATEGORY_ID: u64 = 1417068712095383582;
 pub const DOINTS_CASINO_CHANNEL_ID: u64 = 1418379285621899284;
 pub const DOINTS_DEV_CHANNEL_ID: u64 = 1421452117889253576;
