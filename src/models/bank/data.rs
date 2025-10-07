@@ -43,7 +43,7 @@ impl BankInterface {
 }
 
 fn go_set_tax_rate(conn: &mut MysqlConnection, new_rate: u16) -> bool {
-    // Can't set tax_rate about 100%.
+    // Can't set tax_rate over 100%.
     if new_rate > 1000 {
         return false;
     }

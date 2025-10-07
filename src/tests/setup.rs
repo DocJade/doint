@@ -3,7 +3,7 @@
 use std::env;
 
 use diesel::{
-    Connection, MysqlConnection,
+    MysqlConnection,
     r2d2::{self, ConnectionManager},
 };
 use dotenvy::dotenv;
