@@ -1,3 +1,5 @@
+#[allow(dead_code)]
+
 use paste::paste;
 use poise::CreateReply;
 
