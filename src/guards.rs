@@ -20,7 +20,9 @@ pub async fn in_doints_category(ctx: Context<'_>) -> Result<bool, Error> {
         .category()
         && category.id != DOINTS_CATEGORY_ID
     {
-        return Err(Error::CommandCheckFailed(CommandCheckFailureReason::InvalidChannel))
+        return Err(Error::CommandCheckFailed(
+            CommandCheckFailureReason::InvalidChannel,
+        ));
     }
 
     Ok(true)
@@ -63,7 +65,9 @@ pub async fn ctx_member_enrolled_in_doints(ctx: Context<'_>) -> Result<bool, Err
     let Some(member) = ctx.author_member().await else {
         // Couldnt find user.
         // If we cant load them, chances are we arent in doccord.
-        return Err(Error::CommandCheckFailed(CommandCheckFailureReason::InvalidChannel));
+        return Err(Error::CommandCheckFailed(
+            CommandCheckFailureReason::InvalidChannel,
+        ));
     };
     member_enrolled_in_doints(member.into_owned(), ctx).await
 }

@@ -1,7 +1,7 @@
 // Time to go to jail!
 // We will also add this method to the user type itself.
 
-use crate::{models::JailInterface, schema::jail::dsl::jail};
+use crate::schema::jail::dsl::jail;
 use chrono::{Local, NaiveDateTime, TimeDelta};
 use diesel::{Connection, MysqlConnection, RunQueryDsl};
 

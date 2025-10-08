@@ -15,7 +15,7 @@ use crate::guards;
 use crate::models::bank::transfer::{DointTransfer, DointTransferParty, DointTransferReason};
 use crate::models::jail::arrest::JailForm;
 use crate::models::jail::reasons::{JailCause, JailReason};
-use crate::models::{BankInterface, JailInterface};
+use crate::models::BankInterface;
 use crate::types::serenity_types::{Context, Error};
 
 /// Rob someone. Odds of the robbery are based on wealth disparity.
