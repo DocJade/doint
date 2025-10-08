@@ -20,7 +20,7 @@ pub async fn in_doints_category(ctx: Context<'_>) -> Result<bool, Error> {
         .category()
         && category.id != DOINTS_CATEGORY_ID
     {
-        return Ok(false);
+        return Err(Error::CommandCheckFailed(CommandCheckFailureReason::InvalidChannel))
     }
 
     Ok(true)
@@ -36,7 +36,7 @@ macro_rules! create_channel_guard {
                 } else {
                     ctx.send(CreateReply::default().content(format!("This command can only be used in the <#{}> channel.", $channel_id)).ephemeral(true)).await?;
 
-                    Ok(false)
+                    Err(Error::CommandCheckFailed(CommandCheckFailureReason::InvalidChannel))
                 }
             }
 
@@ -46,7 +46,7 @@ macro_rules! create_channel_guard {
                 } else {
                     ctx.send(CreateReply::default().content(format!("This command cannot be used in the <#{}> channel.", $channel_id)).ephemeral(true)).await?;
 
-                    Ok(false)
+                    Err(Error::CommandCheckFailed(CommandCheckFailureReason::InvalidChannel))
                 }
             }
         }
@@ -63,7 +63,7 @@ pub async fn ctx_member_enrolled_in_doints(ctx: Context<'_>) -> Result<bool, Err
     let Some(member) = ctx.author_member().await else {
         // Couldnt find user.
         // If we cant load them, chances are we arent in doccord.
-        return Ok(false);
+        return Err(Error::CommandCheckFailed(CommandCheckFailureReason::InvalidChannel));
     };
     member_enrolled_in_doints(member.into_owned(), ctx).await
 }
