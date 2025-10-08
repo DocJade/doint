@@ -47,7 +47,7 @@ pub(crate) enum DointBotError {
     ThisShouldNotHappen(ThisShouldNotHappen),
 
     #[error(
-        "Failed to cast a number. This should never happen, so if you see this, this IS a bug." // ??? message is a duplicate of BigDecimalCastError's message
+        "Command check failed."
     )]
     CommandCheckFailed(CommandCheckFailureReason),
 }
