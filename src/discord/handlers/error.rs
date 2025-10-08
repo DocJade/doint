@@ -422,10 +422,11 @@ async fn actually_handle_command_check_failure(
             error!("Command check errored out! {command_check_failure:#?}");
         }
         CommandCheckFailureReason::InvalidChannel => {
-            let _ = ctx.defer_ephemeral().await;
-            let _ = ctx
-                .say("You can't run that in here! Go run this command in the appropriate channel.")
-                .await;
+            // Our channel guard in guards sends an error message itself, so do nothing!
+            // let _ = ctx.defer_ephemeral().await;
+            // let _ = ctx
+            //     .say("You can't run that in here! Go run this command in the appropriate channel.")
+            //     .await;
         }
         CommandCheckFailureReason::MemberNotFound => {
             let _ = ctx.defer_ephemeral().await;
