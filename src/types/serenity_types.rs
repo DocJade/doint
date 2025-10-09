@@ -46,9 +46,7 @@ pub(crate) enum DointBotError {
     )]
     ThisShouldNotHappen(ThisShouldNotHappen),
 
-    #[error(
-        "Failed to cast a number. This should never happen, so if you see this, this IS a bug."
-    )]
+    #[error("Command check failed.")]
     CommandCheckFailed(CommandCheckFailureReason),
 }
 

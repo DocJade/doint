@@ -1,7 +1,7 @@
 // Time to go to jail!
 // We will also add this method to the user type itself.
 
-use crate::{models::JailInterface, schema::jail::dsl::jail};
+use crate::schema::jail::dsl::jail;
 use chrono::{Local, NaiveDateTime, TimeDelta};
 use diesel::{Connection, MysqlConnection, RunQueryDsl};
 
@@ -35,6 +35,7 @@ impl DointUser {
     /// Puts a user in jail for the specified reason.
     ///
     /// If user is already in jail, return their current jail status in the error.
+    #[inline]
     pub(crate) fn jail_user(
         self,
         form: &JailForm,

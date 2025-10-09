@@ -5,7 +5,7 @@ use log::{debug, info};
 use crate::{
     database::queries::user::get_doint_user,
     discord::checks::consented::member_enrolled_in_doints,
-    models::{JailInterface, jail::JailError},
+    models::jail::JailError,
     types::serenity_types::{CommandCheckFailure, Context, DointBotError, Error},
 };
 
