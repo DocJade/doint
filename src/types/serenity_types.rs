@@ -46,9 +46,7 @@ pub(crate) enum DointBotError {
     )]
     ThisShouldNotHappen(ThisShouldNotHappen),
 
-    #[error(
-        "Command check failed."
-    )]
+    #[error("Command check failed.")]
     CommandCheckFailed(CommandCheckFailureReason),
 }
 
