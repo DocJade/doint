@@ -35,6 +35,7 @@ impl DointUser {
     /// Puts a user in jail for the specified reason.
     ///
     /// If user is already in jail, return their current jail status in the error.
+    #[inline]
     pub(crate) fn jail_user(
         self,
         form: &JailForm,
