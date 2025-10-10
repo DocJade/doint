@@ -201,8 +201,8 @@ const SUCCESS_FLAVOR: [&str; 5] = [
 
 const FAIL_FLAVOR: [&str; 5] = [
     "You asked a cop what the best way to rob somebody was, and they didn't think that was very funny!",
-    "You sneezed while reaching into their backpack, and they called the police!",
+    "You sneezed while reaching into *'s backpack, and they called the police!",
     "You reached into *'s back pocket, but it wasn't a back pocket... Shit!",
-    "Some french lady started yelling when you walked near the target, alerting the police!",
-    "You tried to * with a banana, but they didn't fall for it!",
+    "Some french lady started yelling when you walked near *, alerting the police!",
+    "You tried to rob * with a banana, but they didn't fall for it!",
 ];
