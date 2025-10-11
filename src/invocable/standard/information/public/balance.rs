@@ -89,7 +89,7 @@ pub(crate) async fn snoop(
 
     // Now print out their balance.
     let response: String = format!(
-        "{} currently has {doint_string}.\n\n-#Paid a fee of {}.",
+        "{} currently has {doint_string}.\n\n-# Paid a fee of {}.",
         get_display_name(ctx, victim.id).await?,
         FormattingHelper::display_doint(&cost)
     );
