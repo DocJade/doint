@@ -2,17 +2,14 @@
 
 use log::warn;
 
-use crate::{
-    discord::helper::get_member::get_member_from_id, knob::roles::DOINTS_ENABLED_ROLE_ID,
-    types::serenity_types::Context,
-};
+use crate::prelude::*;
 
 /// Gives a user the dointer role. Should only be used when users have just been added to the DB.
 ///
 /// returns false if they didnt end up with the role.
 pub async fn give_dointer_role(ctx: Context<'_>, user_id: u64) -> bool {
     // Get the member
-    let member = match get_member_from_id(ctx, user_id).await {
+    let member = match helper::get_member::get_member_from_id(ctx, user_id).await {
         Ok(ok) => {
             // If they didnt exist, we cant do anything.
             if let Some(good) = ok {
@@ -47,7 +44,7 @@ pub async fn give_dointer_role(ctx: Context<'_>, user_id: u64) -> bool {
 /// Returns true if the user no-longer has the role.
 pub async fn revoke_dointer_role(ctx: Context<'_>, user_id: u64) -> bool {
     // Get the member
-    let member = match get_member_from_id(ctx, user_id).await {
+    let member = match helper::get_member::get_member_from_id(ctx, user_id).await {
         Ok(ok) => {
             // If they didnt exist, we cant do anything.
             if let Some(good) = ok {

@@ -4,12 +4,7 @@ use bigdecimal::{BigDecimal, FromPrimitive as _, Zero};
 use diesel::Connection;
 use log::{debug, warn};
 
-use crate::formatting::format_struct::FormattingHelper;
-use crate::guards;
-use crate::models::BankInterface;
-use crate::models::bank::transfer::{DointTransfer, DointTransferParty, DointTransferReason};
-use crate::models::queries::Users;
-use crate::types::serenity_types::{Context, Error};
+use crate::{formatting::format_struct::FormattingHelper, prelude::*};
 
 // a coin
 #[derive(Debug, poise::ChoiceParameter, PartialEq, Eq)]

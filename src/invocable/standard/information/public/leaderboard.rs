@@ -3,12 +3,8 @@
 use bigdecimal::BigDecimal;
 
 use crate::{
-    discord::helper::get_nick::get_display_name,
     formatting::format_struct::FormattingHelper,
-    guards,
-    models::data::doint_user::DointUser,
-    models::queries::Leaderboard,
-    types::serenity_types::{Context, Error},
+    prelude::{helper::get_nick::get_display_name, *},
 };
 
 /// See the top Doint holders!

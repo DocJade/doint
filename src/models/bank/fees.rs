@@ -1,10 +1,6 @@
-use crate::models::BankInterface;
-use crate::models::bank::conversions;
-use crate::models::data::fee_info::FeeInfo;
+use crate::prelude::*;
 use bigdecimal::{BigDecimal, FromPrimitive};
 use diesel::{Connection, MysqlConnection, RunQueryDsl};
-
-use crate::schema::fees::dsl::fees;
 
 impl BankInterface {
     /// Calculate the fees for a transaction.
@@ -23,7 +19,7 @@ fn go_calculate_fees(
     transaction_amount: &BigDecimal,
 ) -> Result<BigDecimal, diesel::result::Error> {
     // Get the fee info
-    let fee_info: FeeInfo = conn.transaction(|conn| fees.first(conn))?;
+    let fee_info: FeeInfo = conn.transaction(|conn| fees_table.first(conn))?;
 
     let mut total_fee: BigDecimal = fee_info.flat_fee;
 

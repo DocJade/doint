@@ -2,9 +2,7 @@
 
 use bigdecimal::BigDecimal;
 
-use crate::{formatting::format_struct::FormattingHelper, knob::formatting::DOINT_SYMBOL};
-
-impl FormattingHelper {
+impl super::format_struct::FormattingHelper {
     /// Format doints for display based on user preferences
     #[must_use] pub fn display_doint(doints: &BigDecimal) -> String {
         // TODO: Allow users to set formatting preferences.
@@ -34,7 +32,7 @@ impl FormattingHelper {
         }
 
         // Add the doint symbol.
-        new_pre_decimal.insert(0, DOINT_SYMBOL);
+        new_pre_decimal.insert(0, crate::knob::formatting::DOINT_SYMBOL);
 
         // done.
         format!("{new_pre_decimal}.{decimals}")

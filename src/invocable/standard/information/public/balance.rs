@@ -4,13 +4,10 @@ use bigdecimal::{BigDecimal, FromPrimitive};
 use diesel::Connection;
 use poise::serenity_prelude::Member;
 
-use crate::discord::helper::get_nick::get_display_name;
-use crate::formatting::format_struct::FormattingHelper;
-use crate::guards;
-use crate::models::BankInterface;
-use crate::models::bank::transfer::{DointTransfer, DointTransferParty, DointTransferReason};
-use crate::models::queries::Users;
-use crate::types::serenity_types::{Context, Error};
+use crate::{
+    formatting::format_struct::FormattingHelper,
+    prelude::{helper::get_nick::get_display_name, *},
+};
 
 /// See your doint balance.
 #[poise::command(slash_command, guild_only, aliases("bal"), check = guards::in_doints_category, check = guards::in_commands)]

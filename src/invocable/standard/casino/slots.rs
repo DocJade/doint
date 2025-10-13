@@ -7,8 +7,7 @@
 #![allow(clippy::non_std_lazy_statics)]
 
 use crate::formatting::format_struct::FormattingHelper;
-use crate::guards;
-use crate::models::queries::Users;
+use crate::prelude::*;
 use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
 use diesel::Connection;
 use lazy_static::lazy_static;
@@ -21,18 +20,6 @@ use poise::serenity_prelude::{
 use rand::{rng, seq::IndexedRandom};
 use std::iter::repeat_n;
 use std::time::Duration;
-
-use crate::models::BankInterface;
-use crate::models::bank::transfer::{
-    DointTransfer, DointTransferError, DointTransferParty, DointTransferReason,
-};
-use crate::types::serenity_types::{Context, Error};
-
-use crate::knob::emoji::{
-    EMOJI_ANIMATED_ULTRA_FLUSH, EMOJI_BLUNDER, EMOJI_BOOK, EMOJI_BRILLIANT, EMOJI_FERRIS_PARTY,
-    EMOJI_FREAKY_CANNY, EMOJI_TRUE, EMOJI_UNCANNY,
-};
-
 /// Slot machines
 struct SlotMachine<'a> {
     /// The display name of this slot machine

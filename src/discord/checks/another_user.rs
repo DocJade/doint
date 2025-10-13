@@ -4,7 +4,7 @@
 use poise::serenity_prelude::Member;
 use thiserror::Error;
 
-use crate::types::serenity_types::Context;
+use crate::prelude::*;
 
 /// Enum for keeping track of reasons that the user cannot be called against.
 #[derive(Error, Debug)]

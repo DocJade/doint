@@ -2,10 +2,7 @@
 
 use poise::serenity_prelude::Member;
 
-use crate::{
-    knob::roles::DOINTS_ENABLED_ROLE_ID,
-    types::serenity_types::{Context, Error},
-};
+use crate::prelude::*;
 
 // Inner function that checks a member, not context
 pub async fn member_enrolled_in_doints(

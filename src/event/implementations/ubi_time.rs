@@ -3,7 +3,7 @@
 use bigdecimal::BigDecimal;
 use diesel::MysqlConnection;
 
-use crate::{event::event_struct::EventCaller, models::BankInterface};
+use crate::prelude::*;
 use diesel::result::Error;
 
 // Collect taxes

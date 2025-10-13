@@ -3,10 +3,7 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::{
-    models::data::doint_user::DointUser,
-    models::jail::reasons::{JailCause, JailReason},
-};
+use crate::prelude::*;
 
 #[derive(Queryable, Selectable, Identifiable, Associations, Debug, Insertable)]
 #[diesel(belongs_to(DointUser, foreign_key = id))]
