@@ -3,7 +3,7 @@
 use crate::schema::users::dsl::users;
 use crate::{
     consent::dointer_role::{give_dointer_role, revoke_dointer_role},
-    database::queries::user::get_doint_user,
+    models::queries::user::get_doint_user,
     knob::terms_and_conditions::TERMS_AND_CONDITIONS_TEXT,
     schema::users::id,
     types::serenity_types::{Context, Error},

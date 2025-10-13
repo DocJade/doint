@@ -3,7 +3,7 @@
 use bigdecimal::BigDecimal;
 
 use crate::{
-    database::queries::leaderboard::{get_bottom_doint_balances, get_top_doint_balances},
+    models::queries::leaderboard::{get_bottom_doint_balances, get_top_doint_balances},
     discord::helper::get_nick::get_display_name,
     formatting::format_struct::FormattingHelper,
     guards,

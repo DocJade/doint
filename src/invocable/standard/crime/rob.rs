@@ -8,7 +8,7 @@ use poise::serenity_prelude::Member;
 use rand::rng;
 use rand::seq::IndexedRandom;
 
-use crate::database::queries::user::get_doint_user;
+use crate::models::queries::user::get_doint_user;
 use crate::discord::helper::get_nick::get_display_name;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::guards;

@@ -4,7 +4,7 @@ use bigdecimal::{BigDecimal, FromPrimitive as _, Zero};
 use diesel::Connection;
 use log::{debug, warn};
 
-use crate::database::queries::user::get_doint_user;
+use crate::models::queries::user::get_doint_user;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::guards;
 use crate::models::BankInterface;
