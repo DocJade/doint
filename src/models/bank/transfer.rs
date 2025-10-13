@@ -8,7 +8,7 @@ use thiserror::Error;
 use crate::models::data::bank::BankInfo;
 use crate::models::data::users::DointUser;
 use crate::schema::bank::dsl::bank;
-use crate::{models::queries::user::get_doint_user, models::BankInterface};
+use crate::{models::queries::Users, models::BankInterface};
 use diesel::prelude::*;
 
 /// Struct for facilitating doint transfers between two parties.
@@ -287,7 +287,7 @@ fn run_bank_transfer(
             // All good.
         }
         DointTransferParty::DointUser(id) => {
-            let Some(user) = get_doint_user(id, conn)? else {
+            let Some(user) = Users::get_doint_user(id, conn)? else {
                 // Couldn't find them
                 return Err(DointTransferError::InvalidParty);
             };
@@ -310,7 +310,7 @@ fn run_bank_transfer(
             // }
         }
         DointTransferParty::DointUser(id) => {
-            let Some(user) = get_doint_user(id, conn)? else {
+            let Some(user) = Users::get_doint_user(id, conn)? else {
                 // User does not exist.
                 return Err(DointTransferError::InvalidParty);
             };
@@ -336,7 +336,7 @@ fn run_bank_transfer(
             }
             DointTransferParty::DointUser(id) => {
                 // Take money from a user
-                let mut user = get_doint_user(id, conn)?.expect("Already checked.");
+                let mut user = Users::get_doint_user(id, conn)?.expect("Already checked.");
                 user.bal -= full_sender_spend;
                 user.save_changes::<DointUser>(conn)?;
             }
@@ -350,7 +350,7 @@ fn run_bank_transfer(
                 the_bank.save_changes::<BankInfo>(conn)?;
             }
             DointTransferParty::DointUser(id) => {
-                let mut user = get_doint_user(id, conn)?.expect("Already checked.");
+                let mut user = Users::get_doint_user(id, conn)?.expect("Already checked.");
                 user.bal += &transfer.transfer_amount;
                 user.save_changes::<DointUser>(conn)?;
             }

@@ -3,7 +3,7 @@
 use bigdecimal::BigDecimal;
 
 use crate::{
-    models::queries::leaderboard::{get_bottom_doint_balances, get_top_doint_balances},
+    models::queries::Leaderboard,
     discord::helper::get_nick::get_display_name,
     formatting::format_struct::FormattingHelper,
     guards,
@@ -21,7 +21,7 @@ pub(crate) async fn leaderboard(ctx: Context<'_>) -> Result<(), Error> {
     let mut conn = pool.get()?;
 
     // Go get the top 10 users
-    let users: Vec<DointUser> = get_top_doint_balances(10, &mut conn)?;
+    let users: Vec<DointUser> = Leaderboard::get_top_doint_balances(10, &mut conn)?;
 
     // Now construct a nicer list with the user's names.
     let mut names_and_points: Vec<(String, BigDecimal)> = Vec::with_capacity(users.len());
@@ -53,7 +53,7 @@ pub(crate) async fn broke(ctx: Context<'_>) -> Result<(), Error> {
     let mut conn = pool.get()?;
 
     // Go get the top 10 users
-    let users: Vec<DointUser> = get_bottom_doint_balances(10, &mut conn)?;
+    let users: Vec<DointUser> = Leaderboard::get_bottom_doint_balances(10, &mut conn)?;
 
     // Now construct a nicer list with the user's names.
     let mut names_and_points: Vec<(String, BigDecimal)> = Vec::with_capacity(users.len());

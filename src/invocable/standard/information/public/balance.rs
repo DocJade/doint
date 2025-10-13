@@ -4,7 +4,7 @@ use bigdecimal::{BigDecimal, FromPrimitive};
 use diesel::Connection;
 use poise::serenity_prelude::Member;
 
-use crate::models::queries::user::get_doint_user;
+use crate::models::queries::Users;
 use crate::discord::helper::get_nick::get_display_name;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::guards;
@@ -22,7 +22,7 @@ pub(crate) async fn balance(ctx: Context<'_>) -> Result<(), Error> {
     let mut conn = pool.get()?;
 
     // Get the user, if they dont exist, return false.
-    let Some(user) = get_doint_user(ctx.author().id, &mut conn)? else {
+    let Some(user) = Users::get_doint_user(ctx.author().id, &mut conn)? else {
         // Couldn't find em.
         // TODO: When commands fail, tell the user the reason instead of just silence.
         return Ok(());
@@ -51,7 +51,7 @@ pub(crate) async fn snoop(
     // Get a connection
     let mut conn = pool.get()?;
 
-    let Some(executor) = get_doint_user(ctx.author().id, &mut conn)? else {
+    let Some(executor) = Users::get_doint_user(ctx.author().id, &mut conn)? else {
         // Couldn't find em.
         ctx.reply("You don't exist!").await?;
         return Ok(());
@@ -78,7 +78,7 @@ pub(crate) async fn snoop(
     })?;
 
     // Get the user, if they dont exist, return false.
-    let Some(victim) = get_doint_user(victim.user.id, &mut conn)? else {
+    let Some(victim) = Users::get_doint_user(victim.user.id, &mut conn)? else {
         // Couldn't find em.
         ctx.reply("User doesn't exist, no refunds!").await?;
         return Ok(());
