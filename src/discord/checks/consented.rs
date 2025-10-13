@@ -12,9 +12,7 @@ pub(crate) async fn member_enrolled_in_doints(
     member: Member,
     ctx: Context<'_>,
 ) -> Result<bool, Error> {
-    let roles = if let Some(roles) = member.roles(ctx) {
-        roles
-    } else {
+    let Some(roles) = member.roles(ctx) else {
         // Cant get roles, user has none or something failed.
         return Ok(false);
     };

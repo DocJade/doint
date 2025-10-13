@@ -5,4 +5,3 @@ pub mod queries;
 
 pub struct BankInterface {}
 pub struct JailInterface {}
-pub struct LeaderboardInterface {}
