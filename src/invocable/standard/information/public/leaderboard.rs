@@ -3,11 +3,11 @@
 use bigdecimal::BigDecimal;
 
 use crate::{
-    models::queries::Leaderboard,
     discord::helper::get_nick::get_display_name,
     formatting::format_struct::FormattingHelper,
     guards,
     models::data::users::DointUser,
+    models::queries::Leaderboard,
     types::serenity_types::{Context, Error},
 };
 

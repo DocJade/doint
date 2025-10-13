@@ -6,9 +6,9 @@
 // I like how lazy static works better.
 #![allow(clippy::non_std_lazy_statics)]
 
-use crate::models::queries::Users;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::guards;
+use crate::models::queries::Users;
 use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
 use diesel::Connection;
 use lazy_static::lazy_static;

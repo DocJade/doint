@@ -3,9 +3,9 @@
 use log::{debug, info};
 
 use crate::{
-    models::queries::Users,
     discord::checks::consented::member_enrolled_in_doints,
     models::jail::JailError,
+    models::queries::Users,
     types::serenity_types::{CommandCheckFailure, Context, DointBotError, Error},
 };
 
