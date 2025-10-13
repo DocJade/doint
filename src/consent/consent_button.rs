@@ -3,8 +3,8 @@
 use crate::schema::users::dsl::users;
 use crate::{
     consent::dointer_role::{give_dointer_role, revoke_dointer_role},
-    database::queries::user::get_doint_user,
     knob::terms_and_conditions::TERMS_AND_CONDITIONS_TEXT,
+    models::queries::Users,
     schema::users::id,
     types::serenity_types::{Context, Error},
 };
@@ -26,7 +26,7 @@ pub(crate) async fn opt_in(ctx: Context<'_>) -> Result<(), Error> {
     let pool = ctx.data().db_pool.clone();
     let mut conn = pool.get()?;
 
-    if get_doint_user(users_id, &mut conn)?.is_some() {
+    if Users::get_doint_user(users_id, &mut conn)?.is_some() {
         // User is already in DB.
         // Tell user they are an idiot.
         // ephemeral so only they see it.

@@ -2,7 +2,6 @@
 
 // Main can only see the discord side.
 mod consent;
-mod database;
 pub mod discord;
 mod event;
 mod formatting;

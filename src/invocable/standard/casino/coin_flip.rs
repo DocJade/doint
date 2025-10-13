@@ -4,11 +4,11 @@ use bigdecimal::{BigDecimal, FromPrimitive as _, Zero};
 use diesel::Connection;
 use log::{debug, warn};
 
-use crate::database::queries::user::get_doint_user;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::guards;
 use crate::models::BankInterface;
 use crate::models::bank::transfer::{DointTransfer, DointTransferParty, DointTransferReason};
+use crate::models::queries::Users;
 use crate::types::serenity_types::{Context, Error};
 
 // a coin
@@ -47,7 +47,7 @@ pub(crate) async fn flip(
     let mut conn = pool.get()?;
 
     // Get the user that is betting
-    let Some(better) = get_doint_user(ctx.author().id, &mut conn)? else {
+    let Some(better) = Users::get_doint_user(ctx.author().id, &mut conn)? else {
         // Has role, but not in DB.
         // TODO: error for this / correction
         warn!("User not in DB!");

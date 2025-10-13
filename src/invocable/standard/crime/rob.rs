@@ -8,7 +8,6 @@ use poise::serenity_prelude::Member;
 use rand::rng;
 use rand::seq::IndexedRandom;
 
-use crate::database::queries::user::get_doint_user;
 use crate::discord::helper::get_nick::get_display_name;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::guards;
@@ -16,6 +15,7 @@ use crate::models::BankInterface;
 use crate::models::bank::transfer::{DointTransfer, DointTransferParty, DointTransferReason};
 use crate::models::jail::arrest::JailForm;
 use crate::models::jail::reasons::{JailCause, JailReason};
+use crate::models::queries::Users;
 use crate::types::serenity_types::{Context, Error};
 
 /// Rob someone. Odds of the robbery are based on wealth disparity.
@@ -37,7 +37,7 @@ pub(crate) async fn rob(
     let mut conn = pool.get()?;
 
     // Get the user that is doing the robbery
-    let Some(robber) = get_doint_user(ctx.author().id, &mut conn)? else {
+    let Some(robber) = Users::get_doint_user(ctx.author().id, &mut conn)? else {
         // Has role, but not in DB.
         // TODO: error for this / correction
         warn!("User not in DB!");
@@ -48,7 +48,7 @@ pub(crate) async fn rob(
     };
 
     // get the user that is getting robbed.
-    let Some(victim) = get_doint_user(who.user.id, &mut conn)? else {
+    let Some(victim) = Users::get_doint_user(who.user.id, &mut conn)? else {
         let _ = ctx.say("You cant rob someone who isn't a Dointer!").await?;
         return Ok(());
     };

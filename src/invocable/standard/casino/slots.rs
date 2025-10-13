@@ -6,9 +6,9 @@
 // I like how lazy static works better.
 #![allow(clippy::non_std_lazy_statics)]
 
-use crate::database::queries::user::get_doint_user;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::guards;
+use crate::models::queries::Users;
 use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
 use diesel::Connection;
 use lazy_static::lazy_static;
@@ -348,7 +348,7 @@ pub(crate) async fn slots(
         let mut conn = pool.get()?;
 
         // Get the user that is betting
-        let Some(better) = get_doint_user(ctx.author().id, &mut conn)? else {
+        let Some(better) = Users::get_doint_user(ctx.author().id, &mut conn)? else {
             // Has role, but not in DB.
             // TODO: error for this / correction
             let _ = ctx

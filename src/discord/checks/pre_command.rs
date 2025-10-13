@@ -3,9 +3,9 @@
 use log::{debug, info};
 
 use crate::{
-    database::queries::user::get_doint_user,
     discord::checks::consented::member_enrolled_in_doints,
     models::jail::JailError,
+    models::queries::Users,
     types::serenity_types::{CommandCheckFailure, Context, DointBotError, Error},
 };
 
@@ -83,7 +83,7 @@ pub(crate) async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
     };
 
     // Get the user
-    let user = match get_doint_user(member.user.id.get(), &mut conn) {
+    let user = match Users::get_doint_user(member.user.id.get(), &mut conn) {
         Ok(ok) => {
             // They should be there, otherwise we need to bail.
             if let Some(all_good) = ok {
