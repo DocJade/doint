@@ -62,21 +62,55 @@ jobs:
       contents: read
       actions: read
       checks: write
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      DATABASE_URL: mysql://root:@127.0.0.1:3306/test
+      CI: true
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@stable
+
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
         with:
           prefix-key: "rust-stable"
           shared-key: "tests"
           cache-on-failure: true
+
       - name: Install nextest
         uses: taiki-e/install-action@v2
         with:
           tool: nextest
+
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..30}; do
+            if mysql -h 127.0.0.1 -u root -e "SELECT 1" &>/dev/null; then
+              echo "MySQL is ready!"
+              break
+            fi
+            echo "Waiting for MySQL..."
+            sleep 2
+          done
+
       - name: Run tests
         run: cargo nextest run --no-fail-fast --failure-output final -j num-cpus --final-status-level all
 
