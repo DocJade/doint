@@ -174,6 +174,9 @@ pub enum DointTransferError {
     #[error("The picked reason for the transfer is incompatible with other arguments.")]
     InvalidTransferReason,
 
+    #[error("Construction of transfer failed: {0}")]
+    ConstructionFailed(DointTransferConstructionError),
+
     #[error("Other diesel related errors.")]
     DieselError(#[from] diesel::result::Error),
 }

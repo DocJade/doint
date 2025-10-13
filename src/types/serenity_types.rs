@@ -37,6 +37,11 @@ pub enum DointBotError {
     #[deprecated]
     BankTransferError(#[from] crate::models::bank::transfer::DointTransferError),
 
+    #[error("A bank transfer failed to construct.")]
+    BankTransferConstructionError(
+        #[from] crate::models::bank::transfer::DointTransferConstructionError,
+    ),
+
     #[error("Failed to jail a user.")] // TODO: Phase this out, its varients need to be handled lower down.
     #[deprecated]
     JailingError(#[from] crate::models::jail::JailError),

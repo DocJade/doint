@@ -407,7 +407,6 @@ pub async fn slots(
         };
 
         // We actually pay the user before displaying anything, in-case that fails.
-
         conn.transaction::<(), DointTransferError, _>(|conn| {
             // If user broke even, we dont need to do anything at all.
             if amount_actually_won == machine.bet_size {
@@ -416,14 +415,19 @@ pub async fn slots(
             }
 
             // Take the user's bet money
-            let transfer = DointTransfer {
-                sender: DointTransferParty::DointUser(ctx.author().id.get()),
-                recipient: DointTransferParty::Bank,
-                transfer_amount: machine.bet_size.clone(),
-                apply_fees: false, // Slots aren't taxed.
-                transfer_reason: DointTransferReason::CasinoLoss,
+            let transfer = DointTransfer::new(
+                DointTransferParty::DointUser(ctx.author().id.get()),
+                DointTransferParty::Bank,
+                machine.bet_size.clone(),
+                false, // Slots aren't taxed.
+                DointTransferReason::CasinoLoss,
+            );
+
+            if let Err(e) = transfer {
+                return Err(DointTransferError::ConstructionFailed(e));
             };
-            BankInterface::bank_transfer(conn, transfer)?;
+
+            BankInterface::bank_transfer(conn, transfer.unwrap())?;
 
             // Now give them their winnings, if needed
             if spin_result.win_amount == BigDecimal::zero() {
@@ -432,15 +436,19 @@ pub async fn slots(
             }
 
             // User won something!
-            let transfer = DointTransfer {
-                sender: DointTransferParty::Bank,
-                recipient: DointTransferParty::DointUser(ctx.author().id.get()),
-                transfer_amount: amount_actually_won,
-                apply_fees: false,
-                transfer_reason: DointTransferReason::CasinoWin,
+            let transfer = DointTransfer::new(
+                DointTransferParty::Bank,
+                DointTransferParty::DointUser(ctx.author().id.get()),
+                amount_actually_won,
+                false,
+                DointTransferReason::CasinoWin,
+            );
+
+            if let Err(e) = transfer {
+                return Err(DointTransferError::ConstructionFailed(e));
             };
 
-            BankInterface::bank_transfer(conn, transfer)?;
+            BankInterface::bank_transfer(conn, transfer.unwrap())?;
             Ok(())
         })?;
 

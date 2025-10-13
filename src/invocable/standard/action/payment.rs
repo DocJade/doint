@@ -51,26 +51,20 @@ pub async fn pay(
         return Ok(());
     }
 
-    // Gotta pay at least one doint.
-    if payment == BigDecimal::zero() {
-        debug!("User tried to pay 0 doints. Not allowed. Skipping.");
-        let _ = ctx.say("You cant pay somebody nothing.").await?;
-        return Ok(());
-    }
+    let transfer = DointTransfer::new(
+        DointTransferParty::DointUser(ctx.author().id.get()),
+        DointTransferParty::DointUser(recipient.user.id.get()),
+        payment,
+        true, // pay command is taxed.
+        DointTransferReason::GenericUserPayment,
+    );
 
-    // Even though
-
-    // The transfer checks all of the balance things for us.
-    let transfer = DointTransfer {
-        sender: DointTransferParty::DointUser(ctx.author().id.get()),
-        recipient: DointTransferParty::DointUser(recipient.user.id.get()),
-        transfer_amount: payment,
-        apply_fees: true,                                         // /pay is taxed.
-        transfer_reason: DointTransferReason::GenericUserPayment, // TODO: payment messages (#25)
+    if let Err(e) = transfer {
+        return Err(Error::BankTransferConstructionError(e));
     };
 
     // Run the bank transfer
-    let transfer_result = BankInterface::bank_transfer(&mut conn, transfer);
+    let transfer_result = BankInterface::bank_transfer(&mut conn, transfer.unwrap());
 
     // Did that work?
     let receipt = match transfer_result {
@@ -124,6 +118,11 @@ pub async fn pay(
             DointTransferError::InvalidTransferReason => {
                 // This shouldn't happen since we do user transfer types.
                 unreachable!("/pay should have a valid transfer reason.");
+            }
+            DointTransferError::ConstructionFailed(e) => {
+                let _ = ctx.say(format!("Your transfer was invalid: {}", e)).await?;
+
+                return Ok(());
             }
             DointTransferError::DieselError(error) => {
                 // Well.

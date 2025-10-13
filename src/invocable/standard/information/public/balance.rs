@@ -63,16 +63,20 @@ pub async fn snoop(
     }
 
     conn.transaction(|conn| {
-        let transfer = DointTransfer {
-            sender: DointTransferParty::DointUser(executor.id),
-            recipient: DointTransferParty::Bank,
-            transfer_amount: cost.clone(),
-            apply_fees: false,
-            transfer_reason: DointTransferReason::BalSnoop,
+        let transfer = DointTransfer::new(
+            DointTransferParty::DointUser(executor.id),
+            DointTransferParty::Bank,
+            cost.clone(),
+            false,
+            DointTransferReason::BalSnoop,
+        );
+
+        if let Err(e) = transfer {
+            return Err(Error::BankTransferConstructionError(e));
         };
 
-        BankInterface::bank_transfer(conn, transfer)
-    })?;
+        Ok(BankInterface::bank_transfer(conn, transfer.unwrap()))
+    })??;
 
     // Get the user, if they dont exist, return false.
     let Some(victim) = Users::get_doint_user(victim.user.id, &mut conn)? else {

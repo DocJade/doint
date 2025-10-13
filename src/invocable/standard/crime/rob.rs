@@ -147,16 +147,20 @@ pub async fn rob(
     // Robbery worked!
     // Take the money!
     conn.transaction(|conn| {
-        let transfer: DointTransfer = DointTransfer {
-            sender: DointTransferParty::DointUser(victim.id),
-            recipient: DointTransferParty::DointUser(robber.id),
-            transfer_amount: steal_amount.clone(),
-            apply_fees: false, // this is theft
-            transfer_reason: DointTransferReason::CrimeRobbery,
-        };
+        let transfer = DointTransfer::new(
+            DointTransferParty::DointUser(victim.id),
+            DointTransferParty::DointUser(robber.id),
+            steal_amount.clone(),
+            false, // this is theft
+            DointTransferReason::CrimeRobbery,
+        );
 
-        BankInterface::bank_transfer(conn, transfer)
-    })?;
+        if let Err(e) = transfer {
+            return Err(DointTransferError::ConstructionFailed(e));
+        }
+
+        Ok(BankInterface::bank_transfer(conn, transfer.unwrap()))
+    })??;
 
     // Inform user
     let victory_message = format!(

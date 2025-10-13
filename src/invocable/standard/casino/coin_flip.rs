@@ -104,31 +104,38 @@ pub async fn flip(
         // If the user lost, just take their money
         if flip != side {
             // Lost!
-            let transfer = DointTransfer {
-                sender: DointTransferParty::DointUser(ctx.author().id.get()),
-                recipient: DointTransferParty::Bank,
-                transfer_amount: final_bet_amount.clone(),
-                apply_fees: false, // fees get applied after wins
-                transfer_reason: DointTransferReason::CasinoLoss,
+            let transfer = DointTransfer::new(
+                DointTransferParty::DointUser(ctx.author().id.get()),
+                DointTransferParty::Bank,
+                final_bet_amount.clone(),
+                true, // fees get applied after wins.
+                DointTransferReason::CasinoLoss,
+            );
+
+            if let Err(e) = transfer {
+                return Err(Error::BankTransferConstructionError(e));
             };
 
             // Need the receipt in both cases, since we need to know fees.
-            return BankInterface::bank_transfer(conn, transfer);
+            return Ok(BankInterface::bank_transfer(conn, transfer.unwrap()));
         }
 
         // User won!
-        // Remember to deduce their fee.
         let take_home = &final_bet_amount - &fees_to_pay;
-        let transfer = DointTransfer {
-            sender: DointTransferParty::Bank,
-            recipient: DointTransferParty::DointUser(ctx.author().id.get()),
-            transfer_amount: take_home,
-            apply_fees: false, // already added in.
-            transfer_reason: DointTransferReason::CasinoWin,
+        let transfer = DointTransfer::new(
+            DointTransferParty::Bank,
+            DointTransferParty::DointUser(ctx.author().id.get()),
+            take_home,
+            false, // already added in
+            DointTransferReason::CasinoWin,
+        );
+
+        if let Err(e) = transfer {
+            return Err(Error::BankTransferConstructionError(e));
         };
 
-        BankInterface::bank_transfer(conn, transfer)
-    })?;
+        Ok(BankInterface::bank_transfer(conn, transfer.unwrap()))
+    })??;
 
     // Build message.
     // "[Heads/Tails]! You Won 1.23!\n\n-# Paid a fee of 0.05. (1.28 - 0.05 = 12.3)"

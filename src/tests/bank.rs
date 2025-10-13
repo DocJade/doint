@@ -58,13 +58,14 @@ mod bank_tests {
 
             setup_bank_and_fees(conn);
 
-            let transfer = DointTransfer {
-                sender: DointTransferParty::DointUser(user_a.id),
-                recipient: DointTransferParty::DointUser(user_b.id),
-                transfer_amount: transfer_amount.clone(),
-                apply_fees: true,
-                transfer_reason: DointTransferReason::GenericUserPayment,
-            };
+            let transfer = DointTransfer::new(
+                DointTransferParty::DointUser(user_a.id),
+                DointTransferParty::DointUser(user_b.id),
+                transfer_amount.clone(),
+                true,
+                DointTransferReason::GenericUserPayment,
+            )
+            .expect("Transfer should be valid");
 
             let reciept =
                 BankInterface::bank_transfer(conn, transfer).expect("Transfer should succeed!");
@@ -113,13 +114,13 @@ mod bank_tests {
 
             setup_bank_and_fees(conn);
 
-            let transfer = DointTransfer {
-                sender: DointTransferParty::DointUser(user_a.id),
-                recipient: DointTransferParty::DointUser(0),
-                transfer_amount: transfer_amount.clone(),
-                apply_fees: true,
-                transfer_reason: DointTransferReason::GenericUserPayment,
-            };
+            let transfer = DointTransfer::new(
+                DointTransferParty::DointUser(user_a.id),
+                DointTransferParty::DointUser(0),
+                transfer_amount.clone(),
+                true,
+                DointTransferReason::GenericUserPayment,
+            ).expect("Transfer should be valid");
 
             let error =
                 BankInterface::bank_transfer(conn, transfer).expect_err("Transfer should fail!");
