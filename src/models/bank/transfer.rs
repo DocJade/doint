@@ -2,7 +2,6 @@
 
 use bigdecimal::{BigDecimal, Zero};
 use diesel::{Connection, MysqlConnection};
-use log::warn;
 use thiserror::Error;
 
 use crate::prelude::*;
@@ -37,6 +36,62 @@ pub struct DointTransfer {
     pub transfer_reason: DointTransferReason,
 }
 
+impl DointTransfer {
+    pub fn new(
+        sender: DointTransferParty,
+        recipient: DointTransferParty,
+        transfer_amount: BigDecimal,
+        apply_fees: bool,
+        transfer_reason: DointTransferReason,
+    ) -> Result<Self, DointTransferConstructionError> {
+        // Check for ExtraneousTransfers
+        if sender == recipient {
+            return Err(DointTransferConstructionError::ExtraneousTransfer(
+                "Same party".into(),
+            ));
+        }
+
+        if transfer_amount == BigDecimal::zero() {
+            return Err(DointTransferConstructionError::ExtraneousTransfer(
+                "Zero transfer".into(),
+            ));
+        }
+
+        if sender == DointTransferParty::Bank && apply_fees {
+            return Err(DointTransferConstructionError::TransferFeesOnBank);
+        }
+
+        // Check for InvalidTransferReasons
+        match transfer_reason {
+            DointTransferReason::GenericUserPayment
+            | DointTransferReason::SpecificUserPayment(_) => {
+                if !sender.is_user() || !sender.is_user() {
+                    return Err(DointTransferConstructionError::InvalidTransferReason);
+                }
+            }
+            DointTransferReason::TaxCollection => {
+                if sender.is_bank() {
+                    return Err(DointTransferConstructionError::InvalidTransferReason);
+                }
+            }
+            DointTransferReason::UniversalBasicIncome => {
+                if sender.is_user() || recipient.is_bank() {
+                    return Err(DointTransferConstructionError::InvalidTransferReason);
+                }
+            }
+            _ => {}
+        }
+
+        Ok(Self {
+            sender,
+            recipient,
+            apply_fees,
+            transfer_amount,
+            transfer_reason,
+        })
+    }
+}
+
 /// Enum for picking where doints are being transferred to.
 #[derive(PartialEq, Eq, Debug)]
 pub enum DointTransferParty {
@@ -46,6 +101,16 @@ pub enum DointTransferParty {
     DointUser(u64),
 }
 
+impl DointTransferParty {
+    pub fn is_user(&self) -> bool {
+        matches!(self, DointTransferParty::DointUser(_))
+    }
+
+    pub fn is_bank(&self) -> bool {
+        matches!(self, DointTransferParty::Bank)
+    }
+}
+
 /// Why this transfer is occurring (for logging and such)
 #[derive(PartialEq, Eq, Debug)]
 pub enum DointTransferReason {
@@ -53,14 +118,14 @@ pub enum DointTransferReason {
     CasinoLoss,
     CasinoWin,
     UniversalBasicIncome,
-    UserPaymentNoReason,
+    GenericUserPayment,
     CrimeRobbery,
     BalSnoop,
-    UserPaymentWithReason(String),
+    SpecificUserPayment(String),
 }
 
 /// A receipt of a transfer.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct DointTransferReceipt {
     /// Who paid the doints.
     pub sender: DointTransferParty,
@@ -97,8 +162,11 @@ pub enum DointTransferError {
     #[error("Attempted to make a transfer from the bank with fees enabled.")]
     TransferFeesOnBank,
 
-    #[error("Cannot transfer funds from a party, to that same party. Cannot transfer 0 doints.")]
-    PointlessTransfer,
+    #[error("Cannot transfer funds to the same party.")]
+    SameParty,
+
+    #[error("Cannot transfer zero doints")]
+    ZeroTransfer,
 
     #[error("Casting the numbers around failed. Transfer must be <= u32")]
     TransferTooBig,
@@ -110,6 +178,21 @@ pub enum DointTransferError {
     DieselError(#[from] diesel::result::Error),
 }
 
+#[derive(Error, Debug)]
+pub enum DointTransferConstructionError {
+    #[error("At least one of the parties involved in the transfer does not exist.")]
+    InvalidParty,
+
+    #[error("Attempted to make a transfer from the bank with fees enabled.")]
+    TransferFeesOnBank,
+
+    #[error("Extraneous transfer: {0}")]
+    ExtraneousTransfer(String),
+
+    #[error("The picked reason for the transfer is incompatible with other arguments.")]
+    InvalidTransferReason,
+}
+
 /// Couldn't afford the transfer, here's the breakdown.
 #[derive(Debug)]
 pub struct DointTransferSenderBroke {
@@ -119,10 +202,6 @@ pub struct DointTransferSenderBroke {
     /// How much in fee's the user would've needed to pay. (if applicable)
     pub fees_required: Option<BigDecimal>,
 }
-
-//
-// Now for the function that actually does the transfer
-//
 
 impl BankInterface {
     /// Transfer funds between two parties.
@@ -138,118 +217,19 @@ impl BankInterface {
     }
 }
 
-#[allow(clippy::too_many_lines)] // See todo
 fn run_bank_transfer(
     conn: &mut MysqlConnection,
     transfer: DointTransfer,
 ) -> Result<DointTransferReceipt, DointTransferError> {
-    // First, do checks on the transfer to make sure its even attemptable.
-
-    // TODO: Somehow extract these checks out into the DointTransfer creation process, and make
-    // impossible combinations un-representable instead of doing all of these checks.
-
-    //
-    // //
-    // Transaction checks
-    // //
-    //
-
-    // Make sure the two parties are distinct.
-    if transfer.sender == transfer.recipient {
-        warn!("Attempted to send money between self and self! Pointless!");
-        return Err(DointTransferError::PointlessTransfer);
-    }
-
-    // Can't transfer nothing
-    if transfer.transfer_amount == BigDecimal::zero() {
-        warn!("Attempted to move 0 doints between parties! Pointless!");
-        return Err(DointTransferError::PointlessTransfer);
-    }
-
-    // Fees cannot be enabled if the sender is the bank
-    if transfer.sender == DointTransferParty::Bank && transfer.apply_fees {
-        return Err(DointTransferError::TransferFeesOnBank);
-    }
-
     // If fees are enabled, calculate them and add them to the transfer
     let fees = if transfer.apply_fees {
         BankInterface::calculate_fees(conn, &transfer.transfer_amount)?
     } else {
-        // no fee
         BigDecimal::zero()
     };
 
-    // Cast that the same type the bal is stored as in the DB.
-    let full_sender_spend: BigDecimal = &transfer.transfer_amount + &fees;
-
-    // If this is a transfer between 2 users, assert it as such
-    if transfer.transfer_reason == DointTransferReason::UserPaymentNoReason
-        || matches!(
-            transfer.transfer_reason,
-            DointTransferReason::UserPaymentWithReason(_)
-        )
-    {
-        // Make sure both parties are users
-        match transfer.sender {
-            DointTransferParty::DointUser(_) => {}
-            _ => {
-                // Not a user
-                return Err(DointTransferError::InvalidTransferReason);
-            }
-        }
-        match transfer.recipient {
-            DointTransferParty::DointUser(_) => {}
-            _ => {
-                // Not a user
-                return Err(DointTransferError::InvalidTransferReason);
-            }
-        }
-        // All good.
-    }
-
-    // Taxes can only be collected from users, into the bank.
-    if transfer.transfer_reason == DointTransferReason::TaxCollection {
-        match transfer.sender {
-            DointTransferParty::DointUser(_) => {}
-            _ => {
-                // Taxes have to come from users.
-                return Err(DointTransferError::InvalidTransferReason);
-            }
-        }
-
-        match transfer.recipient {
-            DointTransferParty::Bank => {}
-            _ => {
-                // Taxes have to go into the bank
-                return Err(DointTransferError::InvalidTransferReason);
-            }
-        }
-    }
-
-    // UBI can only come from the bank, to the users.
-    if transfer.transfer_reason == DointTransferReason::TaxCollection {
-        match transfer.sender {
-            DointTransferParty::Bank => {}
-            _ => {
-                // Taxes have to go into the bank
-                return Err(DointTransferError::InvalidTransferReason);
-            }
-        }
-
-        match transfer.recipient {
-            DointTransferParty::DointUser(_) => {}
-            _ => {
-                // Taxes have to come from users.
-                return Err(DointTransferError::InvalidTransferReason);
-            }
-        }
-    }
-
-    //
-    // //
-    // End of checks
-    // //
-    //
+    // Cast the bal to the type that is stored in the DB.
+    let transfer_with_fees: BigDecimal = &transfer.transfer_amount + &fees;
 
     // pre-make the response if the sender cannot afford it.
     let sender_cant_afford =
@@ -275,13 +255,10 @@ fn run_bank_transfer(
             }
 
             // We now know the bal is positive.
-
-            // Can bank afford it?
-            if bal < full_sender_spend {
+            // Can the bank afford it?
+            if bal < transfer_with_fees {
                 return Err(sender_cant_afford);
             }
-
-            // All good.
         }
         DointTransferParty::DointUser(id) => {
             let Some(user) = Users::get_doint_user(id, conn)? else {
@@ -290,34 +267,34 @@ fn run_bank_transfer(
             };
 
             // Do we have enough money
-            if user.bal < full_sender_spend {
+            if user.bal < transfer_with_fees {
                 return Err(sender_cant_afford);
             }
         }
     }
-    match transfer.recipient {
-        DointTransferParty::Bank => {
-            // Bank must exist.
-            // Make sure it has room... Wait how does big-int behave if a number cant fit???
-            // TODO: ^
-            // let bal = BankInterface::get_bank_balance(conn)?;
-            // if bal.checked_add_unsigned(transfer.transfer_amount).is_none() {
-            //     // Bank is too full.
-            //     return Err(DointTransferError::RecipientFull)
-            // }
-        }
-        DointTransferParty::DointUser(id) => {
-            let Some(user) = Users::get_doint_user(id, conn)? else {
-                // User does not exist.
-                return Err(DointTransferError::InvalidParty);
-            };
-            // Have room?
-            // TODO: Same reason as above.
-            // if user.bal.checked_add_unsigned(transfer.transfer_amount).is_none() {
-            //     // Ough... im so full...
-            //     return Err(DointTransferError::RecipientFull)
-            // }
-        }
+
+    // If the recipient is a user, make sure they exist
+    if transfer.recipient.is_user()
+        && let DointTransferParty::DointUser(id) = transfer.recipient
+        && Users::get_doint_user(id, conn)?.is_none()
+    {
+        // If the party doesn't exist, still try to charge the sender for wasting our time.
+        conn.transaction::<(), diesel::result::Error, _>(|conn| {
+            if let DointTransferParty::DointUser(sender_id) = transfer.sender {
+                let mut sender =
+                    Users::get_doint_user(sender_id, conn)?.expect("Sender should be valid");
+                sender.bal -= &fees;
+
+                let mut the_bank: BankInfo = bank_table.first(conn)?;
+                the_bank.doints_on_hand += &fees;
+
+                the_bank.save_changes::<BankInfo>(conn)?;
+                sender.save_changes::<DointUser>(conn)?;
+            }
+
+            Ok(())
+        })?;
+        return Err(DointTransferError::InvalidParty);
     }
 
     // Enter a transaction, everything past this point is an operation that would need
@@ -328,13 +305,13 @@ fn run_bank_transfer(
             DointTransferParty::Bank => {
                 // Take money from bank
                 let mut the_bank: BankInfo = bank_table.first(conn)?;
-                the_bank.doints_on_hand -= full_sender_spend;
+                the_bank.doints_on_hand -= transfer_with_fees;
                 the_bank.save_changes::<BankInfo>(conn)?;
             }
             DointTransferParty::DointUser(id) => {
                 // Take money from a user
                 let mut user = Users::get_doint_user(id, conn)?.expect("Already checked.");
-                user.bal -= full_sender_spend;
+                user.bal -= transfer_with_fees;
                 user.save_changes::<DointUser>(conn)?;
             }
         }
@@ -364,7 +341,7 @@ fn run_bank_transfer(
         Ok(())
     })?;
 
-    // Now return a receipt.
+    // Return a reciept of what changed
     Ok(DointTransferReceipt {
         sender: transfer.sender,
         recipient: transfer.recipient,

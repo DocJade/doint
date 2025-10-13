@@ -65,8 +65,8 @@ pub async fn pay(
         sender: DointTransferParty::DointUser(ctx.author().id.get()),
         recipient: DointTransferParty::DointUser(recipient.user.id.get()),
         transfer_amount: payment,
-        apply_fees: true,                                          // /pay is taxed.
-        transfer_reason: DointTransferReason::UserPaymentNoReason, // TODO: payment messages (#25)
+        apply_fees: true,                                         // /pay is taxed.
+        transfer_reason: DointTransferReason::GenericUserPayment, // TODO: payment messages (#25)
     };
 
     // Run the bank transfer
@@ -105,7 +105,12 @@ pub async fn pay(
                 // Not doin that
                 unreachable!("/pay isnt a tax collector")
             }
-            DointTransferError::PointlessTransfer => {
+            DointTransferError::ZeroTransfer => {
+                let _ = ctx.say("Cannot transfer zero doints.").await?;
+                return Ok(());
+            }
+
+            DointTransferError::SameParty => {
                 // already checked higher.
                 unreachable!("Can't pay self")
             }

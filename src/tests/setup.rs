@@ -56,7 +56,6 @@ pub async fn get_isolated_test_db() -> r2d2::PooledConnection<ConnectionManager<
     test_conn
 }
 
-
 /// Create and initialize test data
 pub fn create_tables(conn: &mut MysqlConnection) -> Result<(), diesel::result::Error> {
     conn.batch_execute(

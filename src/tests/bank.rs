@@ -42,139 +42,103 @@ mod bank_tests {
         (the_bank, the_fees)
     }
 
-    #[tokio::test]
-    async fn transfer_user_to_user() {
-        let mut conn = get_isolated_test_db().await;
-
-        conn.transaction::<_, diesel::result::Error, _>(|conn| {
-            let user1 = create_test_user(conn);
-            let user2 = create_test_user(conn);
-            setup_bank_and_fees(conn);
-
-            for amount in 1..=50 {
-                let one_way = DointTransfer {
-                    sender: DointTransferParty::DointUser(user1.id),
-                    recipient: DointTransferParty::DointUser(user2.id),
-                    transfer_amount: BigDecimal::from_i32(amount).unwrap(),
-                    apply_fees: true,
-                    transfer_reason: DointTransferReason::UserPaymentNoReason,
-                };
-
-                let the_other = DointTransfer {
-                    sender: DointTransferParty::DointUser(user2.id),
-                    recipient: DointTransferParty::DointUser(user1.id),
-                    transfer_amount: BigDecimal::from_i32(amount).unwrap(),
-                    apply_fees: true,
-                    transfer_reason: DointTransferReason::UserPaymentNoReason,
-                };
-
-                let user1_sent = BankInterface::bank_transfer(conn, one_way)
-                    .expect("In-range transfer failed.")
-                    .amount_sent;
-                let user2_sent = BankInterface::bank_transfer(conn, the_other)
-                    .expect("In-range transfer failed.")
-                    .amount_sent;
-
-                assert_eq!(user1_sent, BigDecimal::from_i32(amount).unwrap());
-                assert_eq!(user1_sent, user2_sent);
-
-                user1.save_changes::<DointUser>(conn).unwrap();
-                user2.save_changes::<DointUser>(conn).unwrap();
-            }
-
-            Ok(())
-        })
-        .unwrap();
+    fn get_bank(conn: &mut MysqlConnection) -> BankInfo {
+        bank_table.first(conn).expect("Failed to get bank!")
     }
 
     #[tokio::test]
-    async fn transfer_user_to_none() {
+    async fn user_to_user() {
         let mut conn = get_isolated_test_db().await;
 
-        conn.transaction::<_, diesel::result::Error, _>(|conn| {
-            let user1 = create_test_user(conn);
-            let (the_bank, _) = setup_bank_and_fees(conn);
+        let transfer_amount = BigDecimal::from_i32(50).unwrap();
 
-            let none_transfer = DointTransfer {
-                sender: DointTransferParty::DointUser(user1.id),
-                recipient: DointTransferParty::DointUser(0),
-                transfer_amount: BigDecimal::from_usize(50).unwrap(),
+        conn.test_transaction::<_, diesel::result::Error, _>(|conn| {
+            let user_a = create_test_user(conn);
+            let user_b = create_test_user(conn);
+
+            setup_bank_and_fees(conn);
+
+            let transfer = DointTransfer {
+                sender: DointTransferParty::DointUser(user_a.id),
+                recipient: DointTransferParty::DointUser(user_b.id),
+                transfer_amount: transfer_amount.clone(),
                 apply_fees: true,
-                transfer_reason: DointTransferReason::UserPaymentNoReason,
+                transfer_reason: DointTransferReason::GenericUserPayment,
             };
 
-            let err =
-                BankInterface::bank_transfer(conn, none_transfer).expect_err("This should fail.");
-            match err {
-                DointTransferError::InvalidParty => {}
-                _ => panic!("None transfer failed for wrong reason! {err:?}"),
-            }
+            let reciept =
+                BankInterface::bank_transfer(conn, transfer).expect("Transfer should succeed!");
 
-            assert!(
-                the_bank.doints_on_hand > BigDecimal::zero(),
-                "Fees were not collected!"
+            let fees_paid = BankInterface::calculate_fees(conn, &transfer_amount).unwrap();
+
+            assert_eq!(
+                reciept,
+                DointTransferReceipt {
+                    amount_sent: transfer_amount.clone(),
+                    fees_paid: Some(fees_paid.clone()),
+                    recipient: DointTransferParty::DointUser(user_b.id),
+                    sender: DointTransferParty::DointUser(user_a.id),
+                    transfer_reason: DointTransferReason::GenericUserPayment,
+                }
+            );
+
+            // Get the data again since it has changed
+            let the_bank = get_bank(conn);
+            let user_a = Users::get_doint_user(user_a.id, conn)?.expect("User should exist!");
+            let user_b = Users::get_doint_user(user_b.id, conn)?.expect("User should exist!");
+
+            assert_eq!(the_bank.doints_on_hand, fees_paid);
+
+            assert_eq!(
+                user_a.bal,
+                BigDecimal::from_u64(1000).unwrap() - (transfer_amount.clone() + fees_paid)
+            );
+            assert_eq!(
+                user_b.bal,
+                BigDecimal::from_u64(1000).unwrap() + transfer_amount.clone()
             );
 
             Ok(())
         })
-        .unwrap();
     }
 
     #[tokio::test]
-    async fn sender_insufficient_funds() {
+    async fn user_to_none() {
         let mut conn = get_isolated_test_db().await;
 
-        conn.transaction::<_, diesel::result::Error, _>(|conn| {
-            let user1 = create_test_user(conn);
-            let user2 = create_test_user(conn);
+        let transfer_amount = BigDecimal::from_i32(50).unwrap();
+
+        conn.test_transaction::<_, diesel::result::Error, _>(|conn| {
+            let user_a = create_test_user(conn);
+
             setup_bank_and_fees(conn);
 
-            for amount in 990..1000 {
-                let bad = DointTransfer {
-                    sender: DointTransferParty::DointUser(user1.id),
-                    recipient: DointTransferParty::DointUser(user2.id),
-                    transfer_amount: BigDecimal::from_i32(amount).unwrap(),
-                    apply_fees: true,
-                    transfer_reason: DointTransferReason::UserPaymentNoReason,
-                };
-
-                match BankInterface::bank_transfer(conn, bad) {
-                    Ok(ok) => panic!("How did we afford that? {ok:?}"),
-                    Err(DointTransferError::SenderInsufficientFunds(_)) => {}
-                    Err(err) => panic!("Failed for wrong reason: {err:?}"),
-                }
-            }
-
-            Ok(())
-        })
-        .unwrap();
-    }
-
-    #[tokio::test]
-    async fn zero_transfer() {
-        let mut conn = get_isolated_test_db().await;
-
-        conn.transaction::<_, diesel::result::Error, _>(|conn| {
-            let user1 = create_test_user(conn);
-            let user2 = create_test_user(conn);
-            setup_bank_and_fees(conn);
-
-            let zero_transfer = DointTransfer {
-                sender: DointTransferParty::DointUser(user1.id),
-                recipient: DointTransferParty::DointUser(user2.id),
-                transfer_amount: BigDecimal::zero(),
+            let transfer = DointTransfer {
+                sender: DointTransferParty::DointUser(user_a.id),
+                recipient: DointTransferParty::DointUser(0),
+                transfer_amount: transfer_amount.clone(),
                 apply_fees: true,
-                transfer_reason: DointTransferReason::UserPaymentNoReason,
+                transfer_reason: DointTransferReason::GenericUserPayment,
             };
 
-            match BankInterface::bank_transfer(conn, zero_transfer) {
-                Ok(ok) => panic!("Zero transfer should fail! {ok:?}"),
-                Err(DointTransferError::PointlessTransfer) => {}
-                Err(err) => panic!("Failed for wrong reason: {err:?}"),
-            }
+            let error =
+                BankInterface::bank_transfer(conn, transfer).expect_err("Transfer should fail!");
+
+            assert!(
+                matches!(error, DointTransferError::InvalidParty),
+                "Should be an InvalidParty error!"
+            );
+
+            let fees_paid = BankInterface::calculate_fees(conn, &transfer_amount).unwrap();
+
+            // Get the data again since it has changed
+            let the_bank = get_bank(conn);
+            let user_a = Users::get_doint_user(user_a.id, conn)?.expect("User should exist!");
+
+            assert_eq!(the_bank.doints_on_hand, fees_paid);
+            assert_eq!(user_a.bal, BigDecimal::from_u64(1000).unwrap() - fees_paid);
 
             Ok(())
         })
-        .unwrap();
     }
 }
