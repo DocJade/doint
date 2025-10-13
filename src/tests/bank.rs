@@ -120,7 +120,8 @@ mod bank_tests {
                 transfer_amount.clone(),
                 true,
                 DointTransferReason::GenericUserPayment,
-            ).expect("Transfer should be valid");
+            )
+            .expect("Transfer should be valid");
 
             let error =
                 BankInterface::bank_transfer(conn, transfer).expect_err("Transfer should fail!");
