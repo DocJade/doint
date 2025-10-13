@@ -6,7 +6,7 @@ use crate::{formatting::format_struct::FormattingHelper, knob::formatting::DOINT
 
 impl FormattingHelper {
     /// Format doints for display based on user preferences
-    pub(crate) fn display_doint(doints: &BigDecimal) -> String {
+    #[must_use] pub fn display_doint(doints: &BigDecimal) -> String {
         // TODO: Allow users to set formatting preferences.
 
         let raw: String = format!("{doints:.2}");

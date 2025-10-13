@@ -5,44 +5,41 @@ use diesel::{Connection, MysqlConnection};
 use log::warn;
 use thiserror::Error;
 
-use crate::models::data::bank::BankInfo;
-use crate::models::data::users::DointUser;
-use crate::schema::bank::dsl::bank;
-use crate::{models::BankInterface, models::queries::Users};
+use crate::prelude::*;
 use diesel::prelude::*;
 
 /// Struct for facilitating doint transfers between two parties.
 ///
 /// Please read the documentation of the struct fields for requirements.
-pub(crate) struct DointTransfer {
+pub struct DointTransfer {
     /// Where the doints are coming from.
-    pub(crate) sender: DointTransferParty,
+    pub sender: DointTransferParty,
 
     /// Where the doints are going to.
-    pub(crate) recipient: DointTransferParty,
+    pub recipient: DointTransferParty,
 
     /// The amount of doints being sent.
     ///
     /// This must be a positive number. If you wish to take doints from one place, simply swap
     /// the order of sender and recipient.
-    pub(crate) transfer_amount: BigDecimal,
+    pub transfer_amount: BigDecimal,
 
     /// Do fees apply to this transaction?
     ///
     /// For example, you shouldn't be collecting transfer fees while collecting taxes.
     ///
     /// Transfers out of the bank cannot incur transfer fees, that would be pointless.
-    pub(crate) apply_fees: bool,
+    pub apply_fees: bool,
 
     /// Why this transfer is being made.
     ///
     /// User payments must happen between 2 users, no other combinations are allowed.
-    pub(crate) transfer_reason: DointTransferReason,
+    pub transfer_reason: DointTransferReason,
 }
 
 /// Enum for picking where doints are being transferred to.
 #[derive(PartialEq, Eq, Debug)]
-pub(crate) enum DointTransferParty {
+pub enum DointTransferParty {
     /// The central Doint bank.
     Bank,
     /// A user. Must provide their discord user ID.
@@ -51,7 +48,7 @@ pub(crate) enum DointTransferParty {
 
 /// Why this transfer is occurring (for logging and such)
 #[derive(PartialEq, Eq, Debug)]
-pub(crate) enum DointTransferReason {
+pub enum DointTransferReason {
     TaxCollection,
     CasinoLoss,
     CasinoWin,
@@ -64,28 +61,28 @@ pub(crate) enum DointTransferReason {
 
 /// A receipt of a transfer.
 #[derive(Debug)]
-pub(crate) struct DointTransferReceipt {
+pub struct DointTransferReceipt {
     /// Who paid the doints.
-    pub(crate) sender: DointTransferParty,
+    pub sender: DointTransferParty,
 
     /// Who got the doints.
-    pub(crate) recipient: DointTransferParty,
+    pub recipient: DointTransferParty,
 
     /// How much the sender sent. (Does not include fees if applicable)
-    pub(crate) amount_sent: BigDecimal,
+    pub amount_sent: BigDecimal,
 
     /// How much the sender spent on fees (if applicable).
-    pub(crate) fees_paid: Option<BigDecimal>,
+    pub fees_paid: Option<BigDecimal>,
 
     /// Why this transfer happened.
-    pub(crate) transfer_reason: DointTransferReason,
+    pub transfer_reason: DointTransferReason,
     // What time this transaction occurred at
     // TODO: add me when we track this for a log/ledger
 }
 
 /// Error type for Doint transfers.
 #[derive(Error, Debug)]
-pub(crate) enum DointTransferError {
+pub enum DointTransferError {
     #[error(
         "The sender doesn't have enough Doints to cover the transaction, and possibly its fees."
     )]
@@ -115,12 +112,12 @@ pub(crate) enum DointTransferError {
 
 /// Couldn't afford the transfer, here's the breakdown.
 #[derive(Debug)]
-pub(crate) struct DointTransferSenderBroke {
+pub struct DointTransferSenderBroke {
     /// How much the transfer was worth
-    pub(crate) transfer_amount: BigDecimal,
+    pub transfer_amount: BigDecimal,
 
     /// How much in fee's the user would've needed to pay. (if applicable)
-    pub(crate) fees_required: Option<BigDecimal>,
+    pub fees_required: Option<BigDecimal>,
 }
 
 //
@@ -133,7 +130,7 @@ impl BankInterface {
     /// Requires a `DointTransfer`.
     ///
     /// Returns a receipt.
-    pub(crate) fn bank_transfer(
+    pub fn bank_transfer(
         conn: &mut MysqlConnection,
         transfer: DointTransfer,
     ) -> Result<DointTransferReceipt, DointTransferError> {
@@ -330,7 +327,7 @@ fn run_bank_transfer(
         match transfer.sender {
             DointTransferParty::Bank => {
                 // Take money from bank
-                let mut the_bank: BankInfo = bank.first(conn)?;
+                let mut the_bank: BankInfo = bank_table.first(conn)?;
                 the_bank.doints_on_hand -= full_sender_spend;
                 the_bank.save_changes::<BankInfo>(conn)?;
             }
@@ -345,7 +342,7 @@ fn run_bank_transfer(
         // Give that money to the recipient
         match transfer.recipient {
             DointTransferParty::Bank => {
-                let mut the_bank: BankInfo = bank.first(conn)?;
+                let mut the_bank: BankInfo = bank_table.first(conn)?;
                 the_bank.doints_on_hand += &transfer.transfer_amount;
                 the_bank.save_changes::<BankInfo>(conn)?;
             }
@@ -358,7 +355,7 @@ fn run_bank_transfer(
 
         // Put fees in the bank if needed
         if transfer.apply_fees {
-            let mut the_bank: BankInfo = bank.first(conn)?;
+            let mut the_bank: BankInfo = bank_table.first(conn)?;
             the_bank.doints_on_hand += &fees;
             the_bank.save_changes::<BankInfo>(conn)?;
         }

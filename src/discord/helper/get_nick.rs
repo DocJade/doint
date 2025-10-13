@@ -7,7 +7,7 @@ use crate::{
 /// Gets the display of a user based on a `UserID`.
 ///
 /// Note that this is may be different from their nickname.
-pub(crate) async fn get_display_name(ctx: Context<'_>, id: u64) -> Result<String, Error> {
+pub async fn get_display_name(ctx: Context<'_>, id: u64) -> Result<String, Error> {
     // First we need the user
     let user = get_user_from_id(ctx, id).await?;
 

@@ -10,7 +10,7 @@ use crate::{
 /// Gives a user the dointer role. Should only be used when users have just been added to the DB.
 ///
 /// returns false if they didnt end up with the role.
-pub(super) async fn give_dointer_role(ctx: Context<'_>, user_id: u64) -> bool {
+pub async fn give_dointer_role(ctx: Context<'_>, user_id: u64) -> bool {
     // Get the member
     let member = match get_member_from_id(ctx, user_id).await {
         Ok(ok) => {
@@ -45,7 +45,7 @@ pub(super) async fn give_dointer_role(ctx: Context<'_>, user_id: u64) -> bool {
 /// Revoke the dointer role from a user.
 ///
 /// Returns true if the user no-longer has the role.
-pub(super) async fn revoke_dointer_role(ctx: Context<'_>, user_id: u64) -> bool {
+pub async fn revoke_dointer_role(ctx: Context<'_>, user_id: u64) -> bool {
     // Get the member
     let member = match get_member_from_id(ctx, user_id).await {
         Ok(ok) => {

@@ -9,7 +9,7 @@ use diesel::{
 use dotenvy::dotenv;
 
 /// You need to call TEST transactions on this or you will be altering the actual DB!
-pub(super) fn get_test_db()
+pub fn get_test_db()
 -> diesel::r2d2::PooledConnection<diesel::r2d2::ConnectionManager<diesel::MysqlConnection>> {
     // Get env vars for the DB url
     dotenv().ok();
@@ -28,6 +28,6 @@ pub(super) fn get_test_db()
 }
 
 /// Makes a test user with specified parameters, returns their id.
-pub(super) fn make_test_user() -> u64 {
+pub fn make_test_user() -> u64 {
     todo!()
 }

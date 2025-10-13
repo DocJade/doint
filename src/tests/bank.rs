@@ -1,20 +1,10 @@
 // no bank runs please.
+use crate::{prelude::*, tests::setup::get_test_db};
 
-use crate::models::bank::transfer::{
-    DointTransfer, DointTransferError, DointTransferParty, DointTransferReason,
-};
-use crate::models::data::fees::FeeInfo;
-use crate::tests::setup::get_test_db;
 use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
 use diesel::Connection;
 use log::info;
 
-use crate::models::BankInterface;
-use crate::models::data::bank::BankInfo;
-use crate::models::data::users::DointUser;
-use crate::schema::bank::dsl::bank;
-use crate::schema::fees::dsl::fees;
-use crate::schema::users::dsl::users;
 use diesel::prelude::*;
 
 #[test]
@@ -38,17 +28,18 @@ fn test_pay_slash_command() {
 
         user1
             .clone()
-            .insert_into(users)
+            .insert_into(
+                users_table)
             .execute(conn)
             .expect("Failed to insert user 1");
         user2
             .clone()
-            .insert_into(users)
+            .insert_into(users_table)
             .execute(conn)
             .expect("Failed to insert user 2");
 
         // Set up the bank to a known state
-        let mut the_bank: BankInfo = bank.first(conn).expect("Failed to get bank");
+        let mut the_bank: BankInfo = bank_table.first(conn).expect("Failed to get bank");
         the_bank.doints_on_hand = BigDecimal::zero();
         the_bank.total_doints = BigDecimal::from_usize(1_000_000).unwrap();
         the_bank
@@ -56,7 +47,7 @@ fn test_pay_slash_command() {
             .expect("Couldn't set bank to known values.");
 
         // Set fees to known, easy to pre-calc (calculate) state.
-        let mut the_fees: FeeInfo = fees.first(conn).expect("Failed to get bank");
+        let mut the_fees: FeeInfo = fees_table.first(conn).expect("Failed to get bank");
         the_fees.flat_fee = BigDecimal::one(); // 1 doint
         the_fees.percentage_fee = 10; // 1%
         the_fees
@@ -193,7 +184,7 @@ fn test_pay_slash_command() {
         }
 
         // After all of that, the bank should have collected some fees.
-        let the_bank: BankInfo = bank.first(conn).expect("Failed to get bank");
+        let the_bank: BankInfo = bank_table.first(conn).expect("Failed to get bank");
         assert!(
             the_bank.doints_on_hand > BigDecimal::zero(),
             "Fees were not collected!"

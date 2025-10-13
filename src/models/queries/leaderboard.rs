@@ -1,23 +1,20 @@
 // leaderboard CRUD functions
 
-use crate::models::queries;
-use crate::schema::users::dsl::{bal, users};
+use crate::prelude::*;
 use diesel::prelude::*;
 use diesel::{Connection, MysqlConnection};
 
-use crate::models::data::users::DointUser;
-
-impl queries::Leaderboard {
+impl Leaderboard {
     /// Get the users with the highest doint balances.
     ///
     /// If the number of users is less than `limit`, all users will be returned.
-    pub(crate) fn get_top_doint_balances(
+    pub fn get_top_doint_balances(
         limit: i64,
         conn: &mut MysqlConnection,
     ) -> Result<Vec<DointUser>, diesel::result::Error> {
         conn.transaction(|conn| {
-            users
-                .order_by(bal.desc())
+            users_table
+                .order_by(users_bal_table.desc())
                 .limit(limit)
                 .load::<DointUser>(conn)
         })
@@ -26,13 +23,13 @@ impl queries::Leaderboard {
     /// Get the users with the lowest doint balances.
     ///
     /// If the number of users is less than `limit`, all users will be returned.
-    pub(crate) fn get_bottom_doint_balances(
+    pub fn get_bottom_doint_balances(
         limit: i64,
         conn: &mut MysqlConnection,
     ) -> Result<Vec<DointUser>, diesel::result::Error> {
         conn.transaction(|conn| {
-            users
-                .order_by(bal.asc())
+            users_table
+                .order_by(users_bal_table.asc())
                 .limit(limit)
                 .load::<DointUser>(conn)
         })

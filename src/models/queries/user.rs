@@ -5,11 +5,11 @@ use crate::schema::users::dsl::users;
 use diesel::prelude::*;
 use diesel::{Connection, MysqlConnection};
 
-use crate::models::data::users::DointUser;
+use crate::prelude::*;
 
 impl queries::Users {
     /// Returns a `DointUser` if the user with the respective `id` exists.
-    pub(crate) fn get_doint_user(
+    pub fn get_doint_user(
         id: impl Into<u64>,
         conn: &mut MysqlConnection,
     ) -> Result<Option<DointUser>, diesel::result::Error> {

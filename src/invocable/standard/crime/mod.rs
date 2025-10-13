@@ -1,3 +1,3 @@
 // evil shit
 
-pub(crate) mod rob;
+pub mod rob;

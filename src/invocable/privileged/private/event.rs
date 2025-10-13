@@ -18,7 +18,7 @@ use crate::types::serenity_types::{Context, Error};
     check = guards::in_commands
     )
 ]
-pub(crate) async fn admin_force_disperse_ubi(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn admin_force_disperse_ubi(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 

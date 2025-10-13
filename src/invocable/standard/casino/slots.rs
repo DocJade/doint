@@ -328,7 +328,7 @@ fn calculate_winnings(symbols: [SlotSymbol; 3], payouts: &SlotPayoutTable) -> Op
     check = guards::ctx_member_enrolled_in_doints,
     check = guards::in_casino
 )]
-pub(crate) async fn slots(
+pub async fn slots(
     ctx: Context<'_>,
     // #[description = "Which machine would you like to play?"] // TODO: more slot machines
     // machine: Coin,

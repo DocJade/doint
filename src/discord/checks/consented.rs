@@ -8,7 +8,7 @@ use crate::{
 };
 
 // Inner function that checks a member, not context
-pub(crate) async fn member_enrolled_in_doints(
+pub async fn member_enrolled_in_doints(
     member: Member,
     ctx: Context<'_>,
 ) -> Result<bool, Error> {

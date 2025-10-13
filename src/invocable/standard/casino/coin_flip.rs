@@ -22,7 +22,7 @@ enum Coin {
 
 /// Flip a coin, pick a side. If you pick the correct side, you double your money (minus fees)
 #[poise::command(slash_command, guild_only, user_cooldown = 300, check = guards::in_doints_category, check = guards::in_casino)]
-pub(crate) async fn flip(
+pub async fn flip(
     ctx: Context<'_>,
     #[description = "Heads or tails?"] side: Coin,
     #[description = "How much are you betting? You can bet a maximum of 1,000.00"]

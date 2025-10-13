@@ -1,5 +1,5 @@
 // Dummy struct for formatting things
 
-pub(crate) struct FormattingHelper {
+pub struct FormattingHelper {
     // nothing
 }

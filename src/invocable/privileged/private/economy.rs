@@ -3,11 +3,7 @@
 use diesel::{Connection, RunQueryDsl};
 use poise::CreateReply;
 
-use crate::guards;
-use crate::models::BankInterface;
-use crate::models::data::bank::BankInfo;
-use crate::schema::bank::dsl::bank;
-use crate::types::serenity_types::{Context, Error};
+use crate::prelude::*;
 
 /// Forcibly collect taxes immediately.
 #[poise::command(slash_command,
@@ -18,7 +14,7 @@ use crate::types::serenity_types::{Context, Error};
     check = guards::in_commands
     )
 ]
-pub(crate) async fn admin_tax_now(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn admin_tax_now(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -47,7 +43,7 @@ pub(crate) async fn admin_tax_now(ctx: Context<'_>) -> Result<(), Error> {
     check = guards::in_commands
     )
 ]
-pub(crate) async fn admin_bank_info(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn admin_bank_info(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -55,7 +51,7 @@ pub(crate) async fn admin_bank_info(ctx: Context<'_>) -> Result<(), Error> {
     let mut conn = pool.get()?;
 
     // Read in the bank row
-    let bank_info: BankInfo = conn.transaction(|conn| bank.first(conn))?;
+    let bank_info: BankInfo = conn.transaction(|conn| bank_table.first(conn))?;
 
     // deconstruct it and print it nicely.
     let BankInfo {
@@ -97,7 +93,7 @@ pub(crate) async fn admin_bank_info(ctx: Context<'_>) -> Result<(), Error> {
     check = guards::in_commands
     )
 ]
-pub(crate) async fn admin_set_tax_rate(
+pub async fn admin_set_tax_rate(
     ctx: Context<'_>,
     #[description = "The new tax rate. Needs to be between 0 and 1000 inclusive."] new_rate: u16,
 ) -> Result<(), Error> {
@@ -137,7 +133,7 @@ pub(crate) async fn admin_set_tax_rate(
     check = guards::in_doints_category
     )
 ]
-pub(crate) async fn admin_set_ubi_rate(
+pub async fn admin_set_ubi_rate(
     ctx: Context<'_>,
     #[description = "The new UBI rate. Needs to be between 0 and 1000 inclusive."] new_rate: u16,
 ) -> Result<(), Error> {

@@ -16,7 +16,7 @@ use crate::types::serenity_types::{Context, Error};
 
 /// Pay another player
 #[poise::command(slash_command, guild_only, check = guards::in_doints_category)]
-pub(crate) async fn pay(
+pub async fn pay(
     ctx: Context<'_>,
     #[description = "Who you are paying."] recipient: Member,
     #[description = "The amount of doints to pay them."] payment: f64,

@@ -1,33 +1,25 @@
 // Time to go to jail!
 // We will also add this method to the user type itself.
+use crate::prelude::*;
 
-use crate::schema::jail::dsl::jail;
 use chrono::{Local, NaiveDateTime, TimeDelta};
 use diesel::{Connection, MysqlConnection, RunQueryDsl};
 
-use crate::{
-    models::data::{jail::JailedUser, users::DointUser},
-    models::jail::{
-        JailError,
-        reasons::{JailCause, JailReason},
-    },
-};
-
 /// The form to fill out when jailing someone.
-pub(crate) struct JailForm {
+pub struct JailForm {
     /// What crime was committed
-    pub(crate) law_broke: JailReason,
+    pub law_broke: JailReason,
 
     /// Who/what is sending this user to jail
-    pub(crate) arrested_by: JailCause,
+    pub arrested_by: JailCause,
 
     /// How long this user should be in jail for.
     ///
     /// If set to `None`, duration will be calculated based on the crime.
-    pub(crate) jail_for: Option<TimeDelta>,
+    pub jail_for: Option<TimeDelta>,
 
     /// Is this user eligible for bail?
-    pub(crate) can_bail: bool,
+    pub can_bail: bool,
 }
 
 // Impl it on DointUser for ease of use.
@@ -36,11 +28,7 @@ impl DointUser {
     ///
     /// If user is already in jail, return their current jail status in the error.
     #[inline]
-    pub(crate) fn jail_user(
-        self,
-        form: &JailForm,
-        conn: &mut MysqlConnection,
-    ) -> Result<(), JailError> {
+    pub fn jail_user(self, form: &JailForm, conn: &mut MysqlConnection) -> Result<(), JailError> {
         put_user_in_jail(&self, form, conn)
     }
 }
@@ -85,7 +73,11 @@ fn put_user_in_jail(
     };
 
     // Put them in the DB
-    conn.transaction(|conn| diesel::insert_into(jail).values(jailed_user).execute(conn))?;
+    conn.transaction(|conn| {
+        diesel::insert_into(jail_table)
+            .values(jailed_user)
+            .execute(conn)
+    })?;
 
     // Jailed!
 

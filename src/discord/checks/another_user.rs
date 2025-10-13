@@ -8,7 +8,7 @@ use crate::types::serenity_types::Context;
 
 /// Enum for keeping track of reasons that the user cannot be called against.
 #[derive(Error, Debug)]
-pub(crate) enum IneligibleDestinationUser {
+pub enum IneligibleDestinationUser {
     #[error("That user is not a dointer.")]
     UserNotEnrolled,
 
@@ -21,14 +21,14 @@ pub(crate) enum IneligibleDestinationUser {
 
 /// Sometimes users are immune from a certain command, these are the reasons.
 #[derive(Debug)]
-pub(crate) enum UserImmuneReason {
+pub enum UserImmuneReason {
     /// This user has paid for some kind of immunity to this action
     UserBoughtProtection,
 }
 
 /// The type of command being called.
 #[derive(Debug)]
-pub(crate) enum CommandType {
+pub enum CommandType {
     /// Crime related, user is on the receiving end.
     NegativeCrime,
 
@@ -41,11 +41,11 @@ pub(crate) enum CommandType {
 /// Check is skipped on a None.
 ///
 /// All users must be in the doint DB. This will always be checked.
-pub(crate) struct DestinationUserRequirements {}
+pub struct DestinationUserRequirements {}
 
 /// Checks that a user you're trying to do an operation against can receive this command.
 ///
 /// Prints information to the user if this user is unable to have actions called against them.
 ///
 /// Returns an error if the user does not pass after printing information to user.
-pub(crate) fn check_destination_user(ctx: Context<'_>, member: Member) {}
+pub fn check_destination_user(ctx: Context<'_>, member: Member) {}

@@ -2,11 +2,7 @@ use std::{sync::Once, time::Duration};
 
 use log::{error, info, warn};
 
-use crate::{
-    event::event_struct::EventCaller,
-    knob::guild::DOCCORD_SERVER_ID,
-    types::serenity_types::{/* Context ,*/ Data, Error},
-};
+use crate::prelude::*;
 use poise::serenity_prelude as serenity;
 
 static INIT: Once = Once::new();

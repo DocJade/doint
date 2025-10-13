@@ -3,9 +3,9 @@
 
 // Magic numbers are the devil.
 // Values here may change during runtime, and are stored/retrieved from the database if they exist.
-pub(crate) mod channels;
-pub(crate) mod emoji;
-pub(crate) mod formatting;
-pub(crate) mod guild;
-pub(crate) mod roles;
-pub(crate) mod terms_and_conditions;
+pub mod channels;
+pub mod emoji;
+pub mod formatting;
+pub mod guild;
+pub mod roles;
+pub mod terms_and_conditions;

@@ -14,7 +14,7 @@ use poise::serenity_prelude::{self as serenity, UserId};
 /// Incoming context must come from a guild.
 ///
 /// Tries reading from cache first.
-pub(crate) async fn get_member_from_id(
+pub async fn get_member_from_id(
     ctx: Context<'_>,
     user_id: u64,
 ) -> Result<Option<serenity::Member>, Error> {
