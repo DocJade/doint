@@ -39,7 +39,7 @@ fn go_collect_taxes(conn: &mut MysqlConnection) -> Result<BigDecimal, Error> {
 
         // Get all users with a positive, non-zero balance
         let mut to_update: Vec<DointUser> = users_table
-            .filter(users_bal_table.gt(BigDecimal::zero()))
+            .filter(bal_col.gt(BigDecimal::zero()))
             .load::<DointUser>(conn)?;
 
         // Now loop over every user, figuring out how much to take from each of them

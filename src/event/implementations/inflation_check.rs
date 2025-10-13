@@ -35,7 +35,7 @@ impl EventCaller {
 
             // Get how much money all users have
             let user_total: Option<BigDecimal> = users_table
-                .select(sum(users_bal_table))
+                .select(sum(bal_col))
                 .first(conn)
                 .expect("Sum should always return 1 thing");
             let user_total: BigDecimal =

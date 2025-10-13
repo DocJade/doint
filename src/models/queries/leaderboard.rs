@@ -14,7 +14,7 @@ impl Leaderboard {
     ) -> Result<Vec<DointUser>, diesel::result::Error> {
         conn.transaction(|conn| {
             users_table
-                .order_by(users_bal_table.desc())
+                .order_by(bal_col.desc())
                 .limit(limit)
                 .load::<DointUser>(conn)
         })
@@ -29,7 +29,7 @@ impl Leaderboard {
     ) -> Result<Vec<DointUser>, diesel::result::Error> {
         conn.transaction(|conn| {
             users_table
-                .order_by(users_bal_table.asc())
+                .order_by(bal_col.asc())
                 .limit(limit)
                 .load::<DointUser>(conn)
         })

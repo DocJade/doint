@@ -77,7 +77,7 @@ pub async fn opt_in(ctx: Context<'_>) -> Result<(), Error> {
     // Roll back the database add.
     let removal: Result<usize, diesel::result::Error> = conn.transaction(|conn| {
         diesel::delete(users_table)
-            .filter(users_id_table.eq(users_id))
+            .filter(user_id_col.eq(users_id))
             .execute(conn)
     });
 

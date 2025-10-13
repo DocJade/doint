@@ -17,8 +17,8 @@ pub use crate::types::serenity_types::CommandCheckFailureReason;
 
 pub use crate::consent::*;
 
-pub use crate::schema::users::dsl::bal as users_bal_table;
-pub use crate::schema::users::dsl::id as users_id_table;
+pub use crate::schema::users::dsl::bal as bal_col;
+pub use crate::schema::users::dsl::id as user_id_col;
 pub use crate::schema::users::dsl::users as users_table;
 
 pub use crate::schema::bank::dsl::bank as bank_table;
