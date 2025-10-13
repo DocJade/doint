@@ -1,17 +1,17 @@
 // no bank runs please.
 
-use crate::database::tables::fees::FeeInfo;
 use crate::models::bank::transfer::{
     DointTransfer, DointTransferError, DointTransferParty, DointTransferReason,
 };
+use crate::models::data::fees::FeeInfo;
 use crate::tests::setup::get_test_db;
 use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
 use diesel::Connection;
 use log::info;
 
-use crate::database::tables::bank::BankInfo;
-use crate::database::tables::users::DointUser;
 use crate::models::BankInterface;
+use crate::models::data::bank::BankInfo;
+use crate::models::data::users::DointUser;
 use crate::schema::bank::dsl::bank;
 use crate::schema::fees::dsl::fees;
 use crate::schema::users::dsl::users;

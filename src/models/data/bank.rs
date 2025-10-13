@@ -6,7 +6,7 @@ use diesel::prelude::*;
 #[derive(Queryable, Selectable, AsChangeset, Identifiable, Clone, Debug)]
 #[diesel(table_name = crate::schema::bank)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
-pub(crate) struct BankInfo {
+pub struct BankInfo {
     /// Used to lock the table to one row.
     ///
     /// Useless, hence private

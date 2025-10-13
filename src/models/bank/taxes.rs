@@ -1,8 +1,8 @@
-use crate::database::tables::bank::BankInfo;
-use crate::database::tables::users::DointUser;
 use crate::formatting::format_struct::FormattingHelper;
 use crate::models::BankInterface;
 use crate::models::bank::conversions;
+use crate::models::data::bank::BankInfo;
+use crate::models::data::users::DointUser;
 use crate::schema::bank::dsl::bank;
 use crate::schema::users::bal;
 use crate::schema::users::dsl::users;

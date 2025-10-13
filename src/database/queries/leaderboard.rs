@@ -4,7 +4,7 @@ use crate::schema::users::dsl::{bal, users};
 use diesel::prelude::*;
 use diesel::{Connection, MysqlConnection};
 
-use crate::database::tables::users::DointUser;
+use crate::models::data::users::DointUser;
 
 /// Get the users with the highest doint balances.
 ///

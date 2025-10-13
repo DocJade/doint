@@ -4,7 +4,7 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
 use crate::{
-    database::tables::users::DointUser,
+    models::data::users::DointUser,
     models::jail::reasons::{JailCause, JailReason},
 };
 

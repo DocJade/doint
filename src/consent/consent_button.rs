@@ -14,7 +14,7 @@ use diesel::prelude::*;
 use log::{error, info, warn};
 use poise::CreateReply;
 
-use crate::database::tables::users::DointUser;
+use crate::models::data::users::DointUser;
 
 /// Consent to the doint system.
 #[poise::command(slash_command, guild_only)]

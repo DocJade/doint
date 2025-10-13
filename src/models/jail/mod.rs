@@ -6,7 +6,7 @@ pub(crate) mod reasons;
 
 use thiserror::Error;
 
-use crate::database::tables::jail::JailedUser;
+use crate::models::data::jail::JailedUser;
 
 #[derive(Error, Debug)]
 pub(crate) enum JailError {

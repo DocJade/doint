@@ -2,8 +2,8 @@
 
 // Collect taxes from doint-holders.
 
-use crate::database::tables::bank::BankInfo;
 use crate::models::BankInterface;
+use crate::models::data::bank::BankInfo;
 use crate::schema::bank::dsl::bank;
 use crate::schema::users::dsl::users;
 use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
@@ -12,7 +12,7 @@ use diesel::result::Error;
 use diesel::{Connection, MysqlConnection};
 use log::{debug, info, warn};
 
-use crate::database::tables::users::DointUser;
+use crate::models::data::users::DointUser;
 
 impl BankInterface {
     /// Disperse UBI to all enrolled users.

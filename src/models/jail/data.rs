@@ -6,7 +6,7 @@ use diesel::{
 use log::{info, warn};
 
 use crate::{
-    database::tables::{jail::JailedUser, users::DointUser},
+    models::data::{jail::JailedUser, users::DointUser},
     models::{JailInterface, jail::JailError},
 };
 

@@ -5,8 +5,8 @@ use diesel::{Connection, MysqlConnection};
 use log::warn;
 use thiserror::Error;
 
-use crate::database::tables::bank::BankInfo;
-use crate::database::tables::users::DointUser;
+use crate::models::data::bank::BankInfo;
+use crate::models::data::users::DointUser;
 use crate::schema::bank::dsl::bank;
 use crate::{database::queries::user::get_doint_user, models::BankInterface};
 use diesel::prelude::*;

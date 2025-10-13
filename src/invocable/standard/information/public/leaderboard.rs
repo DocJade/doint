@@ -3,13 +3,11 @@
 use bigdecimal::BigDecimal;
 
 use crate::{
-    database::{
-        queries::leaderboard::{get_bottom_doint_balances, get_top_doint_balances},
-        tables::users::DointUser,
-    },
+    database::queries::leaderboard::{get_bottom_doint_balances, get_top_doint_balances},
     discord::helper::get_nick::get_display_name,
     formatting::format_struct::FormattingHelper,
     guards,
+    models::data::users::DointUser,
     types::serenity_types::{Context, Error},
 };
 
