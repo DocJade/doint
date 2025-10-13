@@ -143,4 +143,93 @@ mod bank_tests {
             Ok(())
         })
     }
+
+    #[tokio::test]
+    async fn bank_to_user() {
+        let mut conn = get_isolated_test_db().await;
+
+        let transfer_amount = BigDecimal::from_i32(50).unwrap();
+
+        conn.test_transaction::<_, diesel::result::Error, _>(|conn| {
+            let user_a = create_test_user(conn);
+
+            let (mut the_bank, _) = setup_bank_and_fees(conn);
+            the_bank.doints_on_hand = BigDecimal::from_u64(50).unwrap();
+            the_bank
+                .save_changes::<BankInfo>(conn)
+                .expect("Expected balance change to succeed");
+
+            let transfer = DointTransfer::new(
+                DointTransferParty::Bank,
+                DointTransferParty::DointUser(user_a.id),
+                transfer_amount.clone(),
+                false,
+                DointTransferReason::UniversalBasicIncome,
+            )
+            .expect("Transfer should be valid");
+
+            let reciept =
+                BankInterface::bank_transfer(conn, transfer).expect("Transfer should succeed!");
+
+            assert_eq!(
+                reciept,
+                DointTransferReceipt {
+                    amount_sent: transfer_amount.clone(),
+                    fees_paid: None,
+                    recipient: DointTransferParty::DointUser(user_a.id),
+                    sender: DointTransferParty::Bank,
+                    transfer_reason: DointTransferReason::UniversalBasicIncome,
+                }
+            );
+
+            // Get the data again since it has changed
+            let the_bank = get_bank(conn);
+            let user_a = Users::get_doint_user(user_a.id, conn)?.expect("User should exist!");
+
+            assert_eq!(the_bank.doints_on_hand, BigDecimal::from_u64(0).unwrap());
+
+            assert_eq!(
+                user_a.bal,
+                BigDecimal::from_u64(1000).unwrap() + transfer_amount.clone()
+            );
+
+            Ok(())
+        })
+    }
+
+    #[tokio::test]
+    async fn bank_to_none() {
+        let mut conn = get_isolated_test_db().await;
+
+        let transfer_amount = BigDecimal::from_i32(50).unwrap();
+
+        conn.test_transaction::<_, diesel::result::Error, _>(|conn| {
+            let (mut the_bank, _) = setup_bank_and_fees(conn);
+            the_bank.doints_on_hand = BigDecimal::from_u64(50).unwrap();
+            the_bank
+                .save_changes::<BankInfo>(conn)
+                .expect("Expected balance change to succeed");
+
+            let transfer = DointTransfer::new(
+                DointTransferParty::Bank,
+                DointTransferParty::DointUser(0),
+                transfer_amount.clone(),
+                false,
+                DointTransferReason::UniversalBasicIncome,
+            )
+            .expect("Transfer should be valid");
+
+            let reciept =
+                BankInterface::bank_transfer(conn, transfer).expect_err("Transfer should fail!");
+
+            assert!(matches!(reciept, DointTransferError::InvalidParty));
+
+            // Get the data again since it has changed
+            let the_bank = get_bank(conn);
+
+            assert_eq!(the_bank.doints_on_hand, BigDecimal::from_u64(50).unwrap());
+
+            Ok(())
+        })
+    }
 }

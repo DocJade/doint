@@ -248,7 +248,6 @@ fn run_bank_transfer(
     // Make sure that both parties exist, and that the transfer can happen.
     match transfer.sender {
         DointTransferParty::Bank => {
-            // Bank must exist.
             // Check if bank has funds
             let bal = BankInterface::get_bank_balance(conn)?;
 
