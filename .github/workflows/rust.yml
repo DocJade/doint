@@ -12,8 +12,21 @@ on:
       - master
 
 jobs:
-  checks:
-    name: Code Checks (fmt & clippy)
+  fmt:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Setup toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+  clippy:
+    name: Clippy
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
     permissions:
@@ -21,29 +34,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
       - name: Setup toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt, clippy
-
+          components: clippy
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
         with:
           prefix-key: "rust-stable"
-          shared-key: "checks"
-
-      - name: Check formatting
-        run: cargo fmt --all -- --check
-
+          shared-key: "clippy"
       - name: Install sarif-fmt & clippy-sarif
         uses: taiki-e/install-action@v2
         with:
-          tool: sarif-fmt, clippy-sarif
-
-      - name: Run clippy and generate SARIF
-        run: cargo clippy --message-format=json --all-targets | clippy-sarif | tee results.sarif | sarif-fmt
-
+          tool: sarif-fmt,clippy-sarif
+      - name: Run clippy
+        run: cargo clippy --message-format=json | clippy-sarif | tee results.sarif | sarif-fmt
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
         with:
@@ -57,6 +62,7 @@ jobs:
       contents: read
       actions: read
       checks: write
+
     services:
       mysql:
         image: mysql:8.0
@@ -87,23 +93,46 @@ jobs:
         with:
           prefix-key: "rust-stable"
           shared-key: "tests"
+          cache-on-failure: true
+
       - name: Install nextest
         uses: taiki-e/install-action@v2
         with:
           tool: nextest
-      - name: Compile and Run tests
+
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..30}; do
+            if mysql -h 127.0.0.1 -u root -e "SELECT 1" &>/dev/null; then
+              echo "MySQL is ready!"
+              break
+            fi
+            echo "Waiting for MySQL..."
+            sleep 2
+          done
+
+      - name: Run tests
         run: cargo nextest run --no-fail-fast --failure-output final -j num-cpus --final-status-level all
+
   build:
     name: Build ${{ matrix.platform.os_name }} [rust ${{ matrix.toolchain }}]
     runs-on: ${{ matrix.platform.os }}
     if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
-    needs: [checks, tests]
     strategy:
       matrix:
         platform:
+          # - os_name: Windows-x86_64
+          #   os: windows-latest
+          #   target: x86_64-pc-windows-msvc
           - os_name: Linux-x86_64
             os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
+          # - os_name: MacOS-x86_64
+          #   os: macos-latest
+          #   target: x86_64-apple-darwin
+          # - os_name: MacOS-aarch64
+          #   os: macos-latest
+          #   target: aarch64-apple-darwin
         toolchain:
           - stable
     steps:
