@@ -194,7 +194,7 @@ fn get_robbery_flavor_text(worked: bool, user_display_name: &str) -> String {
 const SUCCESS_FLAVOR: [&str; 5] = [
     "You ran by and stole *'s hat worth",
     "You ran off with",
-    "You tied *'s shoelaces together while you leafed through *'s wallet, taking",
+    "You tied *'s shoelaces together while you leafed through their wallet, taking",
     "You pointed a banana at *, and they thought it was a gun! * Ran off with",
     "You dipped into *'s back pocket, which contained 3 jelly beans, a fish skeleton, and",
 ];
