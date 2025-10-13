@@ -6,7 +6,7 @@ use chrono::{Local, NaiveDateTime, TimeDelta};
 use diesel::{Connection, MysqlConnection, RunQueryDsl};
 
 use crate::{
-    database::tables::{jail::JailedUser, users::DointUser},
+    models::data::{jail::JailedUser, users::DointUser},
     models::jail::{
         JailError,
         reasons::{JailCause, JailReason},

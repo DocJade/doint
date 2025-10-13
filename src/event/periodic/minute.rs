@@ -1,7 +1,7 @@
 // This gets ran a lot, so only very quick things here!
 
-use crate::database::tables::jail::JailedUser;
-use crate::database::tables::users::DointUser;
+use crate::models::data::jail::JailedUser;
+use crate::models::data::users::DointUser;
 use crate::models::jail::JailError;
 use crate::schema::jail::dsl::jail;
 use crate::schema::users::dsl::users;

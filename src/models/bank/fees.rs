@@ -1,6 +1,6 @@
-use crate::database::tables::fees::FeeInfo;
 use crate::models::BankInterface;
 use crate::models::bank::conversions;
+use crate::models::data::fees::FeeInfo;
 use bigdecimal::{BigDecimal, FromPrimitive};
 use diesel::{Connection, MysqlConnection, RunQueryDsl};
 

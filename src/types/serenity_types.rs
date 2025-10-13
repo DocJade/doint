@@ -3,7 +3,7 @@ use diesel::r2d2;
 use diesel::r2d2::ConnectionManager;
 use thiserror::Error;
 
-use crate::database::tables::jail::JailedUser;
+use crate::models::data::jail::JailedUser;
 
 // Error and context types
 

@@ -1,8 +1,8 @@
 use bigdecimal::BigDecimal;
 use diesel::{Connection, MysqlConnection, RunQueryDsl, SaveChangesDsl};
 
-use crate::database::tables::bank::BankInfo;
 use crate::models::BankInterface;
+use crate::models::data::bank::BankInfo;
 
 use crate::schema::bank::dsl::bank;
 

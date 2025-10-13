@@ -3,9 +3,9 @@
 use diesel::{Connection, RunQueryDsl};
 use poise::CreateReply;
 
-use crate::database::tables::bank::BankInfo;
 use crate::guards;
 use crate::models::BankInterface;
+use crate::models::data::bank::BankInfo;
 use crate::schema::bank::dsl::bank;
 use crate::types::serenity_types::{Context, Error};
 

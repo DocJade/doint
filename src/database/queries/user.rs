@@ -4,7 +4,7 @@ use crate::schema::users::dsl::users;
 use diesel::prelude::*;
 use diesel::{Connection, MysqlConnection};
 
-use crate::database::tables::users::DointUser;
+use crate::models::data::users::DointUser;
 
 /// Returns a `DointUser` if the user with the respective `id` exists.
 pub(crate) fn get_doint_user(
