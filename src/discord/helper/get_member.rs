@@ -25,7 +25,9 @@ pub async fn get_member_from_id(
         warn!("Tried to get a member from an ID while ctx was outside guild!");
         warn!("Bot should not respond in DMs or in non-doccord!");
         // Ignored.
-        return Err(Error::ThisShouldNotHappen(ThisShouldNotHappen::BotIsOutsideServer))?;
+        return Err(Error::ThisShouldNotHappen(
+            ThisShouldNotHappen::BotIsOutsideServer,
+        ))?;
     };
 
     // Does the guild have this member?

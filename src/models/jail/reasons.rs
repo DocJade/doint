@@ -27,7 +27,8 @@ pub enum JailReason {
 
 impl JailReason {
     /// Returns a [`TimeDelta`] of how long a user should be jailed for based on the crime.
-    #[must_use] pub fn to_time(self) -> TimeDelta {
+    #[must_use]
+    pub fn to_time(self) -> TimeDelta {
         // Get how many seconds they should be in jail for
         let duration_seconds: i64 = match self {
             JailReason::AttemptedRobbery => 60 * 60, // 1 hour

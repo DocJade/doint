@@ -4,7 +4,8 @@ use bigdecimal::BigDecimal;
 
 impl super::format_struct::FormattingHelper {
     /// Format doints for display based on user preferences
-    #[must_use] pub fn display_doint(doints: &BigDecimal) -> String {
+    #[must_use]
+    pub fn display_doint(doints: &BigDecimal) -> String {
         // TODO: Allow users to set formatting preferences.
 
         let raw: String = format!("{doints:.2}");

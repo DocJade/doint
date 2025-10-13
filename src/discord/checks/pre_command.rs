@@ -24,7 +24,9 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
         // If we cant load them, chances are we arent in doccord.
         // We just wont respond.
         debug!("Pre-command check, couldn't find member.");
-        return Err(Error::CommandCheckFailed(CommandCheckFailureReason::MemberNotFound));
+        return Err(Error::CommandCheckFailed(
+            CommandCheckFailureReason::MemberNotFound,
+        ));
     };
 
     // If the user is not enrolled in doints, let them know.
@@ -33,12 +35,12 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
         Err(err) => {
             // Couldn't check if user was enrolled. Not much we can do.
             // Still want that inner error tho
-            return Err(Error::CommandCheckFailed(CommandCheckFailureReason::CheckErroredOut(
-                CommandCheckFailure {
+            return Err(Error::CommandCheckFailed(
+                CommandCheckFailureReason::CheckErroredOut(CommandCheckFailure {
                     bot_error: Box::new(err),
                     where_fail: "Member enrollment check.".to_string(),
-                },
-            )));
+                }),
+            ));
         }
     };
 
@@ -46,7 +48,9 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
 
     if !is_enrolled {
         // User is not enrolled in doints.
-        return Err(Error::CommandCheckFailed(CommandCheckFailureReason::UserNotEnrolled));
+        return Err(Error::CommandCheckFailed(
+            CommandCheckFailureReason::UserNotEnrolled,
+        ));
     }
 
     // If the user is an admin, we dont need to do any more checks.
@@ -67,9 +71,9 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
         Ok(ok) => ok,
         Err(err) => {
             // Failed to get DB connection, nothing we can do. Fail out.
-            return Err(DointBotError::CommandCheckFailed(CommandCheckFailureReason::R2D2Failure(
-                err.to_string(),
-            )));
+            return Err(DointBotError::CommandCheckFailed(
+                CommandCheckFailureReason::R2D2Failure(err.to_string()),
+            ));
         }
     };
 
@@ -81,17 +85,19 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
                 all_good
             } else {
                 // Well, didnt find them
-                return Err(Error::CommandCheckFailed(CommandCheckFailureReason::UserNotEnrolled));
+                return Err(Error::CommandCheckFailed(
+                    CommandCheckFailureReason::UserNotEnrolled,
+                ));
             }
         }
         Err(err) => {
             // Failed to load them in, cant go further.
-            return Err(Error::CommandCheckFailed(CommandCheckFailureReason::CheckErroredOut(
-                CommandCheckFailure {
+            return Err(Error::CommandCheckFailed(
+                CommandCheckFailureReason::CheckErroredOut(CommandCheckFailure {
                     bot_error: Box::new(err.into()),
                     where_fail: "Getting the Doint user.".to_string(),
-                },
-            )));
+                }),
+            ));
         }
     };
 
@@ -100,7 +106,9 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
         Ok(ok) => {
             if let Some(jail) = ok {
                 // Cant run commands while in jail.
-                return Err(Error::CommandCheckFailed(CommandCheckFailureReason::UserInJail(jail)));
+                return Err(Error::CommandCheckFailed(
+                    CommandCheckFailureReason::UserInJail(jail),
+                ));
             }
         }
         Err(err) => {
@@ -110,12 +118,12 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
                 }
                 JailError::DieselError(error) => {
                     // Checking if the user was in jail failed.
-                    return Err(Error::CommandCheckFailed(CommandCheckFailureReason::CheckErroredOut(
-                        CommandCheckFailure {
+                    return Err(Error::CommandCheckFailed(
+                        CommandCheckFailureReason::CheckErroredOut(CommandCheckFailure {
                             bot_error: Box::new(error.into()),
                             where_fail: "Failed to check if user was in jail.".to_string(),
-                        },
-                    )));
+                        }),
+                    ));
                 }
                 _ => unreachable!(),
             }

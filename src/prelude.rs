@@ -1,5 +1,5 @@
-pub use crate::models::prelude::*;
 pub use crate::discord::prelude::*;
+pub use crate::models::prelude::*;
 
 // Models
 pub use crate::types::serenity_types::*;
@@ -17,9 +17,9 @@ pub use crate::types::serenity_types::CommandCheckFailureReason;
 
 pub use crate::consent::*;
 
-pub use crate::schema::users::dsl::users as users_table;
 pub use crate::schema::users::dsl::bal as users_bal_table;
 pub use crate::schema::users::dsl::id as users_id_table;
+pub use crate::schema::users::dsl::users as users_table;
 
 pub use crate::schema::bank::dsl::bank as bank_table;
 

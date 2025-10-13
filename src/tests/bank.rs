@@ -28,8 +28,7 @@ fn test_pay_slash_command() {
 
         user1
             .clone()
-            .insert_into(
-                users_table)
+            .insert_into(users_table)
             .execute(conn)
             .expect("Failed to insert user 1");
         user2

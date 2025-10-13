@@ -22,9 +22,7 @@ impl EventCaller {
     /// Make sure the total money in circulation is the same as the amount that's supposed to be.
     ///
     /// Returns `Some()` if there is a leak
-    pub fn inflation_check(
-        conn: &mut MysqlConnection,
-    ) -> Result<Option<InflationLeak>, Error> {
+    pub fn inflation_check(conn: &mut MysqlConnection) -> Result<Option<InflationLeak>, Error> {
         debug!("Checking for inflation/deflation.");
         // TODO: admin warnings
         match conn.transaction(|conn| {

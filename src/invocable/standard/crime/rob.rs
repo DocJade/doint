@@ -134,7 +134,10 @@ pub async fn rob(
         // Send them to jail.
         let failure_message = format!(
             "{}\nYou've been sent to jail for attempted robbery!",
-            get_robbery_flavor_text(false, &helper::get_nick::get_display_name(ctx, victim.id).await?)
+            get_robbery_flavor_text(
+                false,
+                &helper::get_nick::get_display_name(ctx, victim.id).await?
+            )
         );
         robber.jail_user(&jail_form, &mut conn)?;
         ctx.say(failure_message).await?;
@@ -158,7 +161,10 @@ pub async fn rob(
     // Inform user
     let victory_message = format!(
         "{} {}!",
-        get_robbery_flavor_text(true, &helper::get_nick::get_display_name(ctx, victim.id).await?),
+        get_robbery_flavor_text(
+            true,
+            &helper::get_nick::get_display_name(ctx, victim.id).await?
+        ),
         crate::formatting::format_struct::FormattingHelper::display_doint(&steal_amount)
     );
     ctx.say(victory_message).await?;
