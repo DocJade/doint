@@ -280,22 +280,6 @@ fn run_bank_transfer(
         && let DointTransferParty::DointUser(id) = transfer.recipient
         && Users::get_doint_user(id, conn)?.is_none()
     {
-        // If the party doesn't exist, still try to charge the sender for wasting our time.
-        conn.transaction::<(), diesel::result::Error, _>(|conn| {
-            if let DointTransferParty::DointUser(sender_id) = transfer.sender {
-                let mut sender =
-                    Users::get_doint_user(sender_id, conn)?.expect("Sender should be valid");
-                sender.bal -= &fees;
-
-                let mut the_bank: BankInfo = bank_table.first(conn)?;
-                the_bank.doints_on_hand += &fees;
-
-                the_bank.save_changes::<BankInfo>(conn)?;
-                sender.save_changes::<DointUser>(conn)?;
-            }
-
-            Ok(())
-        })?;
         return Err(DointTransferError::InvalidParty);
     }
 
