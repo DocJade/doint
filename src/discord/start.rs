@@ -6,7 +6,7 @@ use poise::serenity_prelude as serenity;
 
 use crate::consent::consent_button::opt_in;
 use crate::discord::checks::pre_command::pre_command_call;
-use crate::discord::handlers::{error::handle_error, event::handle_discord_event};
+use crate::discord::handlers::{event::handle_discord_event};
 use crate::invocable::privileged::private::economy::{
     admin_bank_info, admin_set_tax_rate, admin_set_ubi_rate, admin_tax_now,
 };
@@ -17,7 +17,7 @@ use crate::invocable::standard::casino::slots::slots;
 use crate::invocable::standard::crime::rob::rob;
 use crate::invocable::standard::information::public::balance::{balance, snoop};
 use crate::invocable::standard::information::public::leaderboard::{broke, leaderboard};
-use crate::types::serenity_types::{Data, DbPool, DointBotError};
+use crate::prelude::*;
 
 /// Create the client which will be used to start the bot.
 ///
@@ -57,8 +57,8 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
                 admin_set_ubi_rate(),
             ],
             // Handle errors when they occur.
-            on_error: |error: poise::FrameworkError<'_, Data, DointBotError>| {
-                Box::pin(handle_error(error))
+            on_error: |error: poise::FrameworkError<'_, Data, BotError>| {
+                Box::pin(ErrorHandler::handle_poise(error))
             },
             // Handle discord events
             event_handler: |ctx, event, framework, data| {

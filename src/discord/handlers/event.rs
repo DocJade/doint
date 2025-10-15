@@ -14,9 +14,9 @@ static INIT: Once = Once::new();
 pub async fn handle_discord_event(
     ctx: &serenity::Context,
     event: &serenity::FullEvent,
-    _framework: poise::FrameworkContext<'_, Data, Error>,
+    _framework: poise::FrameworkContext<'_, Data, BotError>,
     data: &Data,
-) -> Result<(), Error> {
+) -> Result<(), BotError> {
     match event {
         serenity::FullEvent::Ready { data_about_bot, .. } => {
             info!("Ready! Logged in as {}", data_about_bot.user.name);

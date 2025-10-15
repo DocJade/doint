@@ -21,10 +21,7 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, BotError> {
         // If we cant load them, chances are we arent in doccord.
         // We just wont respond.
         debug!("Pre-command check, couldn't find member.");
-        return Err(BotError::guard(
-            GuardError::MemberNotFound,
-            ErrorSeverity::Info,
-        ));
+        return Err(BotError::from(GuardError::MemberNotFound));
     };
 
     // If the user is not enrolled in doints, let them know.
@@ -32,10 +29,7 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, BotError> {
 
     // We need to also check if the user is trying to opt in, if they are, we cant cancel the command.
     if !is_enrolled {
-        return Err(BotError::guard(
-            GuardError::UserNotEnrolled,
-            ErrorSeverity::Info,
-        ));
+        return Err(BotError::from(GuardError::UserNotEnrolled));
     }
 
     // If the user is an admin, we dont need to do any more checks.
@@ -56,16 +50,13 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, BotError> {
         Ok(ok) => {
             // They should be there, otherwise we need to bail.
             let Some(user) = ok else {
-                return Err(BotError::guard(
-                    GuardError::UserNotEnrolled,
-                    ErrorSeverity::Info,
-                ));
+                return Err(BotError::from(GuardError::UserNotEnrolled));
             };
 
             user
         }
         Err(err) => {
-            return Err(BotError::diesel(err, ErrorSeverity::Info));
+            return Err(BotError::from(err));
         }
     };
 
@@ -74,10 +65,7 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, BotError> {
         Ok(ok) => {
             if let Some(jailed_user) = ok {
                 // Cant run commands while in jail.
-                return Err(BotError::guard(
-                    GuardError::UserInJail(jailed_user),
-                    ErrorSeverity::Info,
-                ));
+                return Err(BotError::from(GuardError::UserInJail(jailed_user)));
             }
         }
         Err(err) => {
@@ -87,7 +75,7 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, BotError> {
                 }
                 JailError::DieselError(error) => {
                     // Checking if the user was in jail failed.
-                    return Err(BotError::diesel(error, ErrorSeverity::Info));
+                    return Err(BotError::from(error));
                 }
                 _ => unreachable!(),
             }

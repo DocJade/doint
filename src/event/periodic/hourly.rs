@@ -9,12 +9,12 @@ impl EventCaller {
     /// Actions that run once a day. Doesn't run at a specific time, just every 24 hours after the bot starts.
     ///
     /// Returns true if all events worked correctly.
-    pub fn hourly_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
+    pub fn hourly_events(conn: &mut MysqlConnection) -> Result<bool, BotError> {
         do_hourly_events(conn)
     }
 }
 
-pub fn do_hourly_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
+pub fn do_hourly_events(conn: &mut MysqlConnection) -> Result<bool, BotError> {
     info!("Running hourly events...");
     // Do everything in a transaction.
     conn.transaction(|conn| {

@@ -8,7 +8,7 @@ use crate::prelude::{helper::get_nick::get_display_name, *};
 
 /// See your doint balance.
 #[poise::command(slash_command, guild_only, aliases("bal"), check = guards::in_doints_category, check = guards::in_commands)]
-pub async fn balance(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn balance(ctx: Context<'_>) -> Result<(), BotError> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -48,7 +48,7 @@ pub async fn balance(ctx: Context<'_>) -> Result<(), Error> {
 pub async fn snoop(
     ctx: Context<'_>,
     #[description = "Who do you want to snoop on?"] victim: Member,
-) -> Result<(), Error> {
+) -> Result<(), BotError> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -79,7 +79,7 @@ pub async fn snoop(
         );
 
         if let Err(e) = transfer {
-            return Err(Error::BankTransferConstructionError(e));
+            return Err(BotError::from(e));
         }
 
         Ok(BankInterface::bank_transfer(conn, transfer.unwrap()))

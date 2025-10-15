@@ -6,7 +6,7 @@ use crate::prelude::{helper::get_nick::get_display_name, *};
 
 /// See the top Doint holders!
 #[poise::command(slash_command, guild_only, aliases("lb"), check = guards::in_doints_category, check = guards::in_commands)]
-pub async fn leaderboard(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn leaderboard(ctx: Context<'_>) -> Result<(), BotError> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -48,7 +48,7 @@ pub async fn leaderboard(ctx: Context<'_>) -> Result<(), Error> {
 
 #[poise::command(slash_command, guild_only, aliases("poor"), check = guards::in_doints_category, check = guards::in_commands)]
 /// See the bottom 10 Doint holders!
-pub async fn broke(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn broke(ctx: Context<'_>) -> Result<(), BotError> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 

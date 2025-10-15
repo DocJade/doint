@@ -15,7 +15,7 @@ use crate::prelude::*;
 pub async fn rob(
     ctx: Context<'_>,
     #[description = "Who would you like to rob?"] who: Member,
-) -> Result<(), Error> {
+) -> Result<(), BotError> {
     debug!(
         "User [{}] is robbing User [{}]!",
         ctx.author().id.get(),
@@ -166,7 +166,7 @@ pub async fn rob(
         );
 
         match transfer {
-            Err(e) => Err(DointBotError::BankTransferConstructionError(e)),
+            Err(e) => Err(BotError::from(e)),
             Ok(transfer) => Ok(BankInterface::bank_transfer(conn, transfer)?),
         }
     })?;

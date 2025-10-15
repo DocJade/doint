@@ -23,11 +23,11 @@ pub async fn flip(
     #[description = "How much are you betting? You can bet a maximum of 1,000.00"]
     #[max = 1000] // 1,000 doints
     bet: f64,
-) -> Result<(), Error> {
+) -> Result<(), BotError> {
     // Turn that float into a BigDecimal
     let Some(bet) = BigDecimal::from_f64(bet) else {
         // Failed to cast!
-        return Err(Error::BigDecimalCastError);
+        return Err(BotError::BigDecimalCast);
     };
 
     debug!(
@@ -113,7 +113,7 @@ pub async fn flip(
             );
 
             return match transfer {
-                Err(e) => Err(DointBotError::BankTransferConstructionError(e)),
+                Err(e) => Err(BotError::from(e)),
                 Ok(transfer) => Ok(BankInterface::bank_transfer(conn, transfer)?),
             };
         }
@@ -129,7 +129,7 @@ pub async fn flip(
         );
 
         match transfer {
-            Err(e) => Err(DointBotError::BankTransferConstructionError(e)),
+            Err(e) => Err(BotError::from(e)),
             Ok(transfer) => Ok(BankInterface::bank_transfer(conn, transfer)?),
         }
     })?;
