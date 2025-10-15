@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use bigdecimal::{BigDecimal, FromPrimitive};
+use bigdecimal::{BigDecimal};
 use diesel::{Connection, MysqlConnection, RunQueryDsl};
 
 impl BankInterface {
@@ -21,23 +21,13 @@ fn go_calculate_fees(
     // Get the fee info
     let fee_info: FeeInfo = conn.transaction(|conn| fees_table.first(conn))?;
 
-    let mut total_fee: BigDecimal = fee_info.flat_fee;
+    let flat_fee: BigDecimal = fee_info.flat_fee;
 
     // Add the percentage fee.
     // Rounds down.
-    let percent_fee: BigDecimal = BigDecimal::from_f64(
-        conversions::tax_rate_to_percentage(fee_info.percentage_fee)
-            .floor()
-            .abs(),
-    )
-    .expect("Should always be valid");
-
-    let mut calculated_percent_fee_int: BigDecimal = transaction_amount * percent_fee;
-
-    // Round up the flat fee to the nearest dent
-    calculated_percent_fee_int = calculated_percent_fee_int.round(2);
-
-    total_fee += calculated_percent_fee_int;
+    let percent_fee = conversions::tax_rate_to_percentage_bd(fee_info.percentage_fee);
+            
+    let total_fee = (percent_fee * transaction_amount) + flat_fee;
 
     Ok(total_fee)
 }
