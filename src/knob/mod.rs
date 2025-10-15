@@ -5,6 +5,7 @@
 // Values here may change during runtime, and are stored/retrieved from the database if they exist.
 pub mod channels;
 pub mod emoji;
+pub mod playing_card_emoji;
 pub mod formatting;
 pub mod guild;
 pub mod roles;
