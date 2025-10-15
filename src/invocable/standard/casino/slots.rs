@@ -6,7 +6,6 @@
 // I like how lazy static works better.
 #![allow(clippy::non_std_lazy_statics)]
 
-use crate::formatting::format_struct::FormattingHelper;
 use crate::prelude::*;
 use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
 use diesel::Connection;
@@ -329,6 +328,16 @@ pub async fn slots(
     // If we run again, we want to update the original message.
     let mut looped: Option<poise::ReplyHandle<'_>> = None;
 
+    let preference = if let Some(member) = &ctx.author().member {
+        if let Some(user) = &member.user {
+            DointFormatterPreference::from(user)
+        } else {
+            crate::knob::formatting::FORMATTER_PREFERENCE
+        }
+    } else {
+        crate::knob::formatting::FORMATTER_PREFERENCE
+    };
+
     // Run in a loop, in case user wants to spin again.
     loop {
         // Get a connection
@@ -348,7 +357,7 @@ pub async fn slots(
         let required_doints: &BigDecimal = &machine.bet_size;
         if &better.bal < required_doints {
             // User cant afford bet.
-            let bet_string = FormattingHelper::display_doint(required_doints);
+            let bet_string = DointFormatter::display_doint_string(required_doints, &preference);
             let _ = ctx
                 .say(format!("You cannot afford the {bet_string} bet."))
                 .await?;
@@ -398,7 +407,8 @@ pub async fn slots(
                 ""
             };
 
-            let formatted_doints = FormattingHelper::display_doint(&amount_actually_won);
+            let formatted_doints =
+                DointFormatter::display_doint_string(&amount_actually_won, &preference);
 
             format!("{jackpot_text}You won {formatted_doints}!")
         } else {

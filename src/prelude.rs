@@ -17,6 +17,7 @@ pub use crate::types::serenity_types::CommandCheckFailureReason;
 
 pub use crate::consent::*;
 
+// Tables & Cols
 pub use crate::schema::users::dsl::bal as bal_col;
 pub use crate::schema::users::dsl::id as user_id_col;
 pub use crate::schema::users::dsl::users as users_table;
@@ -27,3 +28,5 @@ pub use crate::schema::fees::dsl::fees as fees_table;
 pub use crate::schema::jail::dsl::jail as jail_table;
 
 pub use crate::event::event_struct::EventCaller;
+
+pub use crate::formatter::*;

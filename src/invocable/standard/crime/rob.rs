@@ -22,6 +22,16 @@ pub async fn rob(
         who.user.id.get()
     );
 
+    let preference = if let Some(member) = &ctx.author().member {
+        if let Some(user) = &member.user {
+            DointFormatterPreference::from(user)
+        } else {
+            crate::knob::formatting::FORMATTER_PREFERENCE
+        }
+    } else {
+        crate::knob::formatting::FORMATTER_PREFERENCE
+    };
+
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -168,7 +178,7 @@ pub async fn rob(
             true,
             &helper::get_nick::get_display_name(ctx, victim.id).await?
         ),
-        crate::formatting::format_struct::FormattingHelper::display_doint(&steal_amount)
+        DointFormatter::display_doint_string(&steal_amount, &preference)
     );
     ctx.say(victory_message).await?;
 

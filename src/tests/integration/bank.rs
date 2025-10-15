@@ -1,3 +1,4 @@
+#[cfg(test)]
 mod bank_tests {
     use crate::{prelude::*, tests::setup::get_isolated_test_db};
     use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};

@@ -4,10 +4,7 @@ use bigdecimal::{BigDecimal, FromPrimitive};
 use log::{debug, warn};
 use poise::serenity_prelude::Member;
 
-use crate::{
-    formatting::format_struct::FormattingHelper,
-    prelude::{helper::get_nick::get_display_name, *},
-};
+use crate::prelude::{helper::get_nick::get_display_name, *};
 
 /// Pay another player
 #[poise::command(slash_command, guild_only, check = guards::in_doints_category)]
@@ -28,6 +25,16 @@ pub async fn pay(
         recipient.user.id.get(),
         payment
     );
+
+    let preference = if let Some(member) = &ctx.author().member {
+        if let Some(user) = &member.user {
+            DointFormatterPreference::from(user)
+        } else {
+            crate::knob::formatting::FORMATTER_PREFERENCE
+        }
+    } else {
+        crate::knob::formatting::FORMATTER_PREFERENCE
+    };
 
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
@@ -72,8 +79,10 @@ pub async fn pay(
             DointTransferError::SenderInsufficientFunds(details) => {
                 // Broke ass.
                 debug!("User cant afford the transfer. Cancelled.");
-                let fee_money =
-                    FormattingHelper::display_doint(&details.fees_required.expect("/pay has fees"));
+                let fee_money = DointFormatter::display_doint_string(
+                    &details.fees_required.expect("/pay has fees"),
+                    &preference,
+                );
                 let broke_response: String = format!(
                     "You cannot afford that.\nYou may need to factor in the transaction fee of {fee_money}."
                 );
@@ -137,11 +146,13 @@ pub async fn pay(
     // TODO: ledger stuff
 
     // Format the amount sent
-    let amount_string = FormattingHelper::display_doint(&receipt.amount_sent);
+    let amount_string = DointFormatter::display_doint_string(&receipt.amount_sent, &preference);
 
     // Format the transfer fee
-    let fee_string: String =
-        FormattingHelper::display_doint(&receipt.fees_paid.expect("/pay has fees"));
+    let fee_string: String = DointFormatter::display_doint_string(
+        &receipt.fees_paid.expect("/pay has fees"),
+        &preference,
+    );
 
     // Get the name of the recipient, or if that fails, just say `them`
     let recipient_name: String = match get_display_name(ctx, recipient.user.id.get()).await {

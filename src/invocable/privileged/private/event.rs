@@ -2,7 +2,7 @@
 
 use poise::CreateReply;
 
-use crate::{formatting::format_struct::FormattingHelper, prelude::*};
+use crate::prelude::*;
 
 /// Force disperse UBI immediately.
 ///
@@ -27,7 +27,17 @@ pub async fn admin_force_disperse_ubi(ctx: Context<'_>) -> Result<(), Error> {
         Ok(ok) => match ok {
             Some(given) => {
                 #[allow(clippy::cast_possible_wrap)] // Nuh uh.
-                let formatted = FormattingHelper::display_doint(&given);
+                let preference = if let Some(member) = &ctx.author().member {
+                    if let Some(user) = &member.user {
+                        DointFormatterPreference::from(user)
+                    } else {
+                        crate::knob::formatting::FORMATTER_PREFERENCE
+                    }
+                } else {
+                    crate::knob::formatting::FORMATTER_PREFERENCE
+                };
+
+                let formatted = DointFormatter::display_doint_string(&given, &preference);
                 format!("Dispersed {formatted} to each player.")
             }
             None => "Bank could not afford UBI.".to_string(),

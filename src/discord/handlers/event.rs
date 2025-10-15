@@ -2,7 +2,10 @@ use std::{sync::Once, time::Duration};
 
 use log::{error, info, warn};
 
-use crate::{discord::checks::consented, event::activity::activity_reward_struct::ActivityRewardHelper, prelude::*};
+use crate::{
+    discord::checks::consented, event::activity::activity_reward_struct::ActivityRewardHelper,
+    prelude::*,
+};
 use poise::serenity_prelude as serenity;
 
 static INIT: Once = Once::new();

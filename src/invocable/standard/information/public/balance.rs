@@ -4,10 +4,7 @@ use bigdecimal::{BigDecimal, FromPrimitive};
 use diesel::Connection;
 use poise::serenity_prelude::Member;
 
-use crate::{
-    formatting::format_struct::FormattingHelper,
-    prelude::{helper::get_nick::get_display_name, *},
-};
+use crate::prelude::{helper::get_nick::get_display_name, *};
 
 /// See your doint balance.
 #[poise::command(slash_command, guild_only, aliases("bal"), check = guards::in_doints_category, check = guards::in_commands)]
@@ -25,8 +22,18 @@ pub async fn balance(ctx: Context<'_>) -> Result<(), Error> {
         return Ok(());
     };
 
+    let preference = if let Some(member) = &ctx.author().member {
+        if let Some(user) = &member.user {
+            DointFormatterPreference::from(user)
+        } else {
+            crate::knob::formatting::FORMATTER_PREFERENCE
+        }
+    } else {
+        crate::knob::formatting::FORMATTER_PREFERENCE
+    };
+
     // Format the doint number
-    let doint_string = FormattingHelper::display_doint(&user.bal);
+    let doint_string = DointFormatter::display_doint_string(&user.bal, &preference);
 
     // Now print out their balance.
     let response: String = format!("You currently have {doint_string}.");
@@ -85,14 +92,24 @@ pub async fn snoop(
         return Ok(());
     };
 
+    let preference = if let Some(member) = &ctx.author().member {
+        if let Some(user) = &member.user {
+            DointFormatterPreference::from(user)
+        } else {
+            crate::knob::formatting::FORMATTER_PREFERENCE
+        }
+    } else {
+        crate::knob::formatting::FORMATTER_PREFERENCE
+    };
+
     // Format the doint number
-    let doint_string = FormattingHelper::display_doint(&victim.bal);
+    let doint_string = DointFormatter::display_doint_string(&victim.bal, &preference);
 
     // Now print out their balance.
     let response: String = format!(
         "{} currently has {doint_string}.\n\n-# Paid a fee of {}.",
         get_display_name(ctx, victim.id).await?,
-        FormattingHelper::display_doint(&cost)
+        DointFormatter::display_doint_string(&cost, &preference)
     );
 
     // Send it.
