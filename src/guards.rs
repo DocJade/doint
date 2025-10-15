@@ -3,20 +3,37 @@ use crate::prelude::*;
 use paste::paste;
 use poise::CreateReply;
 
-/// Check if the command was executed in the doints category
-pub async fn in_doints_category(ctx: Context<'_>) -> Result<bool, Error> {
+use thiserror::Error as ThisError;
+
+#[derive(ThisError, Debug)]
+pub enum GuardError {
+    #[error("User is not enrolled in doints!")]
+    UserNotEnrolled,
+    #[error("Cannot run that command in this channel!")]
+    InvalidChannel,
+    #[error("That member count not be found!")]
+    MemberNotFound,
+    #[error("That member is in jail!")]
+    UserInJail(JailedUser),
+}
+
+/// # Errors
+/// Will return a `BotError::Serenity` if getting the channel fails
+/// Will return a `BotError::Guard` if it is the incorrect channel
+///
+/// Check if a given command is ran in the doints category
+pub async fn in_doints_category(ctx: Context<'_>) -> Result<bool, BotError> {
     if let Some(category) = ctx
         .http()
         .get_channel(ctx.channel_id())
         .await
-        .or(Err(Error::CommandCheckFailed(
-            CommandCheckFailureReason::InvalidChannel,
-        )))?
+        .or_else(|e| Err(BotError::serenity(e, ErrorSeverity::Info)))?
         .category()
         && category.id != DOINTS_CATEGORY_ID
     {
-        return Err(Error::CommandCheckFailed(
-            CommandCheckFailureReason::InvalidChannel,
+        return Err(BotError::guard(
+            GuardError::InvalidChannel,
+            ErrorSeverity::Info,
         ));
     }
 
@@ -27,23 +44,23 @@ pub async fn in_doints_category(ctx: Context<'_>) -> Result<bool, Error> {
 macro_rules! create_channel_guard {
     ($fn_name:ident,$channel_id:expr) => {
         paste! {
-            pub async fn $fn_name(ctx: $crate::types::serenity_types::Context<'_>) -> Result<bool, $crate::types::serenity_types::Error> {
+            pub async fn $fn_name(ctx: $crate::types::serenity_types::Context<'_>) -> Result<bool, $crate::errors::BotError> {
                 if ctx.channel_id() == $channel_id {
                     Ok(true)
                 } else {
                     ctx.send(CreateReply::default().content(format!("This command can only be used in the <#{}> channel.", $channel_id)).ephemeral(true)).await?;
 
-                    Err(Error::CommandCheckFailed(CommandCheckFailureReason::InvalidChannel))
+                    Err(BotError::guard(GuardError::InvalidChannel, ErrorSeverity::Info))
                 }
             }
 
-            pub async fn [<not_ $fn_name>](ctx: $crate::types::serenity_types::Context<'_>) -> Result<bool, $crate::types::serenity_types::Error> {
+            pub async fn [<not_ $fn_name>](ctx: $crate::types::serenity_types::Context<'_>) -> Result<bool, $crate::errors::BotError> {
                 if ctx.channel_id() == $channel_id {
                     Ok(true)
                 } else {
                     ctx.send(CreateReply::default().content(format!("This command cannot be used in the <#{}> channel.", $channel_id)).ephemeral(true)).await?;
 
-                    Err(Error::CommandCheckFailed(CommandCheckFailureReason::InvalidChannel))
+                    Err(BotError::guard(GuardError::InvalidChannel, ErrorSeverity::Info))
                 }
             }
         }
@@ -56,12 +73,13 @@ create_channel_guard!(in_commands, DOINTS_COMMANDS_CHANNEL_ID);
 create_channel_guard!(in_dev, DOINTS_DEV_CHANNEL_ID);
 
 /// Check if the caller has the dointer role.
-pub async fn ctx_member_enrolled_in_doints(ctx: Context<'_>) -> Result<bool, Error> {
+pub async fn ctx_member_enrolled_in_doints(ctx: Context<'_>) -> Result<bool, BotError> {
     let Some(member) = ctx.author_member().await else {
         // Couldnt find user.
         // If we cant load them, chances are we arent in doccord.
-        return Err(Error::CommandCheckFailed(
-            CommandCheckFailureReason::InvalidChannel,
+        return Err(BotError::guard(
+            GuardError::MemberNotFound,
+            ErrorSeverity::Info,
         ));
     };
     member_enrolled_in_doints(member.into_owned(), ctx)

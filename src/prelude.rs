@@ -30,3 +30,5 @@ pub use crate::schema::jail::dsl::jail as jail_table;
 pub use crate::event::event_struct::EventCaller;
 
 pub use crate::formatter::*;
+pub use crate::errors::*;
+pub use guards::GuardError;

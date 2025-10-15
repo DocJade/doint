@@ -15,18 +15,6 @@ use crate::prelude::*;
 
 #[derive(Error, Debug)]
 pub enum DointBotError {
-    #[error("R2D2 pooling error.")]
-    R2D2Error(#[from] r2d2::Error),
-
-    #[error("Diesel pool error.")]
-    DieselPoolError(#[from] diesel::r2d2::PoolError),
-
-    #[error("Diesel database error.")]
-    DieselError(#[from] diesel::result::Error),
-
-    #[error("Discord/Serenity error.")]
-    SerenityError(#[from] poise::serenity_prelude::Error),
-
     #[error(
         "Failed to cast a number. This should never happen, so if you see this, this IS a bug."
     )]
@@ -102,12 +90,10 @@ pub enum CommandCheckFailureReason {
     UserInJail(JailedUser),
 }
 
-pub type Error = DointBotError; //TODO: This may need to be a box. Who knows
-pub type Context<'a> = poise::Context<'a, Data, Error>;
+pub type Context<'a> = poise::Context<'a, Data, BotError>;
 
 // User data, which is stored and accessible in all command invocations.
 // This includes things like access to the database pool.
-
 pub type DbPool = diesel::r2d2::Pool<ConnectionManager<MysqlConnection>>;
 
 #[derive(Debug)]

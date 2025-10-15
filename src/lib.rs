@@ -10,6 +10,7 @@ pub mod invocable;
 pub mod knob;
 pub mod models;
 pub mod tests;
+pub mod errors;
 pub mod types;
 // Diesel related
 mod schema;
