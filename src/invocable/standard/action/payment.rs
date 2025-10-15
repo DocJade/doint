@@ -62,7 +62,7 @@ pub async fn pay(
     // Run the bank transfer
     let transfer_result = match transfer {
         Err(e) => Err(DointTransferError::ConstructionFailed(e)),
-        Ok(transfer) => BankInterface::bank_transfer(&mut conn, transfer), 
+        Ok(transfer) => BankInterface::bank_transfer(&mut conn, transfer),
     };
 
     // Did that work?
