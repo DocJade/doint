@@ -95,7 +95,7 @@ pub fn create_tables(conn: &mut MysqlConnection) -> Result<(), diesel::result::E
 
         -- Insert a default fees row if it doesn't exist
         INSERT INTO fees (id, flat_fee, percentage_fee)
-        SELECT 'F', 1, 10
+        SELECT 'F', 1, 100
         WHERE NOT EXISTS (SELECT 1 FROM fees);
     "#,
     )?;

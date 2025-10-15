@@ -32,10 +32,7 @@ fn go_collect_taxes(conn: &mut MysqlConnection) -> Result<BigDecimal, Error> {
             return Ok(BigDecimal::zero());
         }
 
-        let tax_rate_percentage = conversions::tax_rate_to_percentage(the_bank.tax_rate);
-
-        let tax_rate_multiplier: BigDecimal = BigDecimal::from_f64(tax_rate_percentage)
-            .expect("Should be able to represent BigDecimal from f64");
+        let tax_rate_percentage = conversions::tax_rate_to_percentage_bd(the_bank.tax_rate);
 
         // Get all users with a positive, non-zero balance
         let mut to_update: Vec<DointUser> = users_table
@@ -46,7 +43,7 @@ fn go_collect_taxes(conn: &mut MysqlConnection) -> Result<BigDecimal, Error> {
         // We also keep track of how much money we have gathered
         let mut collected_taxes: BigDecimal = BigDecimal::zero();
         for user in &mut to_update {
-            let adjustment_amount = &user.bal * &tax_rate_multiplier;
+            let adjustment_amount = &user.bal * &tax_rate_percentage;
 
             // Round upwards to the nearest dent
             let rounded_adjustment = adjustment_amount.round(2);

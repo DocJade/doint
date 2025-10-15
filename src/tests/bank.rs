@@ -34,7 +34,7 @@ mod bank_tests {
 
         let mut the_fees: FeeInfo = fees_table.first(conn).expect("Failed to get fees!");
         the_fees.flat_fee = BigDecimal::one();
-        the_fees.percentage_fee = 10;
+        the_fees.percentage_fee = 100;
         the_fees
             .save_changes::<FeeInfo>(conn)
             .expect("Couldn't set fees to known values.");
@@ -226,6 +226,22 @@ mod bank_tests {
             let the_bank = get_bank(conn);
 
             assert_eq!(the_bank.doints_on_hand, BigDecimal::from_u64(50).unwrap());
+
+            Ok(())
+        })
+    }
+
+    #[tokio::test]
+    /// Tests for a regression where each fee is always 1 dent
+    async fn fee_calculation() {
+        let mut conn = get_isolated_test_db().await;
+
+        let transfer_amount = BigDecimal::from_i32(10).unwrap();
+
+        conn.test_transaction::<_, diesel::result::Error, _>(|conn| {
+            let fees_paid = BankInterface::calculate_fees(conn, &transfer_amount).unwrap();
+
+            assert_eq!(fees_paid, BigDecimal::from(2));
 
             Ok(())
         })
