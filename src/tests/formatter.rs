@@ -10,7 +10,7 @@ mod formatter_tests {
 
         assert_eq!(
             DointFormatter::display_doint_string(&localized, &DointFormatterPreference::American),
-            "123,000.45"
+            "Đ123,000.45"
         );
     }
 
@@ -20,7 +20,7 @@ mod formatter_tests {
 
         assert_eq!(
             DointFormatter::display_doint_string(&localized, &DointFormatterPreference::European),
-            "123.000,45"
+            "Đ123.000,45"
         );
     }
 }
