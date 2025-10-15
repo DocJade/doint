@@ -1,2 +1,3 @@
+#![allow(clippy::unreadable_literal)]
 /// The doccord server ID.
 pub const DOCCORD_SERVER_ID: u64 = 834799816977416193;
