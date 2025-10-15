@@ -123,6 +123,8 @@ pub enum DointTransferReason {
     GenericUserPayment,
     CrimeRobbery,
     BalSnoop,
+    /// Dispersed when users do activity in Doccord to supplement UBI.
+    ActivityReward,
     SpecificUserPayment(String),
 }
 
