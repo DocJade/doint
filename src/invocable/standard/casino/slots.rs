@@ -422,7 +422,7 @@ pub async fn slots(
                 false, // Slots aren't taxed.
                 DointTransferReason::CasinoLoss,
             );
-            
+
             match transfer {
                 Err(e) => return Err(DointTransferError::ConstructionFailed(e)),
                 Ok(transfer) => {
