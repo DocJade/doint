@@ -74,7 +74,10 @@ fn go_collect_taxes(conn: &mut MysqlConnection) -> Result<BigDecimal, Error> {
         info!("Tax collection finished!");
         info!(
             "Collected [{}] doints via taxes.",
-            crate::formatting::format_struct::FormattingHelper::display_doint(&collected_taxes)
+            DointFormatter::display_doint_string(
+                &collected_taxes,
+                &crate::knob::formatting::FORMATTER_PREFERENCE
+            )
         );
         Ok(collected_taxes)
     })

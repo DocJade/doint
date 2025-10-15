@@ -2,10 +2,7 @@
 
 use bigdecimal::BigDecimal;
 
-use crate::{
-    formatting::format_struct::FormattingHelper,
-    prelude::{helper::get_nick::get_display_name, *},
-};
+use crate::prelude::{helper::get_nick::get_display_name, *};
 
 /// See the top Doint holders!
 #[poise::command(slash_command, guild_only, aliases("lb"), check = guards::in_doints_category, check = guards::in_commands)]
@@ -26,11 +23,21 @@ pub async fn leaderboard(ctx: Context<'_>) -> Result<(), Error> {
         names_and_points.push((name, user.bal));
     }
 
+    let preference = if let Some(member) = &ctx.author().member {
+        if let Some(user) = &member.user {
+            DointFormatterPreference::from(user)
+        } else {
+            crate::knob::formatting::FORMATTER_PREFERENCE
+        }
+    } else {
+        crate::knob::formatting::FORMATTER_PREFERENCE
+    };
+
     // Now make a leaderboard message out of that.
     let mut response: String = "Leaderboard:".to_string();
     for (rank, (name, doints)) in names_and_points.iter().enumerate() {
         // Format the doint string
-        let doint_string = FormattingHelper::display_doint(doints);
+        let doint_string = DointFormatter::display_doint_string(doints, &preference);
         response.push_str(&format!("\n- {}: {name} - {doint_string}", rank + 1));
     }
 
@@ -58,11 +65,21 @@ pub async fn broke(ctx: Context<'_>) -> Result<(), Error> {
         names_and_points.push((name, user.bal));
     }
 
+    let preference = if let Some(member) = &ctx.author().member {
+        if let Some(user) = &member.user {
+            DointFormatterPreference::from(user)
+        } else {
+            crate::knob::formatting::FORMATTER_PREFERENCE
+        }
+    } else {
+        crate::knob::formatting::FORMATTER_PREFERENCE
+    };
+
     // Now make a leaderboard message out of that.
     let mut response: String = "Brokies:".to_string();
     for (rank, (name, doints)) in names_and_points.iter().enumerate() {
         // Format the doint string
-        let doint_string = FormattingHelper::display_doint(doints);
+        let doint_string = DointFormatter::display_doint_string(doints, &preference);
         response.push_str(&format!("\n- {}: {name} - {doint_string}", rank + 1));
     }
 

@@ -1,14 +1,14 @@
 // People get rewarded for talking in doccord.
 
+use crate::prelude::*;
 use bigdecimal::{BigDecimal, FromPrimitive, Zero};
 use poise::serenity_prelude::Message;
-use crate::prelude::*;
 
 use crate::{event::activity::activity_reward_struct::ActivityRewardHelper, models::BankInterface};
 
 impl ActivityRewardHelper {
     /// Reward a user for sending messages.
-    /// 
+    ///
     /// Rewards are scaled based on message complexity / entropy.
     pub fn reward_talking(msg: &Message, data: &Data) {
         // Using entropy for scoring messages is nice, since it boils down a lot of complex ideas
@@ -36,7 +36,7 @@ impl ActivityRewardHelper {
             None => {
                 // not a huge deal, wont even log it.
                 return;
-            },
+            }
         };
 
         // Round that to be proper.
@@ -44,7 +44,7 @@ impl ActivityRewardHelper {
 
         // We can skip everything if this would have been a 0 doint transfer.
         if transfer_amount == BigDecimal::zero() {
-            return
+            return;
         }
 
         // Get the database pool
@@ -55,7 +55,7 @@ impl ActivityRewardHelper {
             Ok(ok) => ok,
             Err(_) => return,
         };
-        
+
         // Create a transfer, this will automatically fail if the bank cannot pay this out, or if the user
         // cannot accept it for some reason.
 
@@ -66,7 +66,7 @@ impl ActivityRewardHelper {
             DointTransferParty::DointUser(msg.author.id.get()),
             transfer_amount,
             false, // No need.
-            DointTransferReason::ActivityReward
+            DointTransferReason::ActivityReward,
         ) {
             Ok(ok) => ok,
             Err(_) => return,
@@ -77,10 +77,8 @@ impl ActivityRewardHelper {
         // We don't care if this fails, or even if it works.
 
         let _ = BankInterface::bank_transfer(&mut conn, transfer);
-
     }
 }
-
 
 // I dont wanna import an entire crate just for a single entropy calculation, so here it is.
 // https://docs.rs/entropy/latest/src/entropy/lib.rs.html#14-33

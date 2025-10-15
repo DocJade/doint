@@ -5,6 +5,8 @@ use diesel::prelude::*;
 use diesel::{Connection, MysqlConnection};
 
 impl Leaderboard {
+    /// # Errors
+    ///
     /// Get the users with the highest doint balances.
     ///
     /// If the number of users is less than `limit`, all users will be returned.
@@ -20,6 +22,8 @@ impl Leaderboard {
         })
     }
 
+    /// # Errors
+    ///
     /// Get the users with the lowest doint balances.
     ///
     /// If the number of users is less than `limit`, all users will be returned.

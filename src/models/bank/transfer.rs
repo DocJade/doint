@@ -85,8 +85,8 @@ impl DointTransfer {
         Ok(Self {
             sender,
             recipient,
-            apply_fees,
             transfer_amount,
+            apply_fees,
             transfer_reason,
         })
     }
@@ -102,10 +102,12 @@ pub enum DointTransferParty {
 }
 
 impl DointTransferParty {
+    #[must_use]
     pub fn is_user(&self) -> bool {
         matches!(self, DointTransferParty::DointUser(_))
     }
 
+    #[must_use]
     pub fn is_bank(&self) -> bool {
         matches!(self, DointTransferParty::Bank)
     }

@@ -4,7 +4,7 @@ use bigdecimal::{BigDecimal, FromPrimitive as _, Zero};
 use diesel::Connection;
 use log::{debug, warn};
 
-use crate::{formatting::format_struct::FormattingHelper, prelude::*};
+use crate::prelude::*;
 
 // a coin
 #[derive(Debug, poise::ChoiceParameter, PartialEq, Eq)]
@@ -143,13 +143,24 @@ pub async fn flip(
     } else {
         "Tails"
     };
-    let bet_size = FormattingHelper::display_doint(&final_bet_amount);
+
+    let preference = if let Some(member) = &ctx.author().member {
+        if let Some(user) = &member.user {
+            DointFormatterPreference::from(user)
+        } else {
+            crate::knob::formatting::FORMATTER_PREFERENCE
+        }
+    } else {
+        crate::knob::formatting::FORMATTER_PREFERENCE
+    };
+
+    let bet_size = DointFormatter::display_doint_string(&final_bet_amount, &preference);
 
     // rest of the owl
     let response = if flip == side {
         // win
-        let paid_fees = FormattingHelper::display_doint(&fees_to_pay);
-        let takeaway = FormattingHelper::display_doint(&receipt.amount_sent);
+        let paid_fees = DointFormatter::display_doint_string(&fees_to_pay, &preference);
+        let takeaway = DointFormatter::display_doint_string(&receipt.amount_sent, &preference);
         format!(
             "{side_name}! You won {takeaway}!\n\n-# Paid a fee of {paid_fees}. ({bet_size} - {paid_fees} = {takeaway})"
         )

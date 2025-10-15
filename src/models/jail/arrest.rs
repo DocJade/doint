@@ -24,6 +24,8 @@ pub struct JailForm {
 
 // Impl it on DointUser for ease of use.
 impl DointUser {
+    /// # Errors
+    ///
     /// Puts a user in jail for the specified reason.
     ///
     /// If user is already in jail, return their current jail status in the error.

@@ -18,5 +18,7 @@ pub fn member_enrolled_in_doints(member: Member, ctx: Context<'_>) -> Result<boo
 
 #[must_use]
 pub fn role_ids_contains_dointer_role(roles: &Vec<RoleId>) -> bool {
-    roles.iter().any(|role| role.get() == DOINTS_ENABLED_ROLE_ID)
+    roles
+        .iter()
+        .any(|role| role.get() == DOINTS_ENABLED_ROLE_ID)
 }
