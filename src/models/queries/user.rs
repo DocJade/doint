@@ -8,7 +8,7 @@ use diesel::{Connection, MysqlConnection};
 
 impl queries::Users {
     /// # Errors
-    /// 
+    ///
     /// Returns a `DointUser` if the user with the respective `id` exists.
     pub fn get_doint_user(
         id: impl Into<u64>,

@@ -102,11 +102,13 @@ pub enum DointTransferParty {
 }
 
 impl DointTransferParty {
-    #[must_use] pub fn is_user(&self) -> bool {
+    #[must_use]
+    pub fn is_user(&self) -> bool {
         matches!(self, DointTransferParty::DointUser(_))
     }
 
-    #[must_use] pub fn is_bank(&self) -> bool {
+    #[must_use]
+    pub fn is_bank(&self) -> bool {
         matches!(self, DointTransferParty::Bank)
     }
 }
