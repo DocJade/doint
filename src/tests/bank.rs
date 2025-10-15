@@ -131,14 +131,12 @@ mod bank_tests {
                 "Should be an InvalidParty error!"
             );
 
-            let fees_paid = BankInterface::calculate_fees(conn, &transfer_amount).unwrap();
-
             // Get the data again since it has changed
             let the_bank = get_bank(conn);
             let user_a = Users::get_doint_user(user_a.id, conn)?.expect("User should exist!");
 
-            assert_eq!(the_bank.doints_on_hand, fees_paid);
-            assert_eq!(user_a.bal, BigDecimal::from_u64(1000).unwrap() - fees_paid);
+            assert_eq!(the_bank.doints_on_hand, BigDecimal::zero());
+            assert_eq!(user_a.bal, BigDecimal::from_u64(1000).unwrap());
 
             Ok(())
         })
