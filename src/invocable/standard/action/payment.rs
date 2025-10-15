@@ -59,12 +59,11 @@ pub async fn pay(
         DointTransferReason::GenericUserPayment,
     );
 
-    if let Err(e) = transfer {
-        return Err(Error::BankTransferConstructionError(e));
-    };
-
     // Run the bank transfer
-    let transfer_result = BankInterface::bank_transfer(&mut conn, transfer.unwrap());
+    let transfer_result = match transfer {
+        Err(e) => Err(DointTransferError::ConstructionFailed(e)),
+        Ok(transfer) => BankInterface::bank_transfer(&mut conn, transfer), 
+    };
 
     // Did that work?
     let receipt = match transfer_result {
