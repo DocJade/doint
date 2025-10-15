@@ -44,7 +44,7 @@ pub async fn pay(
     }
 
     // Make sure the recipient is opted in
-    if !member_enrolled_in_doints(recipient.clone(), ctx).await? {
+    if !member_enrolled_in_doints(recipient.clone(), ctx)? {
         // Recipient is not enrolled.
         debug!("Person user was trying to pay was not a dointer. Not allowed. Skipping.");
         let _ = ctx.say("You cant pay them, they aren't a dointer.").await?;

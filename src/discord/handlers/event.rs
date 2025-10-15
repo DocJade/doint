@@ -2,7 +2,7 @@ use std::{sync::Once, time::Duration};
 
 use log::{error, info, warn};
 
-use crate::prelude::*;
+use crate::{discord::checks::consented, event::activity::activity_reward_struct::ActivityRewardHelper, prelude::*};
 use poise::serenity_prelude as serenity;
 
 static INIT: Once = Once::new();
@@ -199,6 +199,22 @@ pub async fn handle_discord_event(
         }
         serenity::FullEvent::Ratelimit { data } => {
             info!("Ratelimited! [{}]", data.path);
+        }
+        serenity::FullEvent::Message { new_message } => {
+            // Check if member is a dointer.
+
+            if let Some(member) = &new_message.member {
+                if !consented::role_ids_contains_dointer_role(&member.roles) {
+                    // user is not enrolled.
+                    return Ok(());
+                }
+            } else {
+                // Unable to get member, cant do anything.
+                return Ok(());
+            }
+
+            // User is enrolled, do stuff.
+            ActivityRewardHelper::reward_talking(new_message, data);
         }
         _ => {}
     }
