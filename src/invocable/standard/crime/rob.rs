@@ -155,12 +155,11 @@ pub async fn rob(
             DointTransferReason::CrimeRobbery,
         );
 
-        if let Err(e) = transfer {
-            return Err(DointTransferError::ConstructionFailed(e));
-        }
-
-        Ok(BankInterface::bank_transfer(conn, transfer.unwrap()))
-    })??;
+        return match transfer {
+            Err(e) => Err(DointBotError::BankTransferConstructionError(e)),
+            Ok(transfer) => Ok(BankInterface::bank_transfer(conn, transfer)?),
+        };
+    })?;
 
     // Inform user
     let victory_message = format!(

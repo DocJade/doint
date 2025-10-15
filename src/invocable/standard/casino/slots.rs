@@ -422,12 +422,13 @@ pub async fn slots(
                 false, // Slots aren't taxed.
                 DointTransferReason::CasinoLoss,
             );
-
-            if let Err(e) = transfer {
-                return Err(DointTransferError::ConstructionFailed(e));
-            };
-
-            BankInterface::bank_transfer(conn, transfer.unwrap())?;
+            
+            match transfer {
+                Err(e) => return Err(DointTransferError::ConstructionFailed(e)),
+                Ok(transfer) => {
+                    BankInterface::bank_transfer(conn, transfer)?;
+                }
+            }
 
             // Now give them their winnings, if needed
             if spin_result.win_amount == BigDecimal::zero() {
@@ -444,11 +445,12 @@ pub async fn slots(
                 DointTransferReason::CasinoWin,
             );
 
-            if let Err(e) = transfer {
-                return Err(DointTransferError::ConstructionFailed(e));
-            };
-
-            BankInterface::bank_transfer(conn, transfer.unwrap())?;
+            match transfer {
+                Err(e) => return Err(DointTransferError::ConstructionFailed(e)),
+                Ok(transfer) => {
+                    BankInterface::bank_transfer(conn, transfer)?;
+                }
+            }
             Ok(())
         })?;
 

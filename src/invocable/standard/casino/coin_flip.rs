@@ -112,12 +112,10 @@ pub async fn flip(
                 DointTransferReason::CasinoLoss,
             );
 
-            if let Err(e) = transfer {
-                return Err(Error::BankTransferConstructionError(e));
+            return match transfer {
+                Err(e) => Err(DointBotError::BankTransferConstructionError(e)),
+                Ok(transfer) => Ok(BankInterface::bank_transfer(conn, transfer)?),
             };
-
-            // Need the receipt in both cases, since we need to know fees.
-            return Ok(BankInterface::bank_transfer(conn, transfer.unwrap()));
         }
 
         // User won!
@@ -130,12 +128,11 @@ pub async fn flip(
             DointTransferReason::CasinoWin,
         );
 
-        if let Err(e) = transfer {
-            return Err(Error::BankTransferConstructionError(e));
-        };
-
-        Ok(BankInterface::bank_transfer(conn, transfer.unwrap()))
-    })??;
+        match transfer {
+            Err(e) => Err(DointBotError::BankTransferConstructionError(e)),
+            Ok(transfer) => Ok(BankInterface::bank_transfer(conn, transfer)?),
+        }
+    })?;
 
     // Build message.
     // "[Heads/Tails]! You Won 1.23!\n\n-# Paid a fee of 0.05. (1.28 - 0.05 = 12.3)"

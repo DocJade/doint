@@ -36,7 +36,7 @@ pub async fn balance(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-/// Get another user's doing balance, for a fee.
+/// Get another user's doint balance, for a fee.
 #[poise::command(slash_command, guild_only, aliases("sn"), check = guards::in_doints_category)]
 pub async fn snoop(
     ctx: Context<'_>,
