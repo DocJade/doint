@@ -6,7 +6,7 @@ use poise::serenity_prelude as serenity;
 
 use crate::consent::consent_button::opt_in;
 use crate::discord::checks::pre_command::pre_command_call;
-use crate::discord::handlers::{event::handle_discord_event};
+use crate::discord::handlers::event::handle_discord_event;
 use crate::invocable::privileged::private::economy::{
     admin_bank_info, admin_set_tax_rate, admin_set_ubi_rate, admin_tax_now,
 };

@@ -3,8 +3,6 @@ use diesel::r2d2::ConnectionManager;
 
 use crate::prelude::*;
 
-
-
 pub type Context<'a> = poise::Context<'a, Data, BotError>;
 
 // User data, which is stored and accessible in all command invocations.
