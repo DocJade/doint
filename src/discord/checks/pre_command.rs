@@ -30,7 +30,7 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, Error> {
     };
 
     // If the user is not enrolled in doints, let them know.
-    let is_enrolled = match member_enrolled_in_doints(member.clone().into_owned(), ctx).await {
+    let is_enrolled = match member_enrolled_in_doints(member.clone().into_owned(), ctx) {
         Ok(ok) => ok,
         Err(err) => {
             // Couldn't check if user was enrolled. Not much we can do.

@@ -64,5 +64,5 @@ pub async fn ctx_member_enrolled_in_doints(ctx: Context<'_>) -> Result<bool, Err
             CommandCheckFailureReason::InvalidChannel,
         ));
     };
-    member_enrolled_in_doints(member.into_owned(), ctx).await
+    member_enrolled_in_doints(member.into_owned(), ctx)
 }

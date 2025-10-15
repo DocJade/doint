@@ -73,7 +73,7 @@ pub async fn snoop(
 
         if let Err(e) = transfer {
             return Err(Error::BankTransferConstructionError(e));
-        };
+        }
 
         Ok(BankInterface::bank_transfer(conn, transfer.unwrap()))
     })??;

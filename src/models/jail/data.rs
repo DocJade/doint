@@ -8,6 +8,7 @@ use log::{info, warn};
 use crate::prelude::*;
 
 impl JailInterface {
+    /// # Errors
     pub fn is_jailed(
         user: &DointUser,
         conn: &mut MysqlConnection,
@@ -18,6 +19,7 @@ impl JailInterface {
             .optional()?)
     }
 
+    /// # Errors
     pub fn free_user(user: &DointUser, conn: &mut MysqlConnection) -> Result<(), JailError> {
         impl_free_user(user, conn)
     }
@@ -52,10 +54,18 @@ fn impl_free_user(user: &DointUser, conn: &mut MysqlConnection) -> Result<(), Ja
 }
 
 impl DointUser {
+    /// # Errors
+    /// Returns a [`JailError`] if the user does not exist.
+    ///
+    /// Free a user from jail
     #[inline]
     pub fn in_jail(&self, conn: &mut MysqlConnection) -> Result<Option<JailedUser>, JailError> {
         JailInterface::is_jailed(self, conn)
     }
+    /// # Errors
+    /// Returns a [`JailError`] if the user does not exist.
+    ///
+    /// Free a user from jail
     #[inline]
     pub fn free_from_jail(&self, conn: &mut MysqlConnection) -> Result<(), JailError> {
         JailInterface::free_user(self, conn)

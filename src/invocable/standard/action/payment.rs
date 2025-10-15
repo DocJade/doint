@@ -1,6 +1,6 @@
 // Pay another user some of your doints.
 
-use bigdecimal::{BigDecimal, FromPrimitive, Zero};
+use bigdecimal::{BigDecimal, FromPrimitive};
 use log::{debug, warn};
 use poise::serenity_prelude::Member;
 
@@ -44,7 +44,7 @@ pub async fn pay(
     }
 
     // Make sure the recipient is opted in
-    if !member_enrolled_in_doints(recipient.clone(), ctx).await? {
+    if !member_enrolled_in_doints(recipient.clone(), ctx)? {
         // Recipient is not enrolled.
         debug!("Person user was trying to pay was not a dointer. Not allowed. Skipping.");
         let _ = ctx.say("You cant pay them, they aren't a dointer.").await?;
@@ -119,7 +119,7 @@ pub async fn pay(
                 unreachable!("/pay should have a valid transfer reason.");
             }
             DointTransferError::ConstructionFailed(e) => {
-                let _ = ctx.say(format!("Your transfer was invalid: {}", e)).await?;
+                let _ = ctx.say(format!("Your transfer was invalid: {e}")).await?;
 
                 return Ok(());
             }

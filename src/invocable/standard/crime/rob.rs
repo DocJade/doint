@@ -155,10 +155,10 @@ pub async fn rob(
             DointTransferReason::CrimeRobbery,
         );
 
-        return match transfer {
+        match transfer {
             Err(e) => Err(DointBotError::BankTransferConstructionError(e)),
             Ok(transfer) => Ok(BankInterface::bank_transfer(conn, transfer)?),
-        };
+        }
     })?;
 
     // Inform user
