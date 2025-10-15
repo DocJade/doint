@@ -26,8 +26,7 @@ pub async fn in_doints_category(ctx: Context<'_>) -> Result<bool, BotError> {
     if let Some(category) = ctx
         .http()
         .get_channel(ctx.channel_id())
-        .await
-        .or_else(|e| Err(BotError::from(e)))?
+        .await.map_err(BotError::from)?
         .category()
         && category.id != DOINTS_CATEGORY_ID
     {

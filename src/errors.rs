@@ -106,7 +106,7 @@ pub enum BotError {
 
 impl BotError {
     /// # Errors
-    /// Will return an `Err` if the BotError cannot be constructed with a severity
+    /// Will return an `Err` if the `BotError` cannot be constructed with a severity
     pub fn with_severity(mut self, severity: ErrorSeverity) -> Result<Self, String> {
         match &mut self {
             Self::R2D2 { severity: s, .. }
@@ -212,13 +212,13 @@ impl From<JailError> for BotError {
 }
 
 impl BotError {
-    pub fn r2d2(err: r2d2::Error, severity: ErrorSeverity) -> Self {
+    #[must_use] pub fn r2d2(err: r2d2::Error, severity: ErrorSeverity) -> Self {
         Self::R2D2 {
             severity,
             source: err,
         }
     }
-    pub fn diesel(err: DieselError, severity: ErrorSeverity) -> Self {
+    #[must_use] pub fn diesel(err: DieselError, severity: ErrorSeverity) -> Self {
         Self::Diesel {
             severity,
             source: err,
@@ -230,13 +230,13 @@ impl BotError {
             source: err,
         }
     }
-    pub fn guard(err: GuardError, severity: ErrorSeverity) -> Self {
+    #[must_use] pub fn guard(err: GuardError, severity: ErrorSeverity) -> Self {
         Self::Guard {
             severity,
             source: err,
         }
     }
-    pub fn doint_transfer_construction(
+    #[must_use] pub fn doint_transfer_construction(
         err: DointTransferConstructionError,
         severity: ErrorSeverity,
     ) -> Self {
@@ -245,13 +245,13 @@ impl BotError {
             source: err,
         }
     }
-    pub fn doint_transfer(err: DointTransferError, severity: ErrorSeverity) -> Self {
+    #[must_use] pub fn doint_transfer(err: DointTransferError, severity: ErrorSeverity) -> Self {
         BotError::DointTransfer {
             severity,
             source: err,
         }
     }
-    pub fn jail(err: JailError, severity: ErrorSeverity) -> Self {
+    #[must_use] pub fn jail(err: JailError, severity: ErrorSeverity) -> Self {
         BotError::Jail {
             severity,
             source: err,
@@ -382,7 +382,7 @@ impl ErrorHandler {
     }
 
     async fn handle_command_panic_error(payload: Option<String>, ctx: Context<'_, Data, BotError>) {
-        error!("Command panicked! Payload: {:?}", payload);
+        error!("Command panicked! Payload: {payload:?}");
         let _ = ctx.defer_ephemeral().await;
         let _ = ctx
             .say("Unexpected internal error while running your command. (panic)")
