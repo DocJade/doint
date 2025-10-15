@@ -1,15 +1,15 @@
 pub mod data;
 // Naughty Dointers
 
-pub(crate) mod arrest;
-pub(crate) mod reasons;
+pub mod arrest;
+pub mod reasons;
 
 use thiserror::Error;
 
-use crate::models::data::jail::JailedUser;
+use crate::prelude::*;
 
 #[derive(Error, Debug)]
-pub(crate) enum JailError {
+pub enum JailError {
     #[error("The user is already in jail")]
     AlreadyInJail(JailedUser),
 

@@ -2,19 +2,11 @@
 
 use poise::serenity_prelude::Member;
 
-use crate::{
-    knob::roles::DOINTS_ENABLED_ROLE_ID,
-    types::serenity_types::{Context, Error},
-};
+use crate::prelude::*;
 
 // Inner function that checks a member, not context
-pub(crate) async fn member_enrolled_in_doints(
-    member: Member,
-    ctx: Context<'_>,
-) -> Result<bool, Error> {
-    let roles = if let Some(roles) = member.roles(ctx) {
-        roles
-    } else {
+pub async fn member_enrolled_in_doints(member: Member, ctx: Context<'_>) -> Result<bool, Error> {
+    let Some(roles) = member.roles(ctx) else {
         // Cant get roles, user has none or something failed.
         return Ok(false);
     };

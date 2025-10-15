@@ -1,18 +1,13 @@
 // Universal basic income!
 
 // Collect taxes from doint-holders.
+use crate::prelude::*;
 
-use crate::models::BankInterface;
-use crate::models::data::bank::BankInfo;
-use crate::schema::bank::dsl::bank;
-use crate::schema::users::dsl::users;
 use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
 use diesel::prelude::*;
 use diesel::result::Error;
 use diesel::{Connection, MysqlConnection};
 use log::{debug, info, warn};
-
-use crate::models::data::users::DointUser;
 
 impl BankInterface {
     /// Disperse UBI to all enrolled users.
@@ -27,7 +22,7 @@ impl BankInterface {
     /// Returns how many doints each user got.
     ///
     /// Returns a diesel error if db stuff fails.
-    pub(crate) fn disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<BigDecimal>, Error> {
+    pub fn disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<BigDecimal>, Error> {
         go_disperse_ubi(conn)
     }
 }
@@ -38,7 +33,7 @@ fn go_disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<BigDecimal>, Err
     // All of this rolls back if UBI could not be dispersed.
     conn.transaction::<Option<BigDecimal>, diesel::result::Error, _>(|conn| {
         // Load in the current state of the bank
-        let the_bank: BankInfo = bank.first(conn)?;
+        let the_bank: BankInfo = bank_table.first(conn)?;
 
         // Calculate the current ubi rate.
         // This is a multiplier, NOT a percentage.
@@ -56,7 +51,7 @@ fn go_disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<BigDecimal>, Err
         let amount_to_disperse: BigDecimal = &the_bank.doints_on_hand * &ubi_rate;
 
         // Count how many doint-holders there are
-        let mut people_to_pay: Vec<DointUser> = users.load::<DointUser>(conn)?;
+        let mut people_to_pay: Vec<DointUser> = users_table.load::<DointUser>(conn)?;
 
         // If there is nobody to pay, we're done.
         if people_to_pay.is_empty() {
@@ -111,7 +106,7 @@ fn go_disperse_ubi(conn: &mut MysqlConnection) -> Result<Option<BigDecimal>, Err
         }
 
         // Take that money out of the bank
-        let mut update_bank: BankInfo = bank.first(conn)?;
+        let mut update_bank: BankInfo = bank_table.first(conn)?;
         update_bank.doints_on_hand -= total_bank_removal;
         update_bank.save_changes::<BankInfo>(conn)?;
 

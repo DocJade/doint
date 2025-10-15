@@ -3,7 +3,7 @@ use diesel::r2d2;
 use diesel::r2d2::ConnectionManager;
 use thiserror::Error;
 
-use crate::models::data::jail::JailedUser;
+use crate::prelude::*;
 
 // Error and context types
 
@@ -14,7 +14,7 @@ use crate::models::data::jail::JailedUser;
 //
 
 #[derive(Error, Debug)]
-pub(crate) enum DointBotError {
+pub enum DointBotError {
     #[error("R2D2 pooling error.")]
     R2D2Error(#[from] r2d2::Error),
 
@@ -37,6 +37,11 @@ pub(crate) enum DointBotError {
     #[deprecated]
     BankTransferError(#[from] crate::models::bank::transfer::DointTransferError),
 
+    #[error("A bank transfer failed to construct.")]
+    BankTransferConstructionError(
+        #[from] crate::models::bank::transfer::DointTransferConstructionError,
+    ),
+
     #[error("Failed to jail a user.")] // TODO: Phase this out, its varients need to be handled lower down.
     #[deprecated]
     JailingError(#[from] crate::models::jail::JailError),
@@ -57,25 +62,25 @@ pub(crate) enum DointBotError {
 /// You may add varients to this enum as you'd like, but really consider, should you be handling this yourself instead
 /// of making the bot's error handler deal with it?
 #[derive(Debug)]
-pub(crate) enum ThisShouldNotHappen {
+pub enum ThisShouldNotHappen {
     BotIsOutsideServer,
 }
 
 /// When a check fails and you need to pass in the `DointBotError` we need a bit more info.
 #[derive(Debug)]
-pub(crate) struct CommandCheckFailure {
+pub struct CommandCheckFailure {
     /// The error you got.
-    pub(crate) bot_error: Box<DointBotError>,
+    pub bot_error: Box<DointBotError>,
 
     /// The name of the check this scoured in.
     ///
     /// This is not matched against, this is purely for printing.
-    pub(crate) where_fail: String,
+    pub where_fail: String,
 }
 
 /// When command checks fail, they return a reason as to why they failed so we can inform the user.
 #[derive(Debug)]
-pub(crate) enum CommandCheckFailureReason {
+pub enum CommandCheckFailureReason {
     /// User was/is not enrolled in doints.
     UserNotEnrolled,
 
@@ -97,15 +102,15 @@ pub(crate) enum CommandCheckFailureReason {
     UserInJail(JailedUser),
 }
 
-pub(crate) type Error = DointBotError; //TODO: This may need to be a box. Who knows
-pub(crate) type Context<'a> = poise::Context<'a, Data, Error>;
+pub type Error = DointBotError; //TODO: This may need to be a box. Who knows
+pub type Context<'a> = poise::Context<'a, Data, Error>;
 
 // User data, which is stored and accessible in all command invocations.
 // This includes things like access to the database pool.
 
-pub(crate) type DbPool = diesel::r2d2::Pool<ConnectionManager<MysqlConnection>>;
+pub type DbPool = diesel::r2d2::Pool<ConnectionManager<MysqlConnection>>;
 
 #[derive(Debug)]
-pub(crate) struct Data {
+pub struct Data {
     pub db_pool: DbPool,
 }

@@ -7,8 +7,7 @@
 #![allow(clippy::non_std_lazy_statics)]
 
 use crate::formatting::format_struct::FormattingHelper;
-use crate::guards;
-use crate::models::queries::Users;
+use crate::prelude::*;
 use bigdecimal::{BigDecimal, FromPrimitive, One, Zero};
 use diesel::Connection;
 use lazy_static::lazy_static;
@@ -21,18 +20,6 @@ use poise::serenity_prelude::{
 use rand::{rng, seq::IndexedRandom};
 use std::iter::repeat_n;
 use std::time::Duration;
-
-use crate::models::BankInterface;
-use crate::models::bank::transfer::{
-    DointTransfer, DointTransferError, DointTransferParty, DointTransferReason,
-};
-use crate::types::serenity_types::{Context, Error};
-
-use crate::knob::emoji::{
-    EMOJI_ANIMATED_ULTRA_FLUSH, EMOJI_BLUNDER, EMOJI_BOOK, EMOJI_BRILLIANT, EMOJI_FERRIS_PARTY,
-    EMOJI_FREAKY_CANNY, EMOJI_TRUE, EMOJI_UNCANNY,
-};
-
 /// Slot machines
 struct SlotMachine<'a> {
     /// The display name of this slot machine
@@ -328,7 +315,7 @@ fn calculate_winnings(symbols: [SlotSymbol; 3], payouts: &SlotPayoutTable) -> Op
     check = guards::ctx_member_enrolled_in_doints,
     check = guards::in_casino
 )]
-pub(crate) async fn slots(
+pub async fn slots(
     ctx: Context<'_>,
     // #[description = "Which machine would you like to play?"] // TODO: more slot machines
     // machine: Coin,
@@ -420,7 +407,6 @@ pub(crate) async fn slots(
         };
 
         // We actually pay the user before displaying anything, in-case that fails.
-
         conn.transaction::<(), DointTransferError, _>(|conn| {
             // If user broke even, we dont need to do anything at all.
             if amount_actually_won == machine.bet_size {
@@ -429,14 +415,20 @@ pub(crate) async fn slots(
             }
 
             // Take the user's bet money
-            let transfer = DointTransfer {
-                sender: DointTransferParty::DointUser(ctx.author().id.get()),
-                recipient: DointTransferParty::Bank,
-                transfer_amount: machine.bet_size.clone(),
-                apply_fees: false, // Slots aren't taxed.
-                transfer_reason: DointTransferReason::CasinoLoss,
-            };
-            BankInterface::bank_transfer(conn, transfer)?;
+            let transfer = DointTransfer::new(
+                DointTransferParty::DointUser(ctx.author().id.get()),
+                DointTransferParty::Bank,
+                machine.bet_size.clone(),
+                false, // Slots aren't taxed.
+                DointTransferReason::CasinoLoss,
+            );
+
+            match transfer {
+                Err(e) => return Err(DointTransferError::ConstructionFailed(e)),
+                Ok(transfer) => {
+                    BankInterface::bank_transfer(conn, transfer)?;
+                }
+            }
 
             // Now give them their winnings, if needed
             if spin_result.win_amount == BigDecimal::zero() {
@@ -445,15 +437,20 @@ pub(crate) async fn slots(
             }
 
             // User won something!
-            let transfer = DointTransfer {
-                sender: DointTransferParty::Bank,
-                recipient: DointTransferParty::DointUser(ctx.author().id.get()),
-                transfer_amount: amount_actually_won,
-                apply_fees: false,
-                transfer_reason: DointTransferReason::CasinoWin,
-            };
+            let transfer = DointTransfer::new(
+                DointTransferParty::Bank,
+                DointTransferParty::DointUser(ctx.author().id.get()),
+                amount_actually_won,
+                false,
+                DointTransferReason::CasinoWin,
+            );
 
-            BankInterface::bank_transfer(conn, transfer)?;
+            match transfer {
+                Err(e) => return Err(DointTransferError::ConstructionFailed(e)),
+                Ok(transfer) => {
+                    BankInterface::bank_transfer(conn, transfer)?;
+                }
+            }
             Ok(())
         })?;
 

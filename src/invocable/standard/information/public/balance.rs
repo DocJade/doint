@@ -4,17 +4,14 @@ use bigdecimal::{BigDecimal, FromPrimitive};
 use diesel::Connection;
 use poise::serenity_prelude::Member;
 
-use crate::discord::helper::get_nick::get_display_name;
-use crate::formatting::format_struct::FormattingHelper;
-use crate::guards;
-use crate::models::BankInterface;
-use crate::models::bank::transfer::{DointTransfer, DointTransferParty, DointTransferReason};
-use crate::models::queries::Users;
-use crate::types::serenity_types::{Context, Error};
+use crate::{
+    formatting::format_struct::FormattingHelper,
+    prelude::{helper::get_nick::get_display_name, *},
+};
 
 /// See your doint balance.
 #[poise::command(slash_command, guild_only, aliases("bal"), check = guards::in_doints_category, check = guards::in_commands)]
-pub(crate) async fn balance(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn balance(ctx: Context<'_>) -> Result<(), Error> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -39,9 +36,9 @@ pub(crate) async fn balance(ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
-/// Get another user's doing balance, for a fee.
+/// Get another user's doint balance, for a fee.
 #[poise::command(slash_command, guild_only, aliases("sn"), check = guards::in_doints_category)]
-pub(crate) async fn snoop(
+pub async fn snoop(
     ctx: Context<'_>,
     #[description = "Who do you want to snoop on?"] victim: Member,
 ) -> Result<(), Error> {
@@ -66,16 +63,20 @@ pub(crate) async fn snoop(
     }
 
     conn.transaction(|conn| {
-        let transfer = DointTransfer {
-            sender: DointTransferParty::DointUser(executor.id),
-            recipient: DointTransferParty::Bank,
-            transfer_amount: cost.clone(),
-            apply_fees: false,
-            transfer_reason: DointTransferReason::BalSnoop,
+        let transfer = DointTransfer::new(
+            DointTransferParty::DointUser(executor.id),
+            DointTransferParty::Bank,
+            cost.clone(),
+            false,
+            DointTransferReason::BalSnoop,
+        );
+
+        if let Err(e) = transfer {
+            return Err(Error::BankTransferConstructionError(e));
         };
 
-        BankInterface::bank_transfer(conn, transfer)
-    })?;
+        Ok(BankInterface::bank_transfer(conn, transfer.unwrap()))
+    })??;
 
     // Get the user, if they dont exist, return false.
     let Some(victim) = Users::get_doint_user(victim.user.id, &mut conn)? else {

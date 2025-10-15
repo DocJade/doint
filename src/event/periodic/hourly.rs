@@ -3,18 +3,18 @@
 use diesel::{Connection, MysqlConnection};
 use log::{info, warn};
 
-use crate::{event::event_struct::EventCaller, types::serenity_types::Error};
+use crate::prelude::*;
 
 impl EventCaller {
     /// Actions that run once a day. Doesn't run at a specific time, just every 24 hours after the bot starts.
     ///
     /// Returns true if all events worked correctly.
-    pub(crate) fn hourly_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
+    pub fn hourly_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
         do_hourly_events(conn)
     }
 }
 
-pub(crate) fn do_hourly_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
+pub fn do_hourly_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
     info!("Running hourly events...");
     // Do everything in a transaction.
     conn.transaction(|conn| {

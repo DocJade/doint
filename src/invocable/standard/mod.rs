@@ -1,5 +1,5 @@
 // Actions that normal users can run.
-pub(crate) mod action;
-pub(crate) mod casino;
-pub(crate) mod crime;
-pub(crate) mod information;
+pub mod action;
+pub mod casino;
+pub mod crime;
+pub mod information;

@@ -1,16 +1,16 @@
 #![allow(clippy::result_large_err)]
+pub mod prelude;
 
-// Main can only see the discord side.
-mod consent;
+pub mod consent;
 pub mod discord;
-mod event;
-mod formatting;
-mod guards;
-mod invocable;
-mod knob;
-mod models;
-mod tests;
-mod types;
+pub mod event;
+pub mod formatting;
+pub mod guards;
+pub mod invocable;
+pub mod knob;
+pub mod models;
+pub mod tests;
+pub mod types;
 
 // Diesel related
 mod schema;

@@ -14,7 +14,7 @@ use log::warn;
 #[derive(FromSqlRow, AsExpression)]
 #[diesel(sql_type = Text)]
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub(crate) enum JailReason {
+pub enum JailReason {
     /// Attempted to steal money from a user (did not succeed)
     AttemptedRobbery,
 
@@ -27,7 +27,8 @@ pub(crate) enum JailReason {
 
 impl JailReason {
     /// Returns a [`TimeDelta`] of how long a user should be jailed for based on the crime.
-    pub(crate) fn to_time(self) -> TimeDelta {
+    #[must_use]
+    pub fn to_time(self) -> TimeDelta {
         // Get how many seconds they should be in jail for
         let duration_seconds: i64 = match self {
             JailReason::AttemptedRobbery => 60 * 60, // 1 hour
@@ -49,7 +50,7 @@ impl JailReason {
 #[derive(FromSqlRow, AsExpression)]
 #[diesel(sql_type = Text)]
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub(crate) enum JailCause {
+pub enum JailCause {
     /// An admin sent this user to jail manually.
     Admin,
 

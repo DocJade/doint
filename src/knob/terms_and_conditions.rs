@@ -1,6 +1,6 @@
 // The text people see when opting into doints.
 
-pub(crate) const TERMS_AND_CONDITIONS_TEXT: &str = "You have now opted into Doints!\nBy opting into doints, you have given permission \
+pub const TERMS_AND_CONDITIONS_TEXT: &str = "You have now opted into Doints!\nBy opting into doints, you have given permission \
     for the Doint bot to store your discord ID in the database and start keeping track of actions you do in Doccord.\
     \n\
     \nThe Doint bot will see almost every action that you perform on Doccord, however **this information will not be stored**, \

@@ -6,7 +6,7 @@ use diesel::prelude::*;
 #[derive(Queryable, Selectable, Insertable, Identifiable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::users)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
-pub(crate) struct DointUser {
+pub struct DointUser {
     pub id: u64,
     pub bal: BigDecimal,
 }

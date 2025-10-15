@@ -1,5 +1,6 @@
 // Discord related methods, such as bot startup.
-pub(crate) mod checks;
-pub(crate) mod handlers;
-pub(crate) mod helper;
+pub mod checks;
+pub mod handlers;
+pub mod helper;
+pub mod prelude;
 pub mod start;

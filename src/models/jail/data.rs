@@ -5,13 +5,10 @@ use diesel::{
 };
 use log::{info, warn};
 
-use crate::{
-    models::data::{jail::JailedUser, users::DointUser},
-    models::{JailInterface, jail::JailError},
-};
+use crate::prelude::*;
 
 impl JailInterface {
-    pub(crate) fn is_jailed(
+    pub fn is_jailed(
         user: &DointUser,
         conn: &mut MysqlConnection,
     ) -> Result<Option<JailedUser>, JailError> {
@@ -21,7 +18,7 @@ impl JailInterface {
             .optional()?)
     }
 
-    pub(crate) fn free_user(user: &DointUser, conn: &mut MysqlConnection) -> Result<(), JailError> {
+    pub fn free_user(user: &DointUser, conn: &mut MysqlConnection) -> Result<(), JailError> {
         impl_free_user(user, conn)
     }
 }

@@ -4,12 +4,7 @@ use bigdecimal::{BigDecimal, FromPrimitive as _, Zero};
 use diesel::Connection;
 use log::{debug, warn};
 
-use crate::formatting::format_struct::FormattingHelper;
-use crate::guards;
-use crate::models::BankInterface;
-use crate::models::bank::transfer::{DointTransfer, DointTransferParty, DointTransferReason};
-use crate::models::queries::Users;
-use crate::types::serenity_types::{Context, Error};
+use crate::{formatting::format_struct::FormattingHelper, prelude::*};
 
 // a coin
 #[derive(Debug, poise::ChoiceParameter, PartialEq, Eq)]
@@ -22,7 +17,7 @@ enum Coin {
 
 /// Flip a coin, pick a side. If you pick the correct side, you double your money (minus fees)
 #[poise::command(slash_command, guild_only, user_cooldown = 300, check = guards::in_doints_category, check = guards::in_casino)]
-pub(crate) async fn flip(
+pub async fn flip(
     ctx: Context<'_>,
     #[description = "Heads or tails?"] side: Coin,
     #[description = "How much are you betting? You can bet a maximum of 1,000.00"]
@@ -109,30 +104,34 @@ pub(crate) async fn flip(
         // If the user lost, just take their money
         if flip != side {
             // Lost!
-            let transfer = DointTransfer {
-                sender: DointTransferParty::DointUser(ctx.author().id.get()),
-                recipient: DointTransferParty::Bank,
-                transfer_amount: final_bet_amount.clone(),
-                apply_fees: false, // fees get applied after wins
-                transfer_reason: DointTransferReason::CasinoLoss,
-            };
+            let transfer = DointTransfer::new(
+                DointTransferParty::DointUser(ctx.author().id.get()),
+                DointTransferParty::Bank,
+                final_bet_amount.clone(),
+                true, // fees get applied after wins.
+                DointTransferReason::CasinoLoss,
+            );
 
-            // Need the receipt in both cases, since we need to know fees.
-            return BankInterface::bank_transfer(conn, transfer);
+            return match transfer {
+                Err(e) => Err(DointBotError::BankTransferConstructionError(e)),
+                Ok(transfer) => Ok(BankInterface::bank_transfer(conn, transfer)?),
+            };
         }
 
         // User won!
-        // Remember to deduce their fee.
         let take_home = &final_bet_amount - &fees_to_pay;
-        let transfer = DointTransfer {
-            sender: DointTransferParty::Bank,
-            recipient: DointTransferParty::DointUser(ctx.author().id.get()),
-            transfer_amount: take_home,
-            apply_fees: false, // already added in.
-            transfer_reason: DointTransferReason::CasinoWin,
-        };
+        let transfer = DointTransfer::new(
+            DointTransferParty::Bank,
+            DointTransferParty::DointUser(ctx.author().id.get()),
+            take_home,
+            false, // already added in
+            DointTransferReason::CasinoWin,
+        );
 
-        BankInterface::bank_transfer(conn, transfer)
+        match transfer {
+            Err(e) => Err(DointBotError::BankTransferConstructionError(e)),
+            Ok(transfer) => Ok(BankInterface::bank_transfer(conn, transfer)?),
+        }
     })?;
 
     // Build message.

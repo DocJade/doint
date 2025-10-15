@@ -1,4 +1,4 @@
 // Common operations on discord related stuff
-pub(crate) mod get_member;
-pub(crate) mod get_nick;
-pub(crate) mod get_user;
+pub mod get_member;
+pub mod get_nick;
+pub mod get_user;

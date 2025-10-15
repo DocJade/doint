@@ -1,3 +1,3 @@
 // i cant stop winning
-pub(crate) mod coin_flip;
-pub(crate) mod slots;
+pub mod coin_flip;
+pub mod slots;

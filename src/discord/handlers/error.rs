@@ -6,8 +6,8 @@ use std::any::Any;
 use std::process::exit;
 use std::time::Duration;
 
-use crate::types::serenity_types::CommandCheckFailureReason;
-use crate::types::serenity_types::{Data, DointBotError, Error};
+use crate::prelude::*;
+
 use log::error;
 use log::warn;
 use poise::Framework;
@@ -16,7 +16,7 @@ use poise::structs::Context;
 use tokio::sync::Mutex;
 
 /// When something goes wrong.
-pub(in super::super) async fn handle_error(error: poise::FrameworkError<'_, Data, Error>) {
+pub async fn handle_error(error: poise::FrameworkError<'_, Data, Error>) {
     match error {
         poise::FrameworkError::Setup {
             error,

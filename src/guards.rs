@@ -1,12 +1,7 @@
 #![allow(dead_code)]
-
+use crate::prelude::*;
 use paste::paste;
 use poise::CreateReply;
-
-use crate::discord::checks::consented::member_enrolled_in_doints;
-use crate::types::serenity_types::{CommandCheckFailureReason, Context, Error};
-
-use crate::knob::channels::{self, DOINTS_CATEGORY_ID};
 
 /// Check if the command was executed in the doints category
 pub async fn in_doints_category(ctx: Context<'_>) -> Result<bool, Error> {
@@ -55,10 +50,10 @@ macro_rules! create_channel_guard {
     };
 }
 
-create_channel_guard!(in_casino, channels::DOINTS_CASINO_CHANNEL_ID);
-create_channel_guard!(in_discussion, channels::DOINTS_DISCUSSION_CHANNEL_ID);
-create_channel_guard!(in_commands, channels::DOINTS_COMMANDS_CHANNEL_ID);
-create_channel_guard!(in_dev, channels::DOINTS_DEV_CHANNEL_ID);
+create_channel_guard!(in_casino, DOINTS_CASINO_CHANNEL_ID);
+create_channel_guard!(in_discussion, DOINTS_DISCUSSION_CHANNEL_ID);
+create_channel_guard!(in_commands, DOINTS_COMMANDS_CHANNEL_ID);
+create_channel_guard!(in_dev, DOINTS_DEV_CHANNEL_ID);
 
 /// Check if the caller has the dointer role.
 pub async fn ctx_member_enrolled_in_doints(ctx: Context<'_>) -> Result<bool, Error> {

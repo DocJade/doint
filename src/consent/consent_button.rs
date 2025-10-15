@@ -1,24 +1,15 @@
 // Clicking the consent button adds you to the database.
+use crate::prelude::*;
 
-use crate::schema::users::dsl::users;
-use crate::{
-    consent::dointer_role::{give_dointer_role, revoke_dointer_role},
-    knob::terms_and_conditions::TERMS_AND_CONDITIONS_TEXT,
-    models::queries::Users,
-    schema::users::id,
-    types::serenity_types::{Context, Error},
-};
 use bigdecimal::{BigDecimal, Zero};
 use diesel::Connection;
 use diesel::prelude::*;
 use log::{error, info, warn};
 use poise::CreateReply;
 
-use crate::models::data::users::DointUser;
-
 /// Consent to the doint system.
 #[poise::command(slash_command, guild_only)]
-pub(crate) async fn opt_in(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn opt_in(ctx: Context<'_>) -> Result<(), Error> {
     // User wants to opt into the database. Check if they're already here.
     let users_id: u64 = ctx.author().id.into();
 
@@ -51,7 +42,11 @@ pub(crate) async fn opt_in(ctx: Context<'_>) -> Result<(), Error> {
     };
 
     // Add them.
-    conn.transaction(|conn| diesel::insert_into(users).values(new_user).execute(conn))?;
+    conn.transaction(|conn| {
+        diesel::insert_into(users_table)
+            .values(new_user)
+            .execute(conn)
+    })?;
 
     // User added!
 
@@ -64,7 +59,7 @@ pub(crate) async fn opt_in(ctx: Context<'_>) -> Result<(), Error> {
     // We'll try replying 3 times before bailing out
     for _ in 0..3 {
         // Give them the dointer role.
-        if !give_dointer_role(ctx, users_id).await {
+        if !dointer_role::give_dointer_role(ctx, users_id).await {
             // Adding the role failed.
             continue;
         }
@@ -80,8 +75,11 @@ pub(crate) async fn opt_in(ctx: Context<'_>) -> Result<(), Error> {
 
     // Unable to inform user the standard way...
     // Roll back the database add.
-    let removal: Result<usize, diesel::result::Error> =
-        conn.transaction(|conn| diesel::delete(users).filter(id.eq(users_id)).execute(conn));
+    let removal: Result<usize, diesel::result::Error> = conn.transaction(|conn| {
+        diesel::delete(users_table)
+            .filter(user_id_col.eq(users_id))
+            .execute(conn)
+    });
 
     match removal {
         Ok(ok) => {
@@ -104,7 +102,7 @@ pub(crate) async fn opt_in(ctx: Context<'_>) -> Result<(), Error> {
     }
 
     // Removing the role is done afterwards, since if they didnt get removed from the DB, they still need the role.
-    if !revoke_dointer_role(ctx, users_id).await {
+    if !dointer_role::revoke_dointer_role(ctx, users_id).await {
         // Removing the role failed.
         warn!("User [{users_id}] now has the dointer role without being in the DB!");
         // TODO: This should message mods.

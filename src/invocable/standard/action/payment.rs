@@ -4,19 +4,14 @@ use bigdecimal::{BigDecimal, FromPrimitive, Zero};
 use log::{debug, warn};
 use poise::serenity_prelude::Member;
 
-use crate::discord::checks::consented::member_enrolled_in_doints;
-use crate::discord::helper::get_nick::get_display_name;
-use crate::formatting::format_struct::FormattingHelper;
-use crate::guards::{self};
-use crate::models::BankInterface;
-use crate::models::bank::transfer::{
-    DointTransfer, DointTransferError, DointTransferParty, DointTransferReason,
+use crate::{
+    formatting::format_struct::FormattingHelper,
+    prelude::{helper::get_nick::get_display_name, *},
 };
-use crate::types::serenity_types::{Context, Error};
 
 /// Pay another player
 #[poise::command(slash_command, guild_only, check = guards::in_doints_category)]
-pub(crate) async fn pay(
+pub async fn pay(
     ctx: Context<'_>,
     #[description = "Who you are paying."] recipient: Member,
     #[description = "The amount of doints to pay them."] payment: f64,
@@ -56,26 +51,19 @@ pub(crate) async fn pay(
         return Ok(());
     }
 
-    // Gotta pay at least one doint.
-    if payment == BigDecimal::zero() {
-        debug!("User tried to pay 0 doints. Not allowed. Skipping.");
-        let _ = ctx.say("You cant pay somebody nothing.").await?;
-        return Ok(());
-    }
-
-    // Even though
-
-    // The transfer checks all of the balance things for us.
-    let transfer = DointTransfer {
-        sender: DointTransferParty::DointUser(ctx.author().id.get()),
-        recipient: DointTransferParty::DointUser(recipient.user.id.get()),
-        transfer_amount: payment,
-        apply_fees: true,                                          // /pay is taxed.
-        transfer_reason: DointTransferReason::UserPaymentNoReason, // TODO: payment messages (#25)
-    };
+    let transfer = DointTransfer::new(
+        DointTransferParty::DointUser(ctx.author().id.get()),
+        DointTransferParty::DointUser(recipient.user.id.get()),
+        payment,
+        true, // pay command is taxed.
+        DointTransferReason::GenericUserPayment,
+    );
 
     // Run the bank transfer
-    let transfer_result = BankInterface::bank_transfer(&mut conn, transfer);
+    let transfer_result = match transfer {
+        Err(e) => Err(DointTransferError::ConstructionFailed(e)),
+        Ok(transfer) => BankInterface::bank_transfer(&mut conn, transfer),
+    };
 
     // Did that work?
     let receipt = match transfer_result {
@@ -110,7 +98,12 @@ pub(crate) async fn pay(
                 // Not doin that
                 unreachable!("/pay isnt a tax collector")
             }
-            DointTransferError::PointlessTransfer => {
+            DointTransferError::ZeroTransfer => {
+                let _ = ctx.say("Cannot transfer zero doints.").await?;
+                return Ok(());
+            }
+
+            DointTransferError::SameParty => {
                 // already checked higher.
                 unreachable!("Can't pay self")
             }
@@ -124,6 +117,11 @@ pub(crate) async fn pay(
             DointTransferError::InvalidTransferReason => {
                 // This shouldn't happen since we do user transfer types.
                 unreachable!("/pay should have a valid transfer reason.");
+            }
+            DointTransferError::ConstructionFailed(e) => {
+                let _ = ctx.say(format!("Your transfer was invalid: {}", e)).await?;
+
+                return Ok(());
             }
             DointTransferError::DieselError(error) => {
                 // Well.

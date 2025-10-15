@@ -8,19 +8,11 @@ use poise::serenity_prelude::Member;
 use rand::rng;
 use rand::seq::IndexedRandom;
 
-use crate::discord::helper::get_nick::get_display_name;
-use crate::formatting::format_struct::FormattingHelper;
-use crate::guards;
-use crate::models::BankInterface;
-use crate::models::bank::transfer::{DointTransfer, DointTransferParty, DointTransferReason};
-use crate::models::jail::arrest::JailForm;
-use crate::models::jail::reasons::{JailCause, JailReason};
-use crate::models::queries::Users;
-use crate::types::serenity_types::{Context, Error};
+use crate::prelude::*;
 
 /// Rob someone. Odds of the robbery are based on wealth disparity.
 #[poise::command(slash_command, guild_only, check = guards::in_doints_category, check = guards::in_commands)]
-pub(crate) async fn rob(
+pub async fn rob(
     ctx: Context<'_>,
     #[description = "Who would you like to rob?"] who: Member,
 ) -> Result<(), Error> {
@@ -142,7 +134,10 @@ pub(crate) async fn rob(
         // Send them to jail.
         let failure_message = format!(
             "{}\nYou've been sent to jail for attempted robbery!",
-            get_robbery_flavor_text(false, &get_display_name(ctx, victim.id).await?)
+            get_robbery_flavor_text(
+                false,
+                &helper::get_nick::get_display_name(ctx, victim.id).await?
+            )
         );
         robber.jail_user(&jail_form, &mut conn)?;
         ctx.say(failure_message).await?;
@@ -152,22 +147,28 @@ pub(crate) async fn rob(
     // Robbery worked!
     // Take the money!
     conn.transaction(|conn| {
-        let transfer: DointTransfer = DointTransfer {
-            sender: DointTransferParty::DointUser(victim.id),
-            recipient: DointTransferParty::DointUser(robber.id),
-            transfer_amount: steal_amount.clone(),
-            apply_fees: false, // this is theft
-            transfer_reason: DointTransferReason::CrimeRobbery,
-        };
+        let transfer = DointTransfer::new(
+            DointTransferParty::DointUser(victim.id),
+            DointTransferParty::DointUser(robber.id),
+            steal_amount.clone(),
+            false, // this is theft
+            DointTransferReason::CrimeRobbery,
+        );
 
-        BankInterface::bank_transfer(conn, transfer)
+        return match transfer {
+            Err(e) => Err(DointBotError::BankTransferConstructionError(e)),
+            Ok(transfer) => Ok(BankInterface::bank_transfer(conn, transfer)?),
+        };
     })?;
 
     // Inform user
     let victory_message = format!(
         "{} {}!",
-        get_robbery_flavor_text(true, &get_display_name(ctx, victim.id).await?),
-        FormattingHelper::display_doint(&steal_amount)
+        get_robbery_flavor_text(
+            true,
+            &helper::get_nick::get_display_name(ctx, victim.id).await?
+        ),
+        crate::formatting::format_struct::FormattingHelper::display_doint(&steal_amount)
     );
     ctx.say(victory_message).await?;
 

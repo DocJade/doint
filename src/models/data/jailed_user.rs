@@ -3,16 +3,13 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::{
-    models::data::users::DointUser,
-    models::jail::reasons::{JailCause, JailReason},
-};
+use crate::prelude::*;
 
 #[derive(Queryable, Selectable, Identifiable, Associations, Debug, Insertable)]
 #[diesel(belongs_to(DointUser, foreign_key = id))]
 #[diesel(table_name = crate::schema::jail)]
 #[diesel(check_for_backend(diesel::mysql::Mysql))]
-pub(crate) struct JailedUser {
+pub struct JailedUser {
     /// Key to the user in the `users` table.
     pub id: u64,
 
