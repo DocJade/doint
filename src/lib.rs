@@ -1,4 +1,5 @@
 #![allow(clippy::result_large_err)]
+#![forbid(unsafe_code)]
 pub mod prelude;
 
 pub mod discord;
