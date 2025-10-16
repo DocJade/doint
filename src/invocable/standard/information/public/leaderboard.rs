@@ -2,11 +2,11 @@
 
 use bigdecimal::BigDecimal;
 
-use crate::prelude::{helper::get_nick::get_display_name, *};
+use crate::prelude::*;
 
 /// See the top Doint holders!
 #[poise::command(slash_command, guild_only, aliases("lb"), check = guards::in_doints_category, check = guards::in_commands)]
-pub async fn leaderboard(ctx: Context<'_>) -> Result<(), BotError> {
+pub async fn leaderboard(ctx: PoiseContext<'_>) -> Result<(), BotError> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -19,7 +19,7 @@ pub async fn leaderboard(ctx: Context<'_>) -> Result<(), BotError> {
     // Now construct a nicer list with the user's names.
     let mut names_and_points: Vec<(String, BigDecimal)> = Vec::with_capacity(users.len());
     for user in users {
-        let name = get_display_name(ctx, user.id).await?;
+        let name = Member::get_display_name(ctx, user.id).await?;
         names_and_points.push((name, user.bal));
     }
 
@@ -38,7 +38,7 @@ pub async fn leaderboard(ctx: Context<'_>) -> Result<(), BotError> {
     for (rank, (name, doints)) in names_and_points.iter().enumerate() {
         // Format the doint string
         let doint_string = DointFormatter::display_doint_string(doints, &preference);
-        response.push_str(&format!("\n- {}: {name} - {doint_string}", rank + 1));
+        response += &format!("\n- {}: {name} - {doint_string}", rank + 1);
     }
 
     // Send it.
@@ -48,7 +48,7 @@ pub async fn leaderboard(ctx: Context<'_>) -> Result<(), BotError> {
 
 #[poise::command(slash_command, guild_only, aliases("poor"), check = guards::in_doints_category, check = guards::in_commands)]
 /// See the bottom 10 Doint holders!
-pub async fn broke(ctx: Context<'_>) -> Result<(), BotError> {
+pub async fn broke(ctx: PoiseContext<'_>) -> Result<(), BotError> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -61,7 +61,7 @@ pub async fn broke(ctx: Context<'_>) -> Result<(), BotError> {
     // Now construct a nicer list with the user's names.
     let mut names_and_points: Vec<(String, BigDecimal)> = Vec::with_capacity(users.len());
     for user in users {
-        let name = get_display_name(ctx, user.id).await?;
+        let name = Member::get_display_name(ctx, user.id).await?;
         names_and_points.push((name, user.bal));
     }
 

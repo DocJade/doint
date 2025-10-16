@@ -10,8 +10,9 @@ use testcontainers_modules::{
     testcontainers::{ContainerAsync, ImageExt, runners::AsyncRunner},
 };
 
-static MYSQL_CONTAINER: std::sync::LazyLock<tokio::sync::OnceCell<Arc<ContainerAsync<mysql::Mysql>>>> =
-    std::sync::LazyLock::new(tokio::sync::OnceCell::new);
+static MYSQL_CONTAINER: std::sync::LazyLock<
+    tokio::sync::OnceCell<Arc<ContainerAsync<mysql::Mysql>>>,
+> = std::sync::LazyLock::new(tokio::sync::OnceCell::new);
 
 /// Creates a fresh, isolated database for a single test
 pub async fn get_isolated_test_db() -> r2d2::PooledConnection<ConnectionManager<MysqlConnection>> {

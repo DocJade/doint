@@ -213,13 +213,15 @@ impl From<JailError> for BotError {
 }
 
 impl BotError {
-    #[must_use] pub fn r2d2(err: r2d2::Error, severity: ErrorSeverity) -> Self {
+    #[must_use]
+    pub fn r2d2(err: r2d2::Error, severity: ErrorSeverity) -> Self {
         Self::R2D2 {
             severity,
             source: err,
         }
     }
-    #[must_use] pub fn diesel(err: DieselError, severity: ErrorSeverity) -> Self {
+    #[must_use]
+    pub fn diesel(err: DieselError, severity: ErrorSeverity) -> Self {
         Self::Diesel {
             severity,
             source: err,
@@ -231,13 +233,15 @@ impl BotError {
             source: err,
         }
     }
-    #[must_use] pub fn guard(err: GuardError, severity: ErrorSeverity) -> Self {
+    #[must_use]
+    pub fn guard(err: GuardError, severity: ErrorSeverity) -> Self {
         Self::Guard {
             severity,
             source: err,
         }
     }
-    #[must_use] pub fn doint_transfer_construction(
+    #[must_use]
+    pub fn doint_transfer_construction(
         err: DointTransferConstructionError,
         severity: ErrorSeverity,
     ) -> Self {
@@ -246,13 +250,15 @@ impl BotError {
             source: err,
         }
     }
-    #[must_use] pub fn doint_transfer(err: DointTransferError, severity: ErrorSeverity) -> Self {
+    #[must_use]
+    pub fn doint_transfer(err: DointTransferError, severity: ErrorSeverity) -> Self {
         BotError::DointTransfer {
             severity,
             source: err,
         }
     }
-    #[must_use] pub fn jail(err: JailError, severity: ErrorSeverity) -> Self {
+    #[must_use]
+    pub fn jail(err: JailError, severity: ErrorSeverity) -> Self {
         BotError::Jail {
             severity,
             source: err,
@@ -264,7 +270,7 @@ impl BotError {
 pub struct ErrorHandler;
 
 impl ErrorHandler {
-    pub async fn handle_poise(error: FrameworkError<'_, Data, BotError>) {
+    pub async fn handle_poise(error: FrameworkError<'_, PoiseContextData, BotError>) {
         match error {
             FrameworkError::Setup { error, .. } => {
                 Self::handle_setup_error(&error);
@@ -277,7 +283,7 @@ impl ErrorHandler {
                 framework,
                 ..
             } => {
-                Self::handle_event_handler_error(&error, ctx, event, framework).await;
+                Self::handle_event_handler_error(&error, ctx, event, framework);
             }
 
             FrameworkError::Command { error, ctx, .. } => {
@@ -361,11 +367,11 @@ impl ErrorHandler {
         }
     }
 
-    async fn handle_event_handler_error(
+    fn handle_event_handler_error(
         error: &BotError,
         _ctx: &SerenityContext,
         _event: &FullEvent,
-        _framework: FrameworkContext<'_, Data, BotError>,
+        _framework: FrameworkContext<'_, PoiseContextData, BotError>,
     ) {
         error!("Event handler error: {error}");
         if let Some(ErrorSeverity::Fatal) = error.get_severity() {
@@ -374,7 +380,7 @@ impl ErrorHandler {
         }
     }
 
-    async fn handle_command_error(error: &BotError, ctx: Context<'_, Data, BotError>) {
+    async fn handle_command_error(error: &BotError, ctx: Context<'_, PoiseContextData, BotError>) {
         warn!("Command failed: {error}");
         let _ = ctx.defer_ephemeral().await;
         let _ = ctx
@@ -382,7 +388,10 @@ impl ErrorHandler {
             .await;
     }
 
-    async fn handle_command_panic_error(payload: Option<String>, ctx: Context<'_, Data, BotError>) {
+    async fn handle_command_panic_error(
+        payload: Option<String>,
+        ctx: Context<'_, PoiseContextData, BotError>,
+    ) {
         error!("Command panicked! Payload: {payload:?}");
         let _ = ctx.defer_ephemeral().await;
         let _ = ctx
@@ -390,7 +399,7 @@ impl ErrorHandler {
             .await;
     }
 
-    async fn handle_argument_parse_error(ctx: Context<'_, Data, BotError>) {
+    async fn handle_argument_parse_error(ctx: Context<'_, PoiseContextData, BotError>) {
         warn!("Argument parse error in command.");
         let _ = ctx.defer_ephemeral().await;
         let _ = ctx
@@ -398,7 +407,10 @@ impl ErrorHandler {
             .await;
     }
 
-    async fn handle_cooldown_hit_error(remaining: Duration, ctx: Context<'_, Data, BotError>) {
+    async fn handle_cooldown_hit_error(
+        remaining: Duration,
+        ctx: Context<'_, PoiseContextData, BotError>,
+    ) {
         let seconds = remaining.as_secs();
         let end_unix = ctx.created_at().timestamp() + seconds as i64;
         let _ = ctx.defer_ephemeral().await;
@@ -409,7 +421,7 @@ impl ErrorHandler {
 
     async fn handle_missing_bot_permissions_error(
         missing: Permissions,
-        ctx: Context<'_, Data, BotError>,
+        ctx: Context<'_, PoiseContextData, BotError>,
     ) {
         error!("Bot missing permissions: {missing:?}");
         let _ = ctx
@@ -419,7 +431,7 @@ impl ErrorHandler {
 
     async fn handle_missing_user_permissions_error(
         missing: Option<Permissions>,
-        ctx: Context<'_, Data, BotError>,
+        ctx: Context<'_, PoiseContextData, BotError>,
     ) {
         warn!("User missing permissions: {missing:?}");
         let _ = ctx
@@ -427,24 +439,24 @@ impl ErrorHandler {
             .await;
     }
 
-    async fn handle_not_an_owner_error(ctx: Context<'_, Data, BotError>) {
+    async fn handle_not_an_owner_error(ctx: Context<'_, PoiseContextData, BotError>) {
         warn!("Non-owner attempted to use an owner-only command.");
         let _ = ctx.say("Only the bot owner can run this command.").await;
     }
 
-    async fn handle_guild_only_error(ctx: Context<'_, Data, BotError>) {
+    async fn handle_guild_only_error(ctx: Context<'_, PoiseContextData, BotError>) {
         let _ = ctx.defer_ephemeral().await;
         let _ = ctx
             .say("This command can only be used in a server, not in DMs.")
             .await;
     }
 
-    async fn handle_dm_only_error(ctx: Context<'_, Data, BotError>) {
+    async fn handle_dm_only_error(ctx: Context<'_, PoiseContextData, BotError>) {
         let _ = ctx.defer_ephemeral().await;
         let _ = ctx.say("This command can only be used in DMs.").await;
     }
 
-    async fn handle_nsfw_only_error(ctx: Context<'_, Data, BotError>) {
+    async fn handle_nsfw_only_error(ctx: Context<'_, PoiseContextData, BotError>) {
         error!("Attempt to use an NSFW command in a non-NSFW channel.");
         let _ = ctx
             .say("This command is NSFW-only and cannot be used here.")
@@ -453,7 +465,7 @@ impl ErrorHandler {
 
     fn handle_unknown_interaction_error(
         _ctx: &SerenityContext,
-        _framework: FrameworkContext<'_, Data, BotError>,
+        _framework: FrameworkContext<'_, PoiseContextData, BotError>,
         interaction: &serenity_prelude::CommandInteraction,
     ) {
         warn!("Unknown interaction received: {interaction:#?}");

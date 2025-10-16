@@ -1,7 +1,6 @@
 #![allow(clippy::result_large_err)]
 pub mod prelude;
 
-pub mod consent;
 pub mod discord;
 pub mod errors;
 pub mod event;

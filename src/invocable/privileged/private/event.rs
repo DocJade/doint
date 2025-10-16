@@ -15,7 +15,7 @@ use crate::prelude::*;
     check = guards::in_commands
     )
 ]
-pub async fn admin_force_disperse_ubi(ctx: Context<'_>) -> Result<(), BotError> {
+pub async fn admin_force_disperse_ubi(ctx: PoiseContext<'_>) -> Result<(), BotError> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
