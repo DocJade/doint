@@ -1,14 +1,12 @@
 // See your doint balance
 
+use crate::prelude::*;
 use bigdecimal::{BigDecimal, FromPrimitive};
 use diesel::Connection;
-use poise::serenity_prelude::Member;
-
-use crate::prelude::{helper::get_nick::get_display_name, *};
 
 /// See your doint balance.
 #[poise::command(slash_command, guild_only, aliases("bal"), check = guards::in_doints_category, check = guards::in_commands)]
-pub async fn balance(ctx: Context<'_>) -> Result<(), BotError> {
+pub async fn balance(ctx: PoiseContext<'_>) -> Result<(), BotError> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -46,8 +44,8 @@ pub async fn balance(ctx: Context<'_>) -> Result<(), BotError> {
 /// Get another user's doint balance, for a fee.
 #[poise::command(slash_command, guild_only, aliases("sn"), check = guards::in_doints_category)]
 pub async fn snoop(
-    ctx: Context<'_>,
-    #[description = "Who do you want to snoop on?"] victim: Member,
+    ctx: PoiseContext<'_>,
+    #[description = "Who do you want to snoop on?"] victim: GuildMember,
 ) -> Result<(), BotError> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
@@ -108,7 +106,7 @@ pub async fn snoop(
     // Now print out their balance.
     let response: String = format!(
         "{} currently has {doint_string}.\n\n-# Paid a fee of {}.",
-        get_display_name(ctx, victim.id).await?,
+        Member::get_display_name(ctx, victim.id).await?,
         DointFormatter::display_doint_string(&cost, &preference)
     );
 

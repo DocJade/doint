@@ -2,20 +2,16 @@ use std::{sync::Once, time::Duration};
 
 use log::{error, info, warn};
 
-use crate::{
-    discord::checks::consented, event::activity::activity_reward_struct::ActivityRewardHelper,
-    prelude::*,
-};
+use crate::{event::activity::activity_reward_struct::ActivityRewardHelper, prelude::*};
 use poise::serenity_prelude as serenity;
 
 static INIT: Once = Once::new();
 
-#[allow(clippy::too_many_lines)] // shush
 pub async fn handle_discord_event(
     ctx: &serenity::Context,
     event: &serenity::FullEvent,
-    _framework: poise::FrameworkContext<'_, Data, BotError>,
-    data: &Data,
+    _framework: poise::FrameworkContext<'_, PoiseContextData, BotError>,
+    data: &PoiseContextData,
 ) -> Result<(), BotError> {
     match event {
         serenity::FullEvent::Ready { data_about_bot, .. } => {
@@ -204,19 +200,12 @@ pub async fn handle_discord_event(
             info!("Ratelimited! [{}]", data.path);
         }
         serenity::FullEvent::Message { new_message } => {
-            // Check if member is a dointer.
-
-            if let Some(member) = &new_message.member {
-                if !consented::role_ids_contains_dointer_role(&member.roles) {
-                    // user is not enrolled.
-                    return Ok(());
-                }
-            } else {
-                // Unable to get member, cant do anything.
+            // If the member is not enrolled in doints, do nothing.
+            if !Roles::member_enrolled_in_doints(&new_message.member(ctx).await?) {
                 return Ok(());
             }
 
-            // User is enrolled, do stuff.
+            // Otherwise...
             ActivityRewardHelper::reward_talking(new_message, data);
         }
         _ => {}

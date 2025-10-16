@@ -1,7 +1,6 @@
 // Checks for when a command takes both the person who is running the command, and
 // another user as an operand
 
-use poise::serenity_prelude::Member;
 use thiserror::Error;
 
 use crate::prelude::*;
@@ -48,4 +47,4 @@ pub struct DestinationUserRequirements {}
 /// Prints information to the user if this user is unable to have actions called against them.
 ///
 /// Returns an error if the user does not pass after printing information to user.
-pub fn check_destination_user(ctx: Context<'_>, member: Member) {}
+pub fn check_destination_user(ctx: PoiseContext<'_>, member: GuildMember) {}

@@ -10,7 +10,7 @@ impl ActivityRewardHelper {
     /// Reward a user for sending messages.
     ///
     /// Rewards are scaled based on message complexity / entropy.
-    pub fn reward_talking(msg: &Message, data: &Data) {
+    pub fn reward_talking(msg: &Message, data: &PoiseContextData) {
         // Using entropy for scoring messages is nice, since it boils down a lot of complex ideas
         // (Rewarding message length, ignoring repeated characters, etc).
 
@@ -31,12 +31,8 @@ impl ActivityRewardHelper {
         let entropy = shannon_entropy(&msg.content) / 100.0;
 
         // If we cant cast this for some reason, just cancel the entire operation
-        let mut transfer_amount = match BigDecimal::from_f32(entropy) {
-            Some(ok) => ok,
-            None => {
-                // not a huge deal, wont even log it.
-                return;
-            }
+        let Some(mut transfer_amount) = BigDecimal::from_f32(entropy) else {
+            return;
         };
 
         // Round that to be proper.
@@ -61,15 +57,14 @@ impl ActivityRewardHelper {
 
         // If this fails for any reason, just don't pay the user, since this isnt critical.
 
-        let transfer = match DointTransfer::new(
+        let Ok(transfer) = DointTransfer::new(
             DointTransferParty::Bank,
             DointTransferParty::DointUser(msg.author.id.get()),
             transfer_amount,
             false, // No need.
             DointTransferReason::ActivityReward,
-        ) {
-            Ok(ok) => ok,
-            Err(_) => return,
+        ) else {
+            return;
         };
 
         // Give the user the bonus doints!

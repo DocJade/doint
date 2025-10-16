@@ -1,21 +1,16 @@
-// Pay another user some of your doints.
-
 use bigdecimal::{BigDecimal, FromPrimitive};
 use log::{debug, warn};
-use poise::serenity_prelude::Member;
 
-use crate::prelude::{helper::get_nick::get_display_name, *};
+use crate::prelude::*;
 
 /// Pay another player
 #[poise::command(slash_command, guild_only, check = guards::in_doints_category)]
 pub async fn pay(
-    ctx: Context<'_>,
-    #[description = "Who you are paying."] recipient: Member,
+    ctx: PoiseContext<'_>,
+    #[description = "Who you are paying."] recipient: GuildMember,
     #[description = "The amount of doints to pay them."] payment: f64,
 ) -> Result<(), BotError> {
-    // Turn that float into a BigDecimal
     let Some(payment) = BigDecimal::from_f64(payment) else {
-        // Failed to cast!
         return Err(BotError::BigDecimalCast);
     };
 
@@ -36,10 +31,7 @@ pub async fn pay(
         crate::knob::formatting::FORMATTER_PREFERENCE
     };
 
-    // Get the database pool
     let pool = ctx.data().db_pool.clone();
-
-    // Get a connection
     let mut conn = pool.get()?;
 
     // User cannot pay self
@@ -51,7 +43,7 @@ pub async fn pay(
     }
 
     // Make sure the recipient is opted in
-    if !member_enrolled_in_doints(recipient.clone(), ctx)? {
+    if !Roles::member_enrolled_in_doints(&recipient) {
         // Recipient is not enrolled.
         debug!("Person user was trying to pay was not a dointer. Not allowed. Skipping.");
         let _ = ctx.say("You cant pay them, they aren't a dointer.").await?;
@@ -152,11 +144,10 @@ pub async fn pay(
         &preference,
     );
 
-    // Get the name of the recipient, or if that fails, just say `them`
-    let recipient_name: String = match get_display_name(ctx, recipient.user.id.get()).await {
-        Ok(ok) => ok,
-        Err(_) => "them".to_string(),
-    };
+    // Get the name of the recipient, or just say `them`
+    let recipient_name = Member::get_display_name(ctx, recipient.user.id.get())
+        .await
+        .unwrap_or("them".into());
 
     // put that all together
     let response: String = format!(

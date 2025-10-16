@@ -9,7 +9,7 @@ use poise::CreateReply;
 
 /// Consent to the doint system.
 #[poise::command(slash_command, guild_only)]
-pub async fn opt_in(ctx: Context<'_>) -> Result<(), BotError> {
+pub async fn opt_in(ctx: PoiseContext<'_>) -> Result<(), BotError> {
     // User wants to opt into the database. Check if they're already here.
     let users_id: u64 = ctx.author().id.into();
 
@@ -59,7 +59,7 @@ pub async fn opt_in(ctx: Context<'_>) -> Result<(), BotError> {
     // We'll try replying 3 times before bailing out
     for _ in 0..3 {
         // Give them the dointer role.
-        if !dointer_role::give_dointer_role(ctx, users_id).await {
+        if !Roles::give_doints_role(ctx, users_id).await? {
             // Adding the role failed.
             continue;
         }
@@ -102,11 +102,9 @@ pub async fn opt_in(ctx: Context<'_>) -> Result<(), BotError> {
     }
 
     // Removing the role is done afterwards, since if they didnt get removed from the DB, they still need the role.
-    if !dointer_role::revoke_dointer_role(ctx, users_id).await {
-        // Removing the role failed.
+    if !Roles::revoke_doints_role(ctx, users_id).await? {
         warn!("User [{users_id}] now has the dointer role without being in the DB!");
         // TODO: This should message mods.
-        // No error to return. We're done.
     }
 
     Ok(())

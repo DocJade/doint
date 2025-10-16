@@ -23,7 +23,8 @@ impl From<&User> for DointFormatterPreference {
 pub type DelimiterPair = (char, char);
 
 impl DointFormatter {
-    #[must_use] pub fn display_doint_string(
+    #[must_use]
+    pub fn display_doint_string(
         doints: &BigDecimal,
         preference: &DointFormatterPreference,
     ) -> String {
@@ -31,7 +32,7 @@ impl DointFormatter {
 
         let (pre, decimals) = raw
             .split_once('.')
-            .expect("Should have a decimal component.");
+            .expect("A number should have 2 decimals");
 
         let (pre_delimiter, post_delimiter) = DointFormatter::get_delimiter(preference);
 
@@ -56,7 +57,8 @@ impl DointFormatter {
     }
 
     #[inline]
-    #[must_use] pub fn get_delimiter(preference: &DointFormatterPreference) -> DelimiterPair {
+    #[must_use]
+    pub fn get_delimiter(preference: &DointFormatterPreference) -> DelimiterPair {
         match preference {
             DointFormatterPreference::American => (',', '.'),
             DointFormatterPreference::European => ('.', ','),

@@ -14,7 +14,7 @@ use crate::prelude::*;
     check = guards::in_commands
     )
 ]
-pub async fn admin_tax_now(ctx: Context<'_>) -> Result<(), BotError> {
+pub async fn admin_tax_now(ctx: PoiseContext<'_>) -> Result<(), BotError> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -43,7 +43,7 @@ pub async fn admin_tax_now(ctx: Context<'_>) -> Result<(), BotError> {
     check = guards::in_commands
     )
 ]
-pub async fn admin_bank_info(ctx: Context<'_>) -> Result<(), BotError> {
+pub async fn admin_bank_info(ctx: PoiseContext<'_>) -> Result<(), BotError> {
     // Get the database pool
     let pool = ctx.data().db_pool.clone();
 
@@ -94,7 +94,7 @@ pub async fn admin_bank_info(ctx: Context<'_>) -> Result<(), BotError> {
     )
 ]
 pub async fn admin_set_tax_rate(
-    ctx: Context<'_>,
+    ctx: PoiseContext<'_>,
     #[description = "The new tax rate. Needs to be between 0 and 1000 inclusive."] new_rate: u16,
 ) -> Result<(), BotError> {
     // Get the database pool
@@ -134,7 +134,7 @@ pub async fn admin_set_tax_rate(
     )
 ]
 pub async fn admin_set_ubi_rate(
-    ctx: Context<'_>,
+    ctx: PoiseContext<'_>,
     #[description = "The new UBI rate. Needs to be between 0 and 1000 inclusive."] new_rate: u16,
 ) -> Result<(), BotError> {
     // Get the database pool

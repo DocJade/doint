@@ -13,8 +13,6 @@ pub use crate::knob::terms_and_conditions::*;
 
 pub use crate::guards;
 
-pub use crate::consent::*;
-
 // Tables & Cols
 pub use crate::schema::users::dsl::bal as bal_col;
 pub use crate::schema::users::dsl::id as user_id_col;

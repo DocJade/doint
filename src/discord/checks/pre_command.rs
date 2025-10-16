@@ -7,7 +7,7 @@ use crate::prelude::*;
 /// Runs before every command.
 ///
 /// Returns false if the user cannot run a command.
-pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, BotError> {
+pub async fn pre_command_call(ctx: PoiseContext<'_>) -> Result<bool, BotError> {
     // Skip everything if user is opting in.
     // TODO: Put this after channel checks
     if ctx.invoked_command_name() == "opt_in" {
@@ -25,7 +25,7 @@ pub async fn pre_command_call(ctx: Context<'_>) -> Result<bool, BotError> {
     };
 
     // If the user is not enrolled in doints, let them know.
-    let is_enrolled = member_enrolled_in_doints(member.clone().into_owned(), ctx)?;
+    let is_enrolled = Roles::member_enrolled_in_doints(&member);
 
     // We need to also check if the user is trying to opt in, if they are, we cant cancel the command.
     if !is_enrolled {

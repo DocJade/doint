@@ -4,9 +4,9 @@ use log::info;
 // Starting the bot
 use poise::serenity_prelude as serenity;
 
-use crate::consent::consent_button::opt_in;
 use crate::discord::checks::pre_command::pre_command_call;
 use crate::discord::handlers::event::handle_discord_event;
+use crate::invocable::opt_in::opt_in;
 use crate::invocable::privileged::private::economy::{
     admin_bank_info, admin_set_tax_rate, admin_set_ubi_rate, admin_tax_now,
 };
@@ -29,7 +29,7 @@ use crate::prelude::*;
 pub async fn create_client(discord_token: String, database_url: String) -> serenity::Client {
     let wip_client = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            command_check: Some(|ctx| {
+            command_check: Some(|ctx: PoiseContext| {
                 Box::pin(async move {
                     // debug!("Someone is trying to run command {}, checking if they can...", ctx.command().qualified_name);
                     pre_command_call(ctx).await
@@ -57,7 +57,7 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
                 admin_set_ubi_rate(),
             ],
             // Handle errors when they occur.
-            on_error: |error: poise::FrameworkError<'_, Data, BotError>| {
+            on_error: |error: poise::FrameworkError<'_, PoiseContextData, BotError>| {
                 Box::pin(ErrorHandler::handle_poise(error))
             },
             // Handle discord events
@@ -103,7 +103,7 @@ pub async fn create_client(discord_token: String, database_url: String) -> seren
                     .expect("Failed to create DB pool!");
 
                 // Set up shared data.
-                Ok(Data { db_pool })
+                Ok(PoiseContextData { db_pool })
             })
         })
         .build();

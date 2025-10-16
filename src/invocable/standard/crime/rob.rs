@@ -4,17 +4,16 @@ use bigdecimal::ToPrimitive;
 use bigdecimal::{BigDecimal, FromPrimitive, Zero};
 use diesel::Connection;
 use log::{debug, warn};
-use poise::serenity_prelude::Member;
 use rand::rng;
 use rand::seq::IndexedRandom;
 
 use crate::prelude::*;
 
 /// Rob someone. Odds of the robbery are based on wealth disparity.
-#[poise::command(slash_command, guild_only, check = guards::in_doints_category, check = guards::in_commands)]
+#[poise::command(slash_command, guild_only, check = guards::in_doints_category, check = guards::in_commands, check = guards::member_enrolled_in_doints)]
 pub async fn rob(
-    ctx: Context<'_>,
-    #[description = "Who would you like to rob?"] who: Member,
+    ctx: PoiseContext<'_>,
+    #[description = "Who would you like to rob?"] who: GuildMember,
 ) -> Result<(), BotError> {
     debug!(
         "User [{}] is robbing User [{}]!",
@@ -144,10 +143,7 @@ pub async fn rob(
         // Send them to jail.
         let failure_message = format!(
             "{}\nYou've been sent to jail for attempted robbery!",
-            get_robbery_flavor_text(
-                false,
-                &helper::get_nick::get_display_name(ctx, victim.id).await?
-            )
+            get_robbery_flavor_text(false, &Member::get_display_name(ctx, victim.id).await?)
         );
         robber.jail_user(&jail_form, &mut conn)?;
         ctx.say(failure_message).await?;
@@ -174,10 +170,7 @@ pub async fn rob(
     // Inform user
     let victory_message = format!(
         "{} {}!",
-        get_robbery_flavor_text(
-            true,
-            &helper::get_nick::get_display_name(ctx, victim.id).await?
-        ),
+        get_robbery_flavor_text(true, &Member::get_display_name(ctx, victim.id).await?),
         DointFormatter::display_doint_string(&steal_amount, &preference)
     );
     ctx.say(victory_message).await?;

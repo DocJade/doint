@@ -34,12 +34,9 @@ impl EventCaller {
             let mut all_doints: BigDecimal = the_bank.doints_on_hand;
 
             // Get how much money all users have
-            let user_total: Option<BigDecimal> = users_table
-                .select(sum(bal_col))
-                .first(conn)
-                .expect("Sum should always return 1 thing");
-            let user_total: BigDecimal =
-                user_total.expect("This always returns a number even on 0 rows");
+            let user_total: Option<BigDecimal> = users_table.select(sum(bal_col)).first(conn)?;
+
+            let user_total: BigDecimal = user_total.expect("We should always have this value");
             all_doints += user_total;
 
             // Does that match?

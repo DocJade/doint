@@ -311,11 +311,11 @@ fn calculate_winnings(symbols: [SlotSymbol; 3], payouts: &SlotPayoutTable) -> Op
     guild_only,
     user_cooldown = 5,
     check = guards::in_doints_category,
-    check = guards::ctx_member_enrolled_in_doints,
+    check = guards::member_enrolled_in_doints,
     check = guards::in_casino
 )]
 pub async fn slots(
-    ctx: Context<'_>,
+    ctx: PoiseContext<'_>,
     // #[description = "Which machine would you like to play?"] // TODO: more slot machines
     // machine: Coin,
 ) -> Result<(), BotError> {
