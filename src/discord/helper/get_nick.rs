@@ -4,7 +4,7 @@ use crate::prelude::*;
 /// Gets the display of a user based on a `UserID`.
 ///
 /// Note that this is may be different from their nickname.
-pub async fn get_display_name(ctx: Context<'_>, id: u64) -> Result<String, Error> {
+pub async fn get_display_name(ctx: Context<'_>, id: u64) -> Result<String, BotError> {
     // First we need the user
     let user = helper::get_user::get_user_from_id(ctx, id).await?;
 

@@ -318,7 +318,7 @@ pub async fn slots(
     ctx: Context<'_>,
     // #[description = "Which machine would you like to play?"] // TODO: more slot machines
     // machine: Coin,
-) -> Result<(), Error> {
+) -> Result<(), BotError> {
     // One day we'll support multiple slots, hence the var here
     let machine = &DILLIONARE;
 

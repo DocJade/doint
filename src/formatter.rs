@@ -23,7 +23,7 @@ impl From<&User> for DointFormatterPreference {
 pub type DelimiterPair = (char, char);
 
 impl DointFormatter {
-    pub fn display_doint_string(
+    #[must_use] pub fn display_doint_string(
         doints: &BigDecimal,
         preference: &DointFormatterPreference,
     ) -> String {
@@ -56,7 +56,7 @@ impl DointFormatter {
     }
 
     #[inline]
-    pub fn get_delimiter(preference: &DointFormatterPreference) -> DelimiterPair {
+    #[must_use] pub fn get_delimiter(preference: &DointFormatterPreference) -> DelimiterPair {
         match preference {
             DointFormatterPreference::American => (',', '.'),
             DointFormatterPreference::European => ('.', ','),

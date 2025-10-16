@@ -9,7 +9,7 @@ use poise::CreateReply;
 
 /// Consent to the doint system.
 #[poise::command(slash_command, guild_only)]
-pub async fn opt_in(ctx: Context<'_>) -> Result<(), Error> {
+pub async fn opt_in(ctx: Context<'_>) -> Result<(), BotError> {
     // User wants to opt into the database. Check if they're already here.
     let users_id: u64 = ctx.author().id.into();
 

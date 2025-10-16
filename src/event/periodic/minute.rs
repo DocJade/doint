@@ -9,12 +9,12 @@ impl EventCaller {
     /// Runs every minute.
     ///
     /// Returns true if all events worked correctly.
-    pub fn minute_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
+    pub fn minute_events(conn: &mut MysqlConnection) -> Result<bool, BotError> {
         do_minute_events(conn)
     }
 }
 
-pub fn do_minute_events(conn: &mut MysqlConnection) -> Result<bool, Error> {
+pub fn do_minute_events(conn: &mut MysqlConnection) -> Result<bool, BotError> {
     // Do everything in a transaction.
     conn.transaction(|conn| {
         // Loop over the people in jail and free them if we can.

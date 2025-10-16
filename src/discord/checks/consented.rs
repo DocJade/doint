@@ -5,7 +5,7 @@ use poise::serenity_prelude::{Member, RoleId};
 use crate::prelude::*;
 
 // Inner function that checks a member, not context
-pub fn member_enrolled_in_doints(member: Member, ctx: Context<'_>) -> Result<bool, Error> {
+pub fn member_enrolled_in_doints(member: Member, ctx: Context<'_>) -> Result<bool, BotError> {
     let Some(roles) = member.roles(ctx) else {
         // Cant get roles, user has none or something failed.
         return Ok(false);

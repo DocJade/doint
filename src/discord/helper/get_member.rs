@@ -13,7 +13,7 @@ use poise::serenity_prelude::{self as serenity, UserId};
 pub async fn get_member_from_id(
     ctx: Context<'_>,
     user_id: u64,
-) -> Result<Option<serenity::Member>, Error> {
+) -> Result<Option<serenity::Member>, BotError> {
     // Get the cached guild if possible.
     let guild = if let Some(guild) = ctx.cache().guild(DOCCORD_SERVER_ID) {
         guild.clone()
@@ -23,11 +23,8 @@ pub async fn get_member_from_id(
     } else {
         // This was called outside of the guild, we dont care.
         warn!("Tried to get a member from an ID while ctx was outside guild!");
-        warn!("Bot should not respond in DMs or in non-doccord!");
         // Ignored.
-        return Err(Error::ThisShouldNotHappen(
-            ThisShouldNotHappen::BotIsOutsideServer,
-        ))?;
+        return Err(BotError::OutsideServer)?;
     };
 
     // Does the guild have this member?

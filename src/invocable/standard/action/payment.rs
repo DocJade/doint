@@ -12,11 +12,11 @@ pub async fn pay(
     ctx: Context<'_>,
     #[description = "Who you are paying."] recipient: Member,
     #[description = "The amount of doints to pay them."] payment: f64,
-) -> Result<(), Error> {
+) -> Result<(), BotError> {
     // Turn that float into a BigDecimal
     let Some(payment) = BigDecimal::from_f64(payment) else {
         // Failed to cast!
-        return Err(Error::BigDecimalCastError);
+        return Err(BotError::BigDecimalCast);
     };
 
     debug!(
@@ -133,10 +133,8 @@ pub async fn pay(
                 return Ok(());
             }
             DointTransferError::DieselError(error) => {
-                // Well.
                 warn!("Transfer was valid, but DB failed! Cancelled.");
-                let _ = ctx.say("Payment failed for a DB reason. Tell Doc.").await?;
-                return Err(Error::DieselError(error));
+                return Err(BotError::from(error));
             }
         },
     };

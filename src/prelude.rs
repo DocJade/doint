@@ -13,8 +13,6 @@ pub use crate::knob::terms_and_conditions::*;
 
 pub use crate::guards;
 
-pub use crate::types::serenity_types::CommandCheckFailureReason;
-
 pub use crate::consent::*;
 
 // Tables & Cols
@@ -29,4 +27,6 @@ pub use crate::schema::jail::dsl::jail as jail_table;
 
 pub use crate::event::event_struct::EventCaller;
 
+pub use crate::errors::*;
 pub use crate::formatter::*;
+pub use guards::GuardError;

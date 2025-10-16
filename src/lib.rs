@@ -3,6 +3,7 @@ pub mod prelude;
 
 pub mod consent;
 pub mod discord;
+pub mod errors;
 pub mod event;
 pub mod formatter;
 pub mod guards;
