@@ -368,7 +368,7 @@ impl ErrorHandler {
     ) {
         error!("Event handler error: {error}");
         if let Some(ErrorSeverity::Fatal) = error.get_severity() {
-            error!("Fatal event error — exiting.");
+            error!("Fatal event error! Exiting.");
             process::exit(1);
         }
     }
