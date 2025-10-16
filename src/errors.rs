@@ -107,7 +107,7 @@ pub enum BotError {
 impl BotError {
     /// # Errors
     /// Will return an `Err` if the `BotError` cannot be constructed with a severity
-    pub fn with_severity(mut self, severity: ErrorSeverity) -> Result<Self, String> {
+    pub fn with_severity(mut self, severity: ErrorSeverity) -> Result<Self, ()> {
         match &mut self {
             Self::R2D2 { severity: s, .. }
             | Self::Diesel { severity: s, .. }
@@ -117,7 +117,8 @@ impl BotError {
             | Self::DointTransfer { severity: s, .. }
             | Self::Jail { severity: s, .. }
             | Self::Guard { severity: s, .. } => *s = severity,
-            _ => return Err(format!("Cannot construct {self:?} with a severity")),
+            // This error type doesn't support severity.
+            _ => return Err(()),
         }
         Ok(self)
     }
