@@ -353,7 +353,7 @@ impl ErrorHandler {
                 ..
             }
         ) {
-            error!("Fatal database error during startup — shutting down.");
+            error!("Fatal database error during startup! Shutting down.");
             process::exit(1);
         } else {
             process::exit(1);
