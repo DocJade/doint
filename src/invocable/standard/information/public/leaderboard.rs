@@ -38,7 +38,7 @@ pub async fn leaderboard(ctx: PoiseContext<'_>) -> Result<(), BotError> {
     for (rank, (name, doints)) in names_and_points.iter().enumerate() {
         // Format the doint string
         let doint_string = DointFormatter::display_doint_string(doints, &preference);
-        response += &format!("\n- {}: {name} - {doint_string}", rank + 1);
+        response = format!("{response}\n- {}: {name} - {doint_string}", rank + 1);
     }
 
     // Send it.

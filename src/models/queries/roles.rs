@@ -28,9 +28,8 @@ impl queries::Roles {
         user_id: u64,
         role_id: u64,
     ) -> Result<bool, BotError> {
-        let member = match queries::Member::from_id(ctx, user_id).await? {
-            Some(member) => member,
-            None => return Ok(false),
+        let Some(member) = queries::Member::from_id(ctx, user_id).await? else {
+            return Ok(false);
         };
 
         member.add_role(&ctx.http(), role_id).await?;
@@ -56,9 +55,8 @@ impl queries::Roles {
         user_id: u64,
         role_id: u64,
     ) -> Result<bool, BotError> {
-        let member = match queries::Member::from_id(ctx, user_id).await? {
-            Some(member) => member,
-            None => return Ok(false),
+        let Some(member) = queries::Member::from_id(ctx, user_id).await? else {
+            return Ok(false);
         };
 
         member.remove_role(&ctx.http(), role_id).await?;

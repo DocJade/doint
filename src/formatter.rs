@@ -30,7 +30,7 @@ impl DointFormatter {
     ) -> String {
         let raw = format!("{doints:.2}");
 
-        let (pre, decimals) = unsafe { raw.split_once('.').unwrap_unchecked() };
+        let (pre, decimals) =  raw.split_once('.').expect("A number should have 2 decimals");
 
         let (pre_delimiter, post_delimiter) = DointFormatter::get_delimiter(preference);
 

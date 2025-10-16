@@ -200,10 +200,12 @@ pub async fn handle_discord_event(
             info!("Ratelimited! [{}]", data.path);
         }
         serenity::FullEvent::Message { new_message } => {
+            // If the member is not enrolled in doints, do nothing.
             if !Roles::member_enrolled_in_doints(&new_message.member(ctx).await?) {
                 return Ok(());
             }
 
+            // Otherwise...
             ActivityRewardHelper::reward_talking(new_message, data);
         }
         _ => {}
