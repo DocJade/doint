@@ -1,16 +1,28 @@
-#![allow(clippy::result_large_err)]
-#![forbid(unsafe_code)]
-pub mod prelude;
+//! Doint - Discord economy bot
 
 pub mod discord;
-pub mod errors;
-pub mod event;
-pub mod formatter;
-pub mod guards;
-pub mod invocable;
 pub mod knob;
-pub mod models;
-pub mod tests;
-pub mod types;
-// Diesel related
-mod schema;
+pub mod schema;
+pub mod stock;
+
+// Re-exports
+pub use discord::prelude::*;
+pub use knob::*;
+pub use schema::*;
+pub use stock::*;
+
+/// Application state
+#[derive(Debug, Clone)]
+pub struct AppState {
+    /// Stock market manager
+    pub stock_manager: StockManager,
+}
+
+impl AppState {
+    /// Create new application state
+    pub fn new() -> Self {
+        Self {
+            stock_manager: StockManager::new(StockConfig::default()),
+        }
+    }
+}

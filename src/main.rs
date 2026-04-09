@@ -1,31 +1,23 @@
-use doint::discord::start::create_client;
-use dotenvy::dotenv;
-use std::env;
+//! Main entry point for Doint bot
+
+use doint::discord::start::start_bot;
+use doint::AppState;
+use std::error::Error;
+use tokio;
 
 #[tokio::main]
-async fn main() {
-    // Get env vars
-    dotenv().ok();
-
-    // Start logger.
-    // Everything besides the bot is turned off, otherwise the logs are noisy.
-    env_logger::Builder::new()
-        .filter_level(log::LevelFilter::Off)
-        .filter_module("doint", log::LevelFilter::Debug)
-        .init();
-
-    // load in our token
-    let discord_token = env::var("DISCORD_TOKEN").expect("DISCORD_TOKEN must be set");
-
-    // And the database url
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-
-    // Run the bot.
-    let result = create_client(discord_token, database_url)
-        .await
-        .start()
-        .await;
-    if let Err(error) = result {
-        panic!("Bot died! {error:#?}");
-    }
+async fn main() -> Result<(), Box<dyn Error>> {
+    // Initialize logging
+    env_logger::init();
+    
+    // Create application state
+    let state = AppState::new();
+    
+    // Start stock market updates
+    state.stock_manager.start_update_loop().await;
+    
+    // Start Discord bot
+    start_bot(state).await?;
+    
+    Ok(())
 }

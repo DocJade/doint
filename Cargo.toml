@@ -1,28 +1,14 @@
 [package]
 name = "doint"
 version = "0.1.0"
-edition = "2024"
-
-[lints.rust]
-unused_must_use = "forbid"
-
-[lints.clippy]
-all = { level = "warn", priority = -1 }
-pedantic = { level = "warn", priority = -1 }
+edition = "2021"
 
 [dependencies]
-bigdecimal = { version = "0.4", features = ["serde"] }
-chrono = "0.4"
-diesel = { version = "2.2", features = ["mysql", "r2d2", "chrono", "numeric"] }
-dotenvy = "0.15"
+serenity = { version = "0.12", features = ["client", "gateway", "http", "model", "standard_framework"] }
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+rand = "0.8"
 env_logger = "0.11"
-lazy_static = "1.5"
 log = "0.4"
-once_cell = "1.21.3"
-paste = "1.0.15"
-poise = "0.6"
-rand = "0.9"
-testcontainers-modules = { version = "0.13.0", features = ["mysql"] }
-thiserror = "2.0"
-tokio = { version = "1.47", features = ["rt", "rt-multi-thread"] }
-uuid = { version = "1.18.1", features = ["v4"] }
+
+[dev-dependencies]
